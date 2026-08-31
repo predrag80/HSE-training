@@ -2,6 +2,8 @@
 
 ## Project Structure
 
+- Read `SPEC.md` and `CONSTRAINTS.md` before writing code; do not weaken either
+  document merely to make a change pass.
 - Preserve existing files and keep changes scoped to the active task.
 - Place the web application under `apps/web/`.
 - Place the headless WordPress plugin under `wordpress/plugins/hse-headless/`.
@@ -31,4 +33,3 @@
 - Prefer static Astro pages.
 - Use server endpoints only where needed.
 - Implement features in small vertical slices.
-
