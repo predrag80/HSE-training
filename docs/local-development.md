@@ -13,7 +13,7 @@ Desktop, OrbStack, Colima, DDEV, LocalWP, MAMP, and XAMPP are not required.
 | Concern | Native development runtime | Intended address |
 |---|---|---|
 | Astro | Node.js LTS managed by `fnm` | `http://localhost:4321` |
-| WordPress | Nginx -> PHP 8.4 / PHP-FPM -> MySQL 8.4 | `http://cms.hsetraining.local` |
+| WordPress | Nginx -> PHP 8.4 / PHP-FPM -> MySQL 8.4 | `http://cms.hsetraining.test` |
 
 The Git repository and runtime are deliberately separate:
 
@@ -22,9 +22,9 @@ The Git repository and runtime are deliberately separate:
 - `~/Sites/hsetraining-cms` is the local WordPress runtime location and must not
   be committed to this repository.
 
-The Nginx virtual host and local-domain routing are deferred to the WordPress
-runtime task. The default Homebrew Nginx page currently remains on port 8080.
-Astro has not been created or installed.
+The WordPress runtime is installed at `~/Sites/hsetraining-cms`. Its Nginx
+virtual host listens on loopback only at `127.0.0.1:80`, and `/etc/hosts` maps
+`cms.hsetraining.test` to that address. Astro has not been created or installed.
 
 ## Installed Toolchain
 
@@ -35,7 +35,7 @@ Astro has not been created or installed.
 | PHP CLI | 8.4.25 | Versioned Homebrew formula selected on `PATH` |
 | PHP-FPM | 8.4.25 | Homebrew service; listens on `127.0.0.1:9000` |
 | MySQL | 8.4.11 | LTS formula; listens on `127.0.0.1:3306` only |
-| Nginx | 1.31.4 | Homebrew configuration; default port 8080 |
+| Nginx | 1.31.4 | Root-owned service for port 80; CMS virtual host is loopback-only |
 | Composer | 2.10.3 | Official verified PHAR; executes with PHP 8.4.25 |
 | WP-CLI | 2.12.0 | Official checksum-verified PHAR; executes with PHP 8.4.25 |
 | fnm | 1.39.0 | Initialized from `~/.zshrc` |
@@ -81,6 +81,7 @@ Manage PHP-FPM:
 
 ```sh
 brew services start php@8.4
+brew services restart php@8.4
 brew services stop php@8.4
 ```
 
@@ -88,6 +89,7 @@ Manage MySQL:
 
 ```sh
 brew services start mysql@8.4
+brew services restart mysql@8.4
 brew services stop mysql@8.4
 mysqladmin ping
 ```
@@ -95,10 +97,16 @@ mysqladmin ping
 Manage Nginx:
 
 ```sh
-brew services start nginx
-brew services stop nginx
-nginx -t
+sudo brew services start nginx
+sudo brew services restart nginx
+sudo brew services stop nginx
+sudo nginx -t
 ```
+
+Nginx runs as a root-owned Homebrew service because macOS reserves port 80 for
+privileged processes. The worker processes run as the local macOS account so
+PHP and WordPress files remain accessible without broadening filesystem
+permissions.
 
 Useful configuration locations can be derived without hardcoding the Homebrew
 prefix:
@@ -117,28 +125,63 @@ The native services are active and configured to restart at login:
 
 - PHP-FPM: `127.0.0.1:9000`
 - MySQL 8.4: `127.0.0.1:3306`
-- Nginx: port 8080
+- Nginx CMS virtual host: `127.0.0.1:80`
+- Nginx default Homebrew server: port 8080
 
 PostgreSQL 15 was already installed and running locally on port 5432 before this
 task. It was neither installed nor reconfigured here; application use remains
 deferred until the commerce/payment domain needs it.
 
-OrbStack and DDEV were installed during an earlier setup, and a WordPress runtime
-already exists at `~/Sites/hsetraining-cms`. That pre-existing runtime was not
-created, removed, or modified by this environment-preparation task. DDEV has no
-running project/container and OrbStack reports `Stopped`, so the HSE native stack
-does not depend on either tool.
+OrbStack and DDEV from an earlier setup have been uninstalled. The old DDEV
+configuration and the pre-existing WordPress configuration/core directories
+were archived outside the web root under `~/Sites/.hsetraining-cms-ddev-backup-*`.
+The native runtime has no dependency on DDEV or OrbStack.
 
-An OrbStack background process nevertheless still holds ports 80 and 443. This
-does not affect Homebrew Nginx on port 8080, but it must be resolved before the
-future `cms.hsetraining.local` virtual host can bind to port 80. Do not terminate
-or uninstall it without first confirming that no other project uses it.
+## Local WordPress Runtime
+
+The local CMS is a clean WordPress 7.1 installation:
+
+- Site: `http://cms.hsetraining.test`
+- Admin: `http://cms.hsetraining.test/wp-admin/`
+- REST API index: `http://cms.hsetraining.test/wp-json/`
+- REST content types: `http://cms.hsetraining.test/wp-json/wp/v2/types`
+- Runtime directory: `~/Sites/hsetraining-cms`
+- Nginx virtual host: `/opt/homebrew/etc/nginx/servers/hsetraining-cms.conf`
+- Database: `hsetraining_cms`
+- Database user: `hsetraining_wp@127.0.0.1`, scoped to that database only
+- Admin username: `hse_local_admin`
+- Permalink structure: `/%postname%/`
+- Environment type: `local`
+
+The database and WordPress admin passwords are strong generated values stored
+in macOS Keychain. They are intentionally absent from this repository and its
+documentation. Use the Keychain Access application to retrieve them when
+needed; the matching service names are `com.hsetraining.local.mysql` and
+`com.hsetraining.local.wordpress`.
+
+`wp-config.php` is outside Git and readable only by the local account. It enables
+debug logging while keeping errors out of HTTP responses. Review
+`~/Sites/hsetraining-cms/wp-content/debug.log` when diagnosing local failures.
+
+Common WP-CLI checks:
+
+```sh
+cd ~/Sites/hsetraining-cms
+wp core version
+wp core verify-checksums
+wp rewrite list
+wp plugin list
+wp option get home
+wp option get siteurl
+```
+
+The installation was verified through a real browser and authenticated HTTP
+session: the frontend, admin dashboard, CSS/JavaScript assets, REST API, and
+sample pretty-permalink page all load successfully. Requests for `wp-config.php`
+and dotfiles are denied by Nginx.
 
 ## Deferred Work
 
-- Do not install or re-install WordPress in this task.
-- Do not create the Nginx virtual host or change local hostname routing yet.
-- Do not create the WordPress database yet.
 - Do not scaffold Astro yet.
 - Do not connect to production services or create production credentials.
 
@@ -149,6 +192,11 @@ or uninstall it without first confirming that no other project uses it.
 - [Homebrew Nginx formula](https://formulae.brew.sh/formula/nginx)
 - [Composer installation](https://getcomposer.org/download/)
 - [WP-CLI installation](https://make.wordpress.org/cli/handbook/guides/installing/)
+- [WP-CLI core commands](https://developer.wordpress.org/cli/commands/core/)
+- [WP-CLI rewrite structure](https://developer.wordpress.org/cli/commands/rewrite/structure/)
+- [WordPress debugging](https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/)
+- [Nginx `try_files`](https://nginx.org/en/docs/http/ngx_http_core_module.html#try_files)
+- [Nginx FastCGI module](https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html)
 - [fnm zsh setup](https://github.com/Schniz/fnm#shell-setup)
 - [Node.js release status](https://nodejs.org/en/about/previous-releases)
 - [Astro Node.js requirements](https://docs.astro.build/en/install-and-setup/)
