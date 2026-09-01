@@ -1,7 +1,13 @@
 :root {
+	--color-text: #1d2939;
+	--color-border: #d0d5dd;
+	--color-surface: #fff;
+	--color-surface-muted: #f9fafb;
+	--color-action: #175cd3;
 	font-family: system-ui, sans-serif;
-	color: #111;
-	background: #fff;
+	color: var(--color-text);
+	background: var(--color-surface);
+	line-height: 1.5;
 }
 
 * {
@@ -14,5 +20,35 @@ body {
 }
 
 main {
-	padding: 2rem;
+	padding: 2rem 1rem;
+}
+
+img {
+	display: block;
+	max-width: 100%;
+}
+
+a {
+	color: var(--color-action);
+}
+
+a:focus-visible,
+button:focus-visible {
+	outline: 3px solid currentColor;
+	outline-offset: 3px;
+}
+
+.skip-link {
+	position: fixed;
+	top: 0.5rem;
+	left: 0.5rem;
+	z-index: 10;
+	padding: 0.5rem 0.75rem;
+	transform: translateY(-200%);
+	background: var(--color-surface);
+	border: 2px solid currentColor;
+}
+
+.skip-link:focus {
+	transform: translateY(0);
 }

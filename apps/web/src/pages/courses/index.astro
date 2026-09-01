@@ -1,0 +1,80 @@
+---
+import CourseCard from '../../components/course/CourseCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCourses } from '../../lib/cms';
+
+const courses = await getCourses();
+const pageDescription = 'Browse available HSE Training health and safety courses.';
+---
+
+<BaseLayout title="Courses | HSE Training" description={pageDescription}>
+	<main id="main-content" class="courses-page">
+		<header class="courses-page__header">
+			<h1>Courses</h1>
+			<p>Explore our available health and safety training.</p>
+		</header>
+
+		{
+			courses.length > 0 ? (
+				<ul class="course-grid" aria-label="Available courses">
+					{courses.map((course) => (
+						<li>
+							<CourseCard course={course} />
+						</li>
+					))}
+				</ul>
+			) : (
+				<section class="empty-state" aria-labelledby="no-courses-title">
+					<h2 id="no-courses-title">No courses are currently available.</h2>
+					<p>Please check back soon for new training opportunities.</p>
+				</section>
+			)
+		}
+	</main>
+</BaseLayout>
+
+<style>
+	.courses-page {
+		width: min(72rem, 100%);
+		margin: 0 auto;
+	}
+
+	.courses-page__header {
+		margin-bottom: 2rem;
+	}
+
+	.courses-page__header > * {
+		margin-block: 0 0.5rem;
+	}
+
+	.course-grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 1.5rem;
+		padding: 0;
+		margin: 0;
+		list-style: none;
+	}
+
+	.empty-state {
+		padding: 2rem;
+		background: var(--color-surface-muted);
+		border: 1px solid var(--color-border);
+	}
+
+	.empty-state > * {
+		margin-block: 0 0.5rem;
+	}
+
+	@media (min-width: 48rem) {
+		.course-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 64rem) {
+		.course-grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+</style>

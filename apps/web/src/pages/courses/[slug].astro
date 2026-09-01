@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCourses, type Course } from '../../lib/cms';
+import { createCourseStaticPaths, getCoursePageMetadata } from '../../lib/course-pages';
+
+interface Props {
+	course: Course;
+}
+
+export async function getStaticPaths() {
+	return createCourseStaticPaths(await getCourses());
+}
+
+const { course } = Astro.props;
+const metadata = getCoursePageMetadata(course);
+---
+
+<BaseLayout title={metadata.title} description={metadata.description}>
+	<main id="main-content" class="course-page">
+		<a class="course-page__back-link" href="/courses">Back to all courses</a>
+
+		<article>
+			<header class="course-header">
+				<div>
+					<h1>{course.title}</h1>
+					<p class="course-header__summary">{course.shortDescription}</p>
+					{course.visiblePrice && <p class="course-header__price">{course.visiblePrice}</p>}
+					<a class="course-header__cta" href="#enrollment-information">Enroll</a>
+				</div>
+				{
+					course.featuredImageUrl && (
+						<img
+							class="course-header__image"
+							src={course.featuredImageUrl}
+							alt={`Course image for ${course.title}`}
+							width="800"
+							height="450"
+							decoding="async"
+							fetchpriority="high"
+						/>
+					)
+				}
+			</header>
+
+			<section class="course-section" aria-labelledby="course-content-title">
+				<h2 id="course-content-title">Course overview</h2>
+				<!-- This HTML is trusted editor-authored content validated at the CMS boundary. -->
+				<div class="course-content">
+					<Fragment set:html={course.descriptionHtml} />
+				</div>
+			</section>
+
+			<section id="enrollment-information" class="course-section" aria-labelledby="enrollment-title">
+				<h2 id="enrollment-title">Enrollment</h2>
+				<p>Online enrollment will be available soon.</p>
+			</section>
+		</article>
+	</main>
+</BaseLayout>
+
+<style>
+	.course-page {
+		width: min(64rem, 100%);
+		margin: 0 auto;
+	}
+
+	.course-page__back-link {
+		display: inline-block;
+		margin-bottom: 1.5rem;
+	}
+
+	.course-header {
+		display: grid;
+		gap: 2rem;
+		align-items: center;
+	}
+
+	.course-header h1 {
+		margin-block: 0 0.75rem;
+		font-size: clamp(2rem, 5vw, 3rem);
+		line-height: 1.1;
+	}
+
+	.course-header__summary {
+		max-width: 42rem;
+		font-size: 1.125rem;
+	}
+
+	.course-header__price {
+		font-size: 1.25rem;
+		font-weight: 700;
+	}
+
+	.course-header__cta {
+		display: inline-block;
+		min-height: 2.75rem;
+		padding: 0.625rem 1rem;
+		color: var(--color-surface);
+		font-weight: 700;
+		text-decoration: none;
+		background: var(--color-action);
+		border-radius: 0.25rem;
+	}
+
+	.course-header__image {
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		object-fit: cover;
+	}
+
+	.course-section {
+		margin-top: 2.5rem;
+	}
+
+	.course-section h2 {
+		margin-bottom: 1rem;
+	}
+
+	.course-content :global(img) {
+		height: auto;
+	}
+
+	@media (min-width: 48rem) {
+		.course-header {
+			grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.75fr);
+		}
+	}
+</style>
