@@ -1,5 +1,8 @@
 ---
 import CourseCard from '../../components/course/CourseCard.astro';
+import Container from '../../components/ui/Container.astro';
+import Section from '../../components/ui/Section.astro';
+import SectionHeading from '../../components/ui/SectionHeading.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCourses } from '../../lib/cms';
 
@@ -8,62 +11,67 @@ const pageDescription = 'Browse available HSE Training health and safety courses
 ---
 
 <BaseLayout title="Courses | HSE Training" description={pageDescription}>
-	<main id="main-content" class="courses-page">
-		<header class="courses-page__header">
-			<h1>Courses</h1>
-			<p>Explore our available health and safety training.</p>
-		</header>
+	<main id="main-content">
+		<Section spacing="compact">
+			<Container>
+				<SectionHeading level="h1" eyebrow="Professional training">
+					Courses
+					<p slot="description">Explore our available health and safety training.</p>
+				</SectionHeading>
+			</Container>
+		</Section>
 
-		{
-			courses.length > 0 ? (
-				<ul class="course-grid" aria-label="Available courses">
-					{courses.map((course) => (
-						<li>
-							<CourseCard course={course} />
-						</li>
-					))}
-				</ul>
-			) : (
-				<section class="empty-state" aria-labelledby="no-courses-title">
-					<h2 id="no-courses-title">No courses are currently available.</h2>
-					<p>Please check back soon for new training opportunities.</p>
-				</section>
-			)
-		}
+		<Section tone="muted">
+			<Container>
+				{
+					courses.length > 0 ? (
+						<ul class="course-grid" aria-label="Available courses">
+							{courses.map((course) => (
+								<li>
+									<CourseCard course={course} />
+								</li>
+							))}
+						</ul>
+					) : (
+						<section class="empty-state surface-card flow" aria-labelledby="no-courses-title">
+							<h2 id="no-courses-title">No courses are currently available.</h2>
+							<p>Please check back soon for new training opportunities.</p>
+						</section>
+					)
+				}
+			</Container>
+		</Section>
 	</main>
 </BaseLayout>
 
 <style>
-	.courses-page {
-		width: min(72rem, 100%);
-		margin: 0 auto;
-	}
-
-	.courses-page__header {
-		margin-bottom: 2rem;
-	}
-
-	.courses-page__header > * {
-		margin-block: 0 0.5rem;
-	}
-
 	.course-grid {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr);
-		gap: 1.5rem;
+		grid-template-columns: minmax(0, 23.5625rem);
+		gap: var(--grid-gap);
+		max-width: 74.375rem;
 		padding: 0;
-		margin: 0;
+		margin: 0 auto;
 		list-style: none;
 	}
 
-	.empty-state {
-		padding: 2rem;
-		background: var(--color-surface-muted);
-		border: 1px solid var(--color-border);
+	.course-grid > li {
+		max-width: none;
 	}
 
-	.empty-state > * {
-		margin-block: 0 0.5rem;
+	.empty-state {
+		--flow-space: var(--space-3);
+
+		max-width: var(--container-content);
+		padding: clamp(var(--space-6), 5vw, var(--space-8));
+	}
+
+	.empty-state h2 {
+		font-size: var(--font-size-h3);
+	}
+
+	.empty-state p {
+		color: var(--color-text-muted);
 	}
 
 	@media (min-width: 48rem) {

@@ -1,0 +1,118 @@
+---
+interface Props {
+	href?: string;
+	variant?: 'primary' | 'secondary' | 'inverse' | 'text';
+	type?: 'button' | 'submit' | 'reset';
+	disabled?: boolean;
+	class?: string;
+}
+
+const {
+	href,
+	variant = 'primary',
+	type = 'button',
+	disabled = false,
+	class: className,
+} = Astro.props;
+const classes = ['button', `button--${variant}`, className];
+---
+
+{
+	href ? (
+		<a
+			class:list={classes}
+			href={disabled ? undefined : href}
+			aria-disabled={disabled ? 'true' : undefined}
+		>
+			<slot />
+		</a>
+	) : (
+		<button class:list={classes} type={type} disabled={disabled}>
+			<slot />
+		</button>
+	)
+}
+
+<style>
+	.button {
+		display: inline-flex;
+		min-height: 2.875rem;
+		align-items: center;
+		justify-content: center;
+		padding: 0.875rem 1.625rem;
+		color: var(--color-text-on-strong);
+		font-size: var(--font-size-label);
+		font-weight: var(--font-weight-medium);
+		letter-spacing: 0.04em;
+		line-height: 1.5;
+		text-align: center;
+		text-decoration: none;
+		text-transform: uppercase;
+		background: var(--color-accent-action);
+		border: 1px solid var(--color-accent-action);
+		border-radius: var(--radius-small);
+		box-shadow: var(--shadow-control);
+		cursor: pointer;
+		transition:
+			color var(--transition-base),
+			background-color var(--transition-base),
+			border-color var(--transition-base),
+			box-shadow var(--transition-base),
+			transform var(--transition-base);
+	}
+
+	.button:hover {
+		color: var(--color-text-on-strong);
+		background: var(--color-accent-hover);
+		border-color: var(--color-accent-hover);
+		transform: translateY(-2px);
+	}
+
+	.button--secondary {
+		color: var(--color-text-on-strong);
+		background: var(--color-ink);
+		border-color: var(--color-ink);
+	}
+
+	.button--secondary:hover {
+		color: var(--color-text-on-strong);
+		background: var(--color-brand-hover);
+		border-color: var(--color-brand-hover);
+	}
+
+	.button--inverse {
+		color: var(--color-text-on-strong);
+		background: transparent;
+		border-color: var(--color-text-on-strong);
+		box-shadow: none;
+	}
+
+	.button--inverse:hover {
+		color: var(--color-brand-strong);
+		background: var(--color-text-on-strong);
+		border-color: var(--color-text-on-strong);
+	}
+
+	.button--text {
+		min-height: 2.75rem;
+		padding-inline: 0;
+		color: var(--color-ink);
+		background: transparent;
+		border-color: transparent;
+		box-shadow: none;
+	}
+
+	.button--text:hover {
+		color: var(--color-brand-hover);
+		background: transparent;
+		border-color: transparent;
+		transform: none;
+	}
+
+	.button:disabled,
+	.button[aria-disabled='true'] {
+		opacity: 0.55;
+		cursor: not-allowed;
+		transform: none;
+	}
+</style>

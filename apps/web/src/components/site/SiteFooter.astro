@@ -1,0 +1,124 @@
+---
+import Container from '../ui/Container.astro';
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+	<Container>
+		<div class="site-footer__grid">
+			<div class="site-footer__intro flow">
+				<p class="site-footer__brand">HSE Training</p>
+				<p>
+					Professional health, safety and environmental training and consultancy from Belgrade,
+					Serbia.
+				</p>
+			</div>
+
+			<nav class="site-footer__nav" aria-label="Footer navigation">
+				<h2>Explore</h2>
+				<ul>
+					<li><a href="/">Home</a></li>
+					<li><a href="/courses">Courses</a></li>
+					<li><a href="/#about">About</a></li>
+					<li><a href="/#contact">Contact</a></li>
+				</ul>
+			</nav>
+
+			<div class="site-footer__contact">
+				<h2>Talk to us</h2>
+				<address>
+					<span>11000 Belgrade, Serbia</span>
+					<a href="tel:+381615335010">+381 61 5335 010</a>
+					<a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a>
+				</address>
+			</div>
+		</div>
+
+		<div class="site-footer__base">
+			<p>© {currentYear} HSE Training d.o.o.</p>
+			<p>Training for safer work.</p>
+		</div>
+	</Container>
+</footer>
+
+<style>
+	.site-footer {
+		padding-block: var(--section-space-compact) var(--space-6);
+		color: var(--color-text-muted);
+		background: var(--color-surface);
+		border-top: 1px solid var(--color-border);
+	}
+
+	.site-footer__grid {
+		display: grid;
+		gap: var(--space-7);
+	}
+
+	.site-footer__intro {
+		--flow-space: var(--space-4);
+
+		max-width: 31rem;
+	}
+
+	.site-footer__brand {
+		color: var(--color-ink);
+		font-size: var(--font-size-h3);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: -0.02em;
+	}
+
+	.site-footer h2 {
+		margin-bottom: var(--space-4);
+		color: var(--color-ink);
+		font-size: var(--font-size-h4);
+	}
+
+	.site-footer__nav ul {
+		display: grid;
+		gap: var(--space-2);
+		padding: 0;
+		margin: 0;
+		list-style: none;
+	}
+
+	.site-footer__nav li {
+		max-width: none;
+	}
+
+	.site-footer a {
+		color: var(--color-text-muted);
+		text-decoration-color: var(--color-border-strong);
+	}
+
+	.site-footer a:hover {
+		color: var(--color-accent-action);
+	}
+
+	.site-footer address {
+		display: grid;
+		gap: var(--space-2);
+		font-style: normal;
+	}
+
+	.site-footer__base {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: var(--space-3) var(--space-6);
+		padding-top: var(--space-6);
+		margin-top: var(--space-7);
+		font-size: var(--font-size-small);
+		border-top: 1px solid var(--color-border);
+	}
+
+	.site-footer__base p {
+		margin: 0;
+	}
+
+	@media (min-width: 48rem) {
+		.site-footer__grid {
+			grid-template-columns: minmax(0, 1.6fr) minmax(10rem, 0.6fr) minmax(14rem, 0.8fr);
+		}
+	}
+</style>

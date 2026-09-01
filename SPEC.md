@@ -33,8 +33,10 @@ WordPress or Astro into an LMS.
 - Initial course access is provisioned manually by the owner in an external LMS
   after a verified purchase.
 - No local customer authentication is required.
-- Crafto Consulting may inform visual direction only. Its implementation,
-  Elementor structure, and proprietary assets are not project architecture.
+- The [Crafto Consulting demo](https://crafto.themezaa.com/consulting/) is the
+  approved primary visual target for the public frontend. Corresponding HSE
+  Training sections should reproduce it with high visual fidelity while using
+  an independent Astro implementation and project-owned or approved assets.
 
 ## Capability Map
 
@@ -123,6 +125,95 @@ on SBB hosting                       |
   purchase; automation is a later integration decision.
 - The project must not reproduce LMS functions such as lessons, progress,
   quizzes, certificates, or learner authentication.
+
+## Frontend Design Contract
+
+### Approved visual target
+
+The Astro public application should reproduce the approved
+[Crafto Consulting demo](https://crafto.themezaa.com/consulting/) as closely as
+practical on a visually near-1:1 basis for corresponding sections, while
+adapting the content and brand expression to HSE Training.
+
+Visual fidelity includes:
+
+- section structure and composition;
+- layout proportions and container widths;
+- whitespace and vertical rhythm;
+- typography scale, hierarchy, and heading treatments;
+- card dimensions and composition;
+- image placement and cropping;
+- button dimensions and visual states;
+- borders, radii, and backgrounds;
+- navigation behavior;
+- responsive stacking, column collapse, resizing, and spacing; and
+- approved transitions and animations that contribute to the visible
+  experience.
+
+The visual target applies across mobile, tablet, laptop, and desktop layouts;
+desktop similarity alone does not satisfy this requirement. Equivalent
+responsive behavior must be implemented with clean project CSS rather than
+copying device-specific reference-site hacks.
+
+### Independent implementation
+
+High visual fidelity must not create implementation coupling to Crafto or
+Elementor. The frontend uses Astro components, Astro layouts, semantic HTML,
+project-specific class names, project-owned CSS, CSS Grid and Flexbox, and the
+minimum JavaScript required by approved interactions.
+
+Do not:
+
+- copy Elementor DOM structure or unnecessary page-builder wrapper markup;
+- copy Elementor-generated or Crafto CSS class names;
+- copy WordPress shortcodes or templates;
+- copy Crafto CSS or vendor JavaScript architecture;
+- install or depend on Crafto or Elementor; or
+- depend on Crafto assets that are not licensed and approved for this project.
+
+Visual equivalence does not require DOM equivalence. Semantic Astro markup may
+be materially simpler than the reference markup provided the rendered result
+and behavior closely match the approved visual target.
+
+“Convert Crafto to Astro” means:
+
+```text
+analyze visible layout and behavior
+        ↓
+identify reusable UI structures
+        ↓
+reimplement those structures independently
+        ↓
+Astro components + semantic HTML + project CSS
+```
+
+It does not mean copying source HTML into an `.astro` file or copying
+Elementor-generated HTML, CSS, and JavaScript and patching it until it works.
+
+### HSE Training content substitution
+
+Crafto supplies the approved structure and visual behavior; HSE Training
+supplies the content. Business copy becomes HSE Training copy, services become
+HSE services, experts become real HSE instructors or team members where
+applicable, and pricing or offer cards become real HSE courses where applicable.
+
+Do not reproduce Crafto placeholder content or invent HSE facts merely to fill
+a reference section. If a reference section has no logical HSE business purpose
+or lacks approved HSE content, record the discrepancy for owner review rather
+than forcing or fabricating content.
+
+### Interaction and animation policy
+
+Visible Crafto interactions that are relevant to the approved experience should
+be analyzed and reimplemented independently. Prefer CSS, native browser APIs,
+and minimal JavaScript. Adding an animation library such as GSAP requires a
+separate task with a documented need and dependency review. Crafto animation
+scripts must not be copied.
+
+This visual requirement does not change the system architecture: Astro remains
+the public application, WordPress remains the headless CMS, PostgreSQL remains
+the future business-state store, and Lemon Squeezy remains the expected payment
+provider.
 
 ## Stable Course Identity
 
@@ -275,6 +366,10 @@ must accompany application functionality as it is introduced.
 - Keep payment/business state in PostgreSQL.
 - Keep secrets in server-only configuration.
 - Prefer static Astro pages and small vertical implementation slices.
+- Reproduce corresponding Crafto Consulting sections with high visual fidelity
+  using HSE Training content and an independent Astro implementation.
+- Record reference sections that cannot be mapped honestly to approved HSE
+  content for owner review.
 - Add or update an ADR when an architectural choice changes.
 
 ### Ask first
@@ -293,7 +388,8 @@ must accompany application functionality as it is introduced.
 - Trust checkout success redirects as payment confirmation.
 - Expose secrets or privileged CMS/database access to browser code.
 - Host course lessons in Astro or build LMS functionality.
-- Copy Crafto/Elementor architecture or unlicensed proprietary assets.
+- Copy Crafto/Elementor source architecture, generated class names, vendor
+  scripts, unnecessary wrapper markup, or unlicensed proprietary assets.
 - Commit WordPress core, runtime uploads, databases, credentials, or `.env`
   files.
 
@@ -313,6 +409,10 @@ must accompany application functionality as it is introduced.
 - The owner can identify paid, unfulfilled purchases and record external LMS
   access delivery.
 - Instructional content and learner activity remain outside Astro and WordPress.
+- Corresponding public frontend sections match the approved Crafto Consulting
+  visual target with high fidelity across mobile, tablet, laptop, and desktop.
+- The high-fidelity frontend uses semantic Astro markup, project-specific CSS,
+  approved assets, and no Crafto/Elementor implementation dependency.
 - Build, type, lint, test, security, accessibility, and performance gates are
   defined and passing before production launch.
 
@@ -331,3 +431,6 @@ must accompany application functionality as it is introduced.
 6. How should WordPress publishing trigger Astro content refresh or deployment?
 7. What languages, accessibility target, analytics, cookie-consent, and SEO
    requirements apply to the public launch?
+8. Which Crafto sections lack a valid mapping to approved HSE Training content,
+   and should each be omitted, deferred, or populated after owner-supplied
+   content becomes available?

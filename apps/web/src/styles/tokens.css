@@ -1,0 +1,104 @@
+@font-face {
+	font-family: "Kumbh Sans";
+	font-style: normal;
+	font-weight: 400 700;
+	font-display: swap;
+	src: url("/fonts/kumbh-sans-latin-ext.woff2") format("woff2");
+	unicode-range:
+		U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+		U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
+		U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+	font-family: "Kumbh Sans";
+	font-style: normal;
+	font-weight: 400 700;
+	font-display: swap;
+	src: url("/fonts/kumbh-sans-latin.woff2") format("woff2");
+	unicode-range:
+		U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+		U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+		U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+	color-scheme: light;
+
+	/* Crafto-derived palette, adjusted where necessary for WCAG contrast. */
+	--color-ink: #292d36;
+	--color-ink-muted: #6b6e7b;
+	--color-accent: #dd6531;
+	--color-accent-action: #b84c20;
+	--color-accent-hover: #a8411b;
+	--color-accent-soft: #fbebe3;
+	--color-surface: #ffffff;
+	--color-surface-muted: #f7f7f7;
+	--color-border: #e4e4e4;
+	--color-border-strong: #c9cbd0;
+	--color-text-on-strong: #ffffff;
+	--color-text-on-strong-muted: #e2e3e6;
+	--color-border-on-strong: rgb(255 255 255 / 20%);
+	--color-focus: #f4a261;
+
+	/* Compatibility aliases for existing components during the migration. */
+	--color-brand-strong: var(--color-ink);
+	--color-brand: var(--color-ink);
+	--color-brand-hover: var(--color-accent-action);
+	--color-text: var(--color-ink);
+	--color-text-muted: var(--color-ink-muted);
+	--color-accent-on-strong: #f2a27e;
+
+	--font-family-sans: "Kumbh Sans", Arial, sans-serif;
+	--font-weight-regular: 400;
+	--font-weight-medium: 500;
+	--font-weight-semibold: 600;
+	--font-weight-bold: 700;
+
+	--font-size-display: clamp(3.75rem, calc(1.5875rem + 9.23vw), 6.875rem);
+	--font-size-h1: clamp(2.578rem, calc(1.8rem + 2.4vw), 3.438rem);
+	--font-size-h2: clamp(2.25rem, calc(1.65rem + 2.1vw), 3.438rem);
+	--font-size-h3: clamp(1.375rem, calc(1.2rem + 0.75vw), 1.625rem);
+	--font-size-h4: 1.25rem;
+	--font-size-body: 1.0625rem;
+	--font-size-body-large: clamp(1.0625rem, calc(1rem + 0.35vw), 1.25rem);
+	--font-size-small: 0.875rem;
+	--font-size-label: 0.75rem;
+
+	--line-height-tight: 1;
+	--line-height-heading: 1.08;
+	--line-height-body: 1.765;
+
+	--space-1: 0.25rem;
+	--space-2: 0.5rem;
+	--space-3: 0.75rem;
+	--space-4: 1rem;
+	--space-5: 1.5rem;
+	--space-6: 1.875rem;
+	--space-7: 2.5rem;
+	--space-8: 3.75rem;
+	--space-9: 5rem;
+	--space-10: 6.875rem;
+
+	--container-main: 76.25rem;
+	--container-content: 47.5rem;
+	--container-gutter: clamp(0.9375rem, 3.125vw, 3rem);
+	--section-space: clamp(3.125rem, 8vw, 6.875rem);
+	--section-space-compact: clamp(2.5rem, 5.5vw, 4.6875rem);
+	--grid-gap: 1.875rem;
+
+	--radius-small: 0.25rem;
+	--radius-medium: 0.375rem;
+	--radius-card: 0.375rem;
+	--radius-large: 0.375rem;
+	--shadow-card: 0 1.25rem 3.75rem rgb(0 0 0 / 8%);
+	--shadow-card-hover: 0 1.5rem 4rem rgb(0 0 0 / 12%);
+	--shadow-control: 0 0.3125rem 1.25rem rgb(0 0 0 / 10%);
+	--shadow-image: 0 1.5rem 4rem rgb(15 31 46 / 16%);
+	--shadow-image-on-strong: 0 1.5rem 4rem rgb(0 0 0 / 22%);
+
+	--transition-fast: 200ms ease;
+	--transition-base: 300ms ease;
+	--transition-media: 400ms ease;
+	--z-skip-link: 100;
+}

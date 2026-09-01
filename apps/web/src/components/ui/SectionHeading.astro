@@ -1,0 +1,55 @@
+---
+import Eyebrow from './Eyebrow.astro';
+
+interface Props {
+	eyebrow?: string;
+	level?: 'h1' | 'h2';
+	align?: 'start' | 'center';
+	class?: string;
+}
+
+const {
+	eyebrow,
+	level = 'h2',
+	align = 'start',
+	class: className,
+} = Astro.props;
+const hasDescription = Astro.slots.has('description');
+---
+
+<header class:list={['section-heading', `section-heading--${align}`, className]}>
+	{eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+	{level === 'h1' ? <h1><slot /></h1> : <h2><slot /></h2>}
+	{
+		hasDescription && (
+			<div class="section-heading__description text-lead">
+				<slot name="description" />
+			</div>
+		)
+	}
+</header>
+
+<style>
+	.section-heading {
+		max-width: 44rem;
+	}
+
+	.section-heading :global(h1),
+	.section-heading :global(h2),
+	.section-heading__description :global(p) {
+		margin-bottom: 0;
+	}
+
+	.section-heading__description {
+		margin-top: var(--space-4);
+	}
+
+	.section-heading--center {
+		margin-inline: auto;
+		text-align: center;
+	}
+
+	.section-heading--center .section-heading__description :global(p) {
+		margin-inline: auto;
+	}
+</style>

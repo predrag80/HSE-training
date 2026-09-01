@@ -1,0 +1,48 @@
+---
+interface Props {
+	tone?: 'default' | 'muted' | 'brand';
+	spacing?: 'default' | 'compact';
+	class?: string;
+	id?: string;
+}
+
+const { tone = 'default', spacing = 'default', class: className, id } = Astro.props;
+---
+
+<section
+	id={id}
+	class:list={[
+		'section',
+		`section--${tone}`,
+		spacing === 'compact' && 'section--compact',
+		className,
+	]}
+>
+	<slot />
+</section>
+
+<style>
+	.section {
+		padding-block: var(--section-space);
+	}
+
+	.section--compact {
+		padding-block: var(--section-space-compact);
+	}
+
+	.section--muted {
+		background: var(--color-surface-muted);
+	}
+
+	.section--brand {
+		color: var(--color-text-on-strong);
+		background: var(--color-ink);
+	}
+
+	.section--brand :global(h1),
+	.section--brand :global(h2),
+	.section--brand :global(h3),
+	.section--brand :global(h4) {
+		color: inherit;
+	}
+</style>

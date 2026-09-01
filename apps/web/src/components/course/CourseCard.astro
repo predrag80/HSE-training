@@ -1,4 +1,5 @@
 ---
+import Button from '../ui/Button.astro';
 import type { Course } from '../../types/course';
 
 interface Props {
@@ -8,7 +9,7 @@ interface Props {
 const { course } = Astro.props;
 ---
 
-<article class="course-card">
+<article class="course-card surface-card">
 	{
 		course.featuredImageUrl && (
 			<img
@@ -23,11 +24,11 @@ const { course } = Astro.props;
 		)
 	}
 	<div class="course-card__body">
-		<h2 class="course-card__title">
-			<a href={`/courses/${course.slug}`}>{course.title}</a>
-		</h2>
-		<p>{course.shortDescription}</p>
+		<p class="course-card__eyebrow eyebrow">HSE course</p>
+		<h2 class="course-card__title">{course.title}</h2>
+		<p class="course-card__summary">{course.shortDescription}</p>
 		{course.visiblePrice && <p class="course-card__price">{course.visiblePrice}</p>}
+		<Button class="course-card__action" href={`/courses/${course.slug}`}>View course</Button>
 	</div>
 </article>
 
@@ -36,22 +37,37 @@ const { course } = Astro.props;
 		display: grid;
 		height: 100%;
 		overflow: hidden;
-		background: var(--color-surface);
-		border: 1px solid var(--color-border);
-		border-radius: 0.5rem;
+		border: 0;
+		transition:
+			box-shadow var(--transition-base),
+			transform var(--transition-base);
+	}
+
+	.course-card:hover,
+	.course-card:focus-within {
+		box-shadow: var(--shadow-card-hover);
+		transform: translateY(-0.25rem);
 	}
 
 	.course-card__image {
 		width: 100%;
 		aspect-ratio: 16 / 9;
 		object-fit: cover;
+		transition: transform var(--transition-media);
+	}
+
+	.course-card:hover .course-card__image,
+	.course-card:focus-within .course-card__image {
+		transform: scale(1.03);
 	}
 
 	.course-card__body {
 		display: grid;
+		grid-template-rows: auto auto 1fr auto auto;
 		align-content: start;
-		gap: 0.75rem;
-		padding: 1.25rem;
+		gap: var(--space-4);
+		min-height: 28rem;
+		padding: clamp(var(--space-6), 4vw, var(--space-8));
 	}
 
 	.course-card__body > * {
@@ -59,11 +75,30 @@ const { course } = Astro.props;
 	}
 
 	.course-card__title {
-		font-size: 1.25rem;
-		line-height: 1.3;
+		font-size: var(--font-size-h3);
+		line-height: var(--line-height-heading);
+	}
+
+	.course-card__eyebrow {
+		margin-bottom: calc(var(--space-2) * -1);
+	}
+
+	.course-card__summary {
+		color: var(--color-text-muted);
 	}
 
 	.course-card__price {
-		font-weight: 700;
+		padding-top: var(--space-4);
+		color: var(--color-ink);
+		font-size: var(--font-size-h2);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: -0.035em;
+		line-height: var(--line-height-heading);
+		border-top: 1px solid var(--color-border);
+	}
+
+	.course-card :global(.course-card__action) {
+		width: 100%;
+		margin-top: var(--space-2);
 	}
 </style>
