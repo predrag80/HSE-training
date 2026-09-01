@@ -1,7 +1,7 @@
 # HSE Training Project Specification
 
 Status: Draft baseline for review
-Last reviewed: 2026-08-31
+Last reviewed: 2026-09-01
 
 ## Objective
 
@@ -129,6 +129,8 @@ on SBB hosting                       |
 `course_key` is the cross-system identifier for a course.
 
 - It is assigned deliberately, unique, and immutable after publication.
+- It uses lowercase ASCII letters and numbers separated by single hyphens, with
+  a maximum length of 80 characters.
 - It must not be derived from or replaced by a WordPress post ID.
 - WordPress, PostgreSQL, payment metadata, and LMS fulfillment references use
   the same value.
@@ -137,8 +139,8 @@ on SBB hosting                       |
 - The initial implementation must handle collections and lookup by
   `course_key`, even while only one course exists.
 
-The exact value format and initial key must be confirmed before defining the
-WordPress field and PostgreSQL schema.
+The initial key is `nebosh-igc`. Other systems must apply the same canonical
+format when the PostgreSQL and payment mappings are introduced.
 
 ## Primary Data Flows
 
@@ -317,18 +319,16 @@ before application functionality is merged.
 
 ## Open Questions
 
-1. What is the initial `course_key`, and what value format should all systems
-   enforce?
-2. Which WordPress fields and existing-site content must be migrated, and which
+1. Which WordPress fields and existing-site content must be migrated, and which
    current URLs require redirects?
-3. Which third-party LMS will be used, and what exact manual fulfillment steps
+2. Which third-party LMS will be used, and what exact manual fulfillment steps
    and evidence are required?
-4. Has Lemon Squeezy been approved for the required products, currencies, tax,
+3. Has Lemon Squeezy been approved for the required products, currencies, tax,
    invoices, refunds, and Serbian business context?
-5. Where will PostgreSQL run in production, and what backup, recovery, and
+4. Where will PostgreSQL run in production, and what backup, recovery, and
    operator-access model will it use?
-6. Which provider will deliver contact messages, what anti-spam mechanism is
+5. Which provider will deliver contact messages, what anti-spam mechanism is
    acceptable, and how long may submissions/logs be retained?
-7. How should WordPress publishing trigger Astro content refresh or deployment?
-8. What languages, accessibility target, analytics, cookie-consent, and SEO
+6. How should WordPress publishing trigger Astro content refresh or deployment?
+7. What languages, accessibility target, analytics, cookie-consent, and SEO
    requirements apply to the public launch?

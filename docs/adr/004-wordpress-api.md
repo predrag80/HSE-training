@@ -14,7 +14,13 @@ Astro needs published course and site content from WordPress without inheriting 
 
 ## Proposed Decision
 
-Expose only the content Astro needs through the WordPress API boundary. Identify courses across systems with a stable `course_key`, never with a WordPress post ID.
+Use the core WordPress posts controller for Courses at
+`/wp-json/wp/v2/courses`. Register the required scalar metadata explicitly and
+add only the `course_key` collection filter that the core controller lacks.
+
+Astro will validate and map the WordPress response at a CMS adapter boundary.
+Identify courses across systems with a stable `course_key`, never with a
+WordPress post ID.
 
 ## Alternatives Considered
 
@@ -25,6 +31,9 @@ Expose only the content Astro needs through the WordPress API boundary. Identify
 ## Consequences
 
 - The API contract must explicitly map CMS content to `course_key`.
+- Core WordPress status permissions continue to govern public and privileged
+  reads.
+- The public contract retains WordPress's rendered title/content structure; an
+  Astro adapter prevents that transport shape from spreading through the app.
 - WordPress content can be migrated without changing business identifiers.
 - Secrets and privileged WordPress operations must remain server-side.
-

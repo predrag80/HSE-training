@@ -11,3 +11,9 @@
 namespace HSETraining\Headless;
 
 defined( 'ABSPATH' ) || exit;
+
+require_once __DIR__ . '/src/Course/CoursePostType.php';
+require_once __DIR__ . '/src/Course/CourseMeta.php';
+
+Course\CoursePostType::register_hooks();
+Course\CourseMeta::register_hooks();
