@@ -1,6 +1,6 @@
 # Local Development
 
-Last verified: 2026-08-31  
+Last verified: 2026-09-01
 Host: macOS 26.6 on Apple Silicon (`arm64`)  
 Shell: zsh (`/bin/zsh`)  
 Homebrew prefix: `/opt/homebrew`
@@ -179,6 +179,32 @@ The installation was verified through a real browser and authenticated HTTP
 session: the frontend, admin dashboard, CSS/JavaScript assets, REST API, and
 sample pretty-permalink page all load successfully. Requests for `wp-config.php`
 and dotfiles are denied by Nginx.
+
+### HSE Headless Plugin
+
+The custom WordPress plugin remains owned by the Git repository and is connected
+to the local WordPress runtime with a symbolic link:
+
+```text
+Git-controlled source:
+~/Development/HSE-training/wordpress/plugins/hse-headless
+
+WordPress runtime:
+~/Sites/hsetraining-cms/wp-content/plugins/hse-headless
+
+Connection:
+symbolic link
+```
+
+Edit the Git-controlled source only; do not copy the plugin into the runtime or
+commit WordPress core and runtime state. Verify the connection and activation
+with:
+
+```sh
+readlink ~/Sites/hsetraining-cms/wp-content/plugins/hse-headless
+cd ~/Sites/hsetraining-cms
+wp plugin status hse-headless
+```
 
 ## Deferred Work
 
