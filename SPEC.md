@@ -200,9 +200,7 @@ never part of this repository.
 
 ## Command Contract
 
-There is no Astro application, package manifest, test runner, linter, or CI
-configuration yet. The task that scaffolds Astro must provide these commands
-without changing their intent:
+The Astro application provides these local quality and lifecycle commands:
 
 ```sh
 npm --prefix apps/web run dev
@@ -212,7 +210,7 @@ npm --prefix apps/web run lint
 npm --prefix apps/web run test
 ```
 
-Until then, repository documentation can be checked with:
+Repository documentation can be checked with:
 
 ```sh
 git diff --check
@@ -262,9 +260,10 @@ export interface CourseSummary {
   health of required server-side operations without exposing secrets.
 - No skipped or deleted test may be used to make a change pass.
 
-Framework and coverage tooling will be selected with the Astro scaffold. The
-resulting commands and measured baselines must be recorded in `CONSTRAINTS.md`
-before application functionality is merged.
+Astro Check validates TypeScript and Astro templates, ESLint provides static
+linting, and Vitest is the unit-test runner. The bootstrap baselines are recorded
+in `CONSTRAINTS.md`; behavior tests and representative coverage measurements
+must accompany application functionality as it is introduced.
 
 ## Boundaries
 

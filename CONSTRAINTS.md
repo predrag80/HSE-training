@@ -1,7 +1,7 @@
 # HSE Training Project Constraints
 
-Status: Written baseline; automation expands with the first application slice
-Last reviewed: 2026-08-31
+Status: Application quality tooling active; numerical gates expand with functional slices
+Last reviewed: 2026-09-01
 
 This file defines the minimum quality, security, architecture, and scope bar for
 all project work. It must be read with `AGENTS.md`, `SPEC.md`, and the ADRs before
@@ -145,15 +145,18 @@ These checks run today:
 | CMS install | WordPress reports installed | `wp core is-installed` in `~/Sites/hsetraining-cms` | CMS changes |
 | CMS integrity | Core matches official checksums | `wp core verify-checksums` in `~/Sites/hsetraining-cms` | CMS changes |
 | CMS routing | Rewrite rules are available | `wp rewrite list` in `~/Sites/hsetraining-cms` | CMS/API changes |
+| Astro build | Successful static production build | `npm --prefix apps/web run build` | application changes |
+| Astro types | Zero TypeScript/Astro errors | `npm --prefix apps/web run check` | application changes |
+| Astro lint | Zero configured lint errors | `npm --prefix apps/web run lint` | application changes |
+| Astro tests | Zero failing or skipped required tests | `npm --prefix apps/web run test` | application changes |
 
 WordPress checksum verification is the current external check: its expected
 state comes from the official distribution rather than from project-authored
 tests.
 
-## Application Gates to Activate with Astro
+## Application Baselines
 
-The Astro scaffolding task must create these scripts before application code is
-merged:
+The Astro scaffold provides the required scripts:
 
 | Dimension | Required result | Canonical command |
 |---|---|---|
@@ -162,8 +165,20 @@ merged:
 | Lint | Zero configured lint errors | `npm --prefix apps/web run lint` |
 | Tests | Zero failing or skipped required tests | `npm --prefix apps/web run test` |
 
-After the first executable slice, measure and record rather than invent the
-initial values for:
+The bootstrap foundation establishes these measured, informational baselines:
+
+- `npm --prefix apps/web run test` uses Vitest 4.1.11 and reports zero test
+  files because no application behavior exists yet.
+- `npm --prefix apps/web run build` produces one 406-byte `dist/index.html`
+  file plus the 655-byte starter favicon. It emits no JavaScript or separate CSS
+  asset; the minimal base CSS is inlined in the HTML.
+- Dependency installation audited 377 packages and reported zero known
+  vulnerabilities.
+- A Chrome runtime check at `http://localhost:4321` confirmed the expected title,
+  heading, status text, and zero console warnings or errors.
+
+Before application functionality is merged, measure and record rather than
+invent the initial values for:
 
 - changed-line and project test coverage;
 - production JavaScript and CSS size;

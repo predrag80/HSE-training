@@ -24,7 +24,8 @@ The Git repository and runtime are deliberately separate:
 
 The WordPress runtime is installed at `~/Sites/hsetraining-cms`. Its Nginx
 virtual host listens on loopback only at `127.0.0.1:80`, and `/etc/hosts` maps
-`cms.hsetraining.test` to that address. Astro has not been created or installed.
+`cms.hsetraining.test` to that address. The Astro application is installed in
+the Git repository under `apps/web`.
 
 ## Installed Toolchain
 
@@ -206,9 +207,57 @@ cd ~/Sites/hsetraining-cms
 wp plugin status hse-headless
 ```
 
+## Local Astro Application
+
+```text
+Astro source:
+~/Development/HSE-training/apps/web
+
+Local URL:
+http://localhost:4321
+
+Node:
+managed through fnm
+
+CMS URL:
+http://cms.hsetraining.test
+```
+
+The repository pins Node.js 24.20.0 LTS in `.node-version`. Open a new zsh
+session or ensure the `fnm`-managed Node executable is selected before running
+the application commands.
+
+Set the non-secret CMS base URL in `apps/web/.env` for local development. The
+committed `apps/web/.env.example` contains:
+
+```env
+WORDPRESS_API_URL=http://cms.hsetraining.test
+```
+
+Run the application from its directory:
+
+```sh
+cd ~/Development/HSE-training/apps/web
+
+npm install
+npm run dev
+npm run check
+npm run lint
+npm run test
+npm run build
+```
+
+Public pages use Astro's default static/prerendered output. No server adapter is
+installed yet. Server endpoints will be introduced later only for operations
+that require request-time execution, such as contact and payment handling. The
+CMS URL is typed server-side configuration, but the application does not fetch
+WordPress content yet.
+
 ## Deferred Work
 
-- Do not scaffold Astro yet.
+- Do not integrate the WordPress API or implement Course pages until their
+  dedicated tasks.
+- Do not add a server adapter until a server endpoint requires one.
 - Do not connect to production services or create production credentials.
 
 ## Official References
