@@ -1,0 +1,118 @@
+---
+import Container from '../ui/Container.astro';
+import Section from '../ui/Section.astro';
+---
+
+<Section id="about">
+	<Container>
+		<div class="about-grid">
+			<div class="about-copy flow">
+				<p class="eyebrow">Our approach</p>
+				<h2>Safety culture is built one person at a time.</h2>
+				<p class="text-lead">
+					HSE Training is a Belgrade-based training and consultancy company supporting
+					organisations in energy, mineral exploration, construction and other demanding
+					working environments.
+				</p>
+				<p>
+					We combine international experience with practical delivery, helping teams understand
+					not only what good practice requires, but how to apply it consistently at work.
+				</p>
+			</div>
+
+			<div class="about-principles">
+				<p class="about-principles__label">What guides our work</p>
+				<ul>
+					<li>
+						<strong>Make knowledge usable</strong>
+						<span>Explain complex topics through clear language and practical examples.</span>
+					</li>
+					<li>
+						<strong>Challenge routine thinking</strong>
+						<span>Look beyond minimum compliance for better, safer ways of working.</span>
+					</li>
+					<li>
+						<strong>Protect people and place</strong>
+						<span>Keep human wellbeing and environmental responsibility connected.</span>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</Container>
+</Section>
+
+<style>
+	.about-grid {
+		display: grid;
+		gap: var(--space-7);
+		align-items: start;
+	}
+
+	.about-copy {
+		--flow-space: var(--space-5);
+	}
+
+	.about-copy h2 {
+		max-width: 17ch;
+	}
+
+	.about-copy > * {
+		margin-bottom: 0;
+	}
+
+	.about-principles {
+		padding: clamp(var(--space-5), 5vw, var(--space-7));
+		color: var(--color-text-on-strong-muted);
+		background: var(--color-brand-strong);
+		border-top: 0.25rem solid var(--color-accent);
+	}
+
+	.about-principles__label {
+		margin-bottom: var(--space-6);
+		color: var(--color-accent-on-strong);
+		font-size: var(--font-size-small);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+
+	.about-principles ul {
+		display: grid;
+		gap: var(--space-5);
+		padding: 0;
+		margin: 0;
+		list-style: none;
+	}
+
+	.about-principles li {
+		display: grid;
+		grid-template-columns: 0.75rem minmax(0, 1fr);
+		gap: var(--space-2) var(--space-3);
+		max-width: none;
+	}
+
+	.about-principles li::before {
+		width: 0.5rem;
+		height: 0.5rem;
+		margin-top: 0.45rem;
+		content: '';
+		background: var(--color-accent);
+	}
+
+	.about-principles strong,
+	.about-principles span {
+		grid-column: 2;
+	}
+
+	.about-principles strong {
+		color: var(--color-text-on-strong);
+		font-size: var(--font-size-h4);
+	}
+
+	@media (min-width: 56rem) {
+		.about-grid {
+			grid-template-columns: minmax(0, 1fr) minmax(24rem, 0.8fr);
+			gap: var(--space-9);
+		}
+	}
+</style>

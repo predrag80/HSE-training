@@ -1,0 +1,160 @@
+---
+import ValueIcon from './ValueIcon.astro';
+import './home-about-value.css';
+
+const values = [
+	{
+		icon: 'training' as const,
+		title: 'Professional training',
+		description: 'International programmes and practical instruction.',
+	},
+	{
+		icon: 'management' as const,
+		title: 'HSE management',
+		description: 'Clear support for health, safety and quality systems.',
+	},
+	{
+		icon: 'consultancy' as const,
+		title: 'On-site consultancy',
+		description: 'Flexible delivery at the client location.',
+	},
+];
+---
+
+<section class="about-value" aria-labelledby="about-value-title" data-about-value>
+	<h2 class="about-value__heading" id="about-value-title">HSE Training values and approach</h2>
+	<div class="about-value__particles" aria-hidden="true">
+		<span></span><span></span><span></span><span></span><span></span><span></span>
+	</div>
+
+	<div class="about-value__inner">
+		<ul class="about-value__highlights" data-about-reveal>
+			{
+				values.map((item) => (
+					<li class="about-value__highlight">
+						<ValueIcon name={item.icon} />
+						<div>
+							<h3>{item.title}</h3>
+							<p>{item.description}</p>
+						</div>
+					</li>
+				))
+			}
+		</ul>
+
+		<div class="about-value__story">
+			<div class="about-value__media" data-about-media>
+				<div class="about-value__image about-value__image--primary">
+					<img
+						src="/images/consulting-about-01.webp"
+						alt="Consultant working at a desk in a modern office"
+						width="430"
+						height="553"
+						loading="lazy"
+						decoding="async"
+					/>
+				</div>
+				<div
+					class="about-value__image about-value__image--secondary"
+					aria-hidden="true"
+					data-about-parallax
+				>
+					<img
+						src="/images/consulting-about-02.webp"
+						alt=""
+						width="352"
+						height="452"
+						loading="lazy"
+						decoding="async"
+					/>
+				</div>
+			</div>
+
+			<div class="about-value__copy" data-about-reveal>
+				<p class="about-value__eyebrow">Company's vision</p>
+				<h3 class="about-value__title">Safety culture starts with people.</h3>
+				<p class="about-value__description">
+					Belgrade-based HSE Training helps organisations build knowledge, improve working
+					practices and strengthen safety culture.
+				</p>
+
+				<div class="about-value__actions">
+					<a class="about-value__button" href="#about">About company</a>
+					<a class="about-value__text-link" href="#contact">How we work</a>
+				</div>
+
+				<div
+					class="about-value__signature"
+					aria-label="HSE Training, based in Belgrade, providing training and consultancy"
+				>
+					<strong aria-hidden="true">HSE</strong>
+					<div aria-hidden="true">
+						<span class="about-value__marks">◆ ◆ ◆</span>
+						<span>Training &amp; consultancy</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<script>
+	import { getAboutParallaxOffset } from './home-about-value-motion';
+
+	document.querySelectorAll<HTMLElement>('[data-about-value]').forEach((section) => {
+		if (section.dataset.aboutValueReady === 'true') return;
+		section.dataset.aboutValueReady = 'true';
+		section.dataset.revealReady = 'true';
+
+		const media = section.querySelector<HTMLElement>('[data-about-media]');
+		const parallaxImage = section.querySelector<HTMLElement>('[data-about-parallax]');
+		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		let parallaxFrame = 0;
+
+		const updateParallax = () => {
+			parallaxFrame = 0;
+			if (!media || !parallaxImage) return;
+
+			const mediaRect = media.getBoundingClientRect();
+			const imageTop = mediaRect.top + parallaxImage.offsetTop;
+			const offset = getAboutParallaxOffset(
+				imageTop,
+				parallaxImage.offsetHeight,
+				window.innerHeight,
+			);
+			parallaxImage.style.setProperty('--about-parallax-y', `${offset}px`);
+		};
+
+		const requestParallaxUpdate = () => {
+			if (parallaxFrame) return;
+			parallaxFrame = window.requestAnimationFrame(updateParallax);
+		};
+
+		if (reducedMotion) {
+			parallaxImage?.style.setProperty('--about-parallax-y', '0px');
+			section.querySelectorAll('[data-about-reveal], [data-about-media]').forEach((element) => {
+				element.setAttribute('data-revealed', 'true');
+			});
+			return;
+		}
+
+		updateParallax();
+		window.addEventListener('scroll', requestParallaxUpdate, { passive: true });
+		window.addEventListener('resize', requestParallaxUpdate);
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (!entry.isIntersecting) return;
+					entry.target.setAttribute('data-revealed', 'true');
+					observer.unobserve(entry.target);
+				});
+			},
+			{ rootMargin: '0px 0px -8% 0px', threshold: 0.12 },
+		);
+
+		section.querySelectorAll('[data-about-reveal], [data-about-media]').forEach((element) => {
+			observer.observe(element);
+		});
+	});
+</script>

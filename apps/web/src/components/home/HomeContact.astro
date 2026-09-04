@@ -1,0 +1,86 @@
+---
+import Button from '../ui/Button.astro';
+import Container from '../ui/Container.astro';
+import Section from '../ui/Section.astro';
+---
+
+<Section id="contact" spacing="compact">
+	<Container>
+		<div class="contact-panel">
+			<div class="contact-panel__copy flow">
+				<p class="contact-panel__label">Start a conversation</p>
+				<h2>Planning training for your team?</h2>
+				<p>
+					Tell us what your people need to learn, where the training should happen and the
+					timeline you are working toward.
+				</p>
+			</div>
+
+			<div class="contact-panel__actions">
+				<Button href="mailto:info@hsetraining.rs" variant="inverse">Email HSE Training</Button>
+				<a class="contact-panel__phone" href="tel:+381615335010">Call +381 61 5335 010</a>
+			</div>
+		</div>
+	</Container>
+</Section>
+
+<style>
+	.contact-panel {
+		display: grid;
+		gap: var(--space-6);
+		align-items: center;
+		padding: clamp(var(--space-6), 7vw, var(--space-8));
+		color: var(--color-text-on-strong);
+		background: var(--color-accent);
+	}
+
+	.contact-panel__copy {
+		--flow-space: var(--space-4);
+	}
+
+	.contact-panel__copy > * {
+		margin-bottom: 0;
+	}
+
+	.contact-panel__label {
+		font-size: var(--font-size-small);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+
+	.contact-panel h2 {
+		max-width: 16ch;
+		color: inherit;
+	}
+
+	.contact-panel p {
+		max-width: 55ch;
+	}
+
+	.contact-panel__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3) var(--space-5);
+		align-items: center;
+	}
+
+	.contact-panel__phone {
+		min-height: 2.75rem;
+		align-content: center;
+		color: var(--color-text-on-strong);
+		font-weight: var(--font-weight-bold);
+		text-decoration-color: currentColor;
+	}
+
+	@media (min-width: 56rem) {
+		.contact-panel {
+			grid-template-columns: minmax(0, 1fr) auto;
+			gap: var(--space-8);
+		}
+
+		.contact-panel__actions {
+			justify-content: flex-end;
+		}
+	}
+</style>

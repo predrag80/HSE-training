@@ -1,0 +1,126 @@
+---
+import './home-services.css';
+
+const services = [
+	{
+		label: 'Flexible',
+		title: 'Audit assurance',
+		description: 'Innovative solutions',
+		image: '/images/consulting-service-01.webp',
+		alt: 'Consultants discussing a professional training programme',
+	},
+	{
+		label: 'Diversity',
+		title: 'Financial advisory',
+		description: 'Business consalting',
+		image: '/images/consulting-service-02.webp',
+		alt: 'Consultant presenting operational advice to colleagues',
+	},
+	{
+		label: 'Inclusion',
+		title: 'Business analytics',
+		description: 'Driving sustainable',
+		image: '/images/consulting-service-03.webp',
+		alt: 'Project team reviewing HSE management information',
+	},
+	{
+		label: 'Strategy',
+		title: 'Middle marketing',
+		description: 'Inclusive growth',
+		image: '/images/consulting-service-04.webp',
+		alt: 'Consultants collaborating during an on-site session',
+	},
+];
+---
+
+<section class="home-services" id="services" aria-labelledby="home-services-title" data-home-services>
+	<div class="home-services__inner">
+		<header class="home-services__header" data-services-heading>
+			<p class="home-services__eyebrow">Innovative solutions</p>
+			<h2 id="home-services-title">Consulting services</h2>
+		</header>
+
+		<ul class="home-services__grid" data-services-grid>
+			{
+				services.map((service) => (
+					<li class="home-services__item">
+						<div class="service-tilt" data-service-tilt>
+							<div class="service-tilt__scale">
+								<div class="service-tilt__rotate">
+									<div class="service-tilt__inner">
+										<a class="service-card" href="#contact" aria-label={`${service.title}: ${service.description}`}>
+											<img
+												class="service-card__image"
+												src={service.image}
+												alt={service.alt}
+												width="600"
+												height="815"
+												loading="lazy"
+												decoding="async"
+											/>
+											<span class="service-card__shade" aria-hidden="true"></span>
+											<span class="service-card__content">
+												<span class="service-card__label">{service.label}</span>
+												<strong class="service-card__title">{service.title}</strong>
+												<span class="service-card__description">{service.description}</span>
+											</span>
+										</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+</section>
+
+<script>
+	document.querySelectorAll<HTMLElement>('[data-home-services]').forEach((section) => {
+		if (section.dataset.servicesReady === 'true') return;
+		section.dataset.servicesReady = 'true';
+		section.dataset.revealReady = 'true';
+
+		const targets = section.querySelectorAll<HTMLElement>('[data-services-heading], [data-services-grid]');
+		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+		if (!reducedMotion && finePointer) {
+			section.querySelectorAll<HTMLElement>('[data-service-tilt]').forEach((tilt) => {
+				const resetTilt = () => {
+					tilt.style.setProperty('--service-rotate-x', '0deg');
+					tilt.style.setProperty('--service-rotate-y', '0deg');
+				};
+
+				tilt.addEventListener('pointermove', (event) => {
+					const rect = tilt.getBoundingClientRect();
+					const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+					const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+
+					tilt.style.setProperty('--service-rotate-x', `${y * -15}deg`);
+					tilt.style.setProperty('--service-rotate-y', `${x * 15}deg`);
+				});
+				tilt.addEventListener('pointerleave', resetTilt);
+			});
+		}
+
+		if (reducedMotion || !('IntersectionObserver' in window)) {
+			targets.forEach((target) => target.setAttribute('data-revealed', 'true'));
+			return;
+		}
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (!entry.isIntersecting) return;
+					entry.target.setAttribute('data-revealed', 'true');
+					observer.unobserve(entry.target);
+				});
+			},
+			{ rootMargin: '0px 0px -8% 0px', threshold: 0.12 },
+		);
+
+		targets.forEach((target) => observer.observe(target));
+	});
+</script>

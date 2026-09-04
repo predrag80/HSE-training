@@ -1,10 +1,23 @@
 ---
+import HomeAboutValue from '../components/home/HomeAboutValue.astro';
+import HomeClients from '../components/home/HomeClients.astro';
+import HomeExperts from '../components/home/HomeExperts.astro';
+import HomeHero from '../components/home/HomeHero.astro';
+import HomePricing from '../components/home/HomePricing.astro';
+import HomeServices from '../components/home/HomeServices.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="HSE Training">
+<BaseLayout
+	title="HSE Training | Health and Safety Training"
+	description="Professional health, safety and environmental training and consultancy from Belgrade, Serbia."
+>
 	<main id="main-content">
-		<h1>HSE Training</h1>
-		<p>Astro application is running.</p>
+		<HomeHero />
+		<HomeAboutValue />
+		<HomeServices />
+		<HomePricing />
+		<HomeClients />
+		<HomeExperts />
 	</main>
 </BaseLayout>

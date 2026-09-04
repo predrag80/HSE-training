@@ -1,0 +1,269 @@
+---
+import HomeHeroSlide from './HomeHeroSlide.astro';
+
+const slides = [
+	{
+		image: '/images/consulting-hero-01.webp',
+		leadingTitle: 'Professional',
+		emphasizedTitle: 'consulting',
+		messagePrefix: 'Request a free',
+		messageLink: 'business consulting!',
+		messageHref: '#contact',
+	},
+	{
+		image: '/images/consulting-hero-02.webp',
+		leadingTitle: 'Contribute',
+		emphasizedTitle: 'guidance',
+		messagePrefix: 'Discover our',
+		messageLink: 'business process!',
+		messageHref: '#about',
+	},
+	{
+		image: '/images/consulting-hero-03.webp',
+		leadingTitle: 'Business',
+		emphasizedTitle: 'strategies',
+		messagePrefix: 'Become a part of',
+		messageLink: 'business venture!',
+		messageHref: '#contact',
+	},
+];
+---
+
+<section
+	class="home-hero"
+	role="region"
+	aria-roledescription="carousel"
+	aria-label="Consulting highlights"
+	data-home-hero
+>
+	<h1 class="home-hero__heading">Professional consulting</h1>
+
+	<div class="home-hero__track" data-hero-track>
+		{
+			slides.map((slide, index) => (
+				<HomeHeroSlide
+					{...slide}
+					index={index}
+					total={slides.length}
+					active={index === 0}
+				/>
+			))
+		}
+	</div>
+
+	<div class="home-hero__pagination" role="group" aria-label="Choose a hero slide">
+		{
+			slides.map((slide, index) => (
+				<button
+					type="button"
+					aria-label={`Show slide ${index + 1}: ${slide.leadingTitle} ${slide.emphasizedTitle}`}
+					aria-controls={`home-hero-slide-${index + 1}`}
+					aria-current={index === 0 ? 'true' : undefined}
+					data-hero-pagination={index}
+				>
+					{String(index + 1).padStart(2, '0')}
+				</button>
+			))
+		}
+	</div>
+
+	<p class="home-hero__status" aria-live="polite" aria-atomic="true" data-hero-status>
+		Slide 1 of {slides.length}: Professional consulting
+	</p>
+</section>
+
+<script>
+	import { clampHeroSlideIndex, getHeroSlidePosition } from './home-hero-slider';
+
+	document.querySelectorAll<HTMLElement>('[data-home-hero]').forEach((hero) => {
+		if (hero.dataset.heroReady === 'true') return;
+
+		const track = hero.querySelector<HTMLElement>('[data-hero-track]');
+		const slides = [...hero.querySelectorAll<HTMLElement>('[data-hero-slide]')];
+		const controls = [...hero.querySelectorAll<HTMLButtonElement>('[data-hero-pagination]')];
+		const status = hero.querySelector<HTMLElement>('[data-hero-status]');
+		if (!track || !status || slides.length === 0 || controls.length !== slides.length) return;
+
+		hero.dataset.heroReady = 'true';
+		let activeIndex = 0;
+		let pointerStartY: number | null = null;
+		let pointerId: number | null = null;
+
+		const showSlide = (requestedIndex: number, announce = true) => {
+			const nextIndex = clampHeroSlideIndex(requestedIndex, slides.length);
+			if (nextIndex === activeIndex && announce) return;
+
+			activeIndex = nextIndex;
+			track.style.transform = `translate3d(0, -${activeIndex * 100}%, 0)`;
+
+			slides.forEach((slide, index) => {
+				const active = index === activeIndex;
+				slide.toggleAttribute('data-active', active);
+				slide.dataset.slidePosition = getHeroSlidePosition(index, activeIndex);
+				slide.setAttribute('aria-hidden', String(!active));
+				slide.toggleAttribute('inert', !active);
+			});
+
+			controls.forEach((control, index) => {
+				if (index === activeIndex) control.setAttribute('aria-current', 'true');
+				else control.removeAttribute('aria-current');
+			});
+
+			if (announce) {
+				const activeSlide = slides[activeIndex];
+				status.textContent = `Slide ${activeIndex + 1} of ${slides.length}: ${activeSlide.dataset.slideTitle}`;
+			}
+		};
+
+		controls.forEach((control, index) => {
+			control.addEventListener('click', () => showSlide(index));
+		});
+
+		hero.addEventListener('keydown', (event) => {
+			if (event.key === 'ArrowDown' || event.key === 'PageDown') {
+				event.preventDefault();
+				showSlide(activeIndex + 1);
+			}
+			if (event.key === 'ArrowUp' || event.key === 'PageUp') {
+				event.preventDefault();
+				showSlide(activeIndex - 1);
+			}
+			if (event.key === 'Home') {
+				event.preventDefault();
+				showSlide(0);
+			}
+			if (event.key === 'End') {
+				event.preventDefault();
+				showSlide(slides.length - 1);
+			}
+		});
+
+		hero.addEventListener('pointerdown', (event) => {
+			if (event.pointerType === 'mouse') return;
+			pointerStartY = event.clientY;
+			pointerId = event.pointerId;
+			hero.setPointerCapture(event.pointerId);
+		});
+
+		hero.addEventListener('pointerup', (event) => {
+			if (pointerStartY === null || pointerId !== event.pointerId) return;
+			const distance = event.clientY - pointerStartY;
+			pointerStartY = null;
+			pointerId = null;
+
+			if (distance <= -40) showSlide(activeIndex + 1);
+			if (distance >= 40) showSlide(activeIndex - 1);
+		});
+
+		hero.addEventListener('pointercancel', () => {
+			pointerStartY = null;
+			pointerId = null;
+		});
+
+		showSlide(0, false);
+	});
+</script>
+
+<style>
+	.home-hero {
+		position: relative;
+		height: 31.25rem;
+		isolation: isolate;
+		overflow: hidden;
+		color: var(--color-text-on-strong);
+		background: var(--color-ink);
+		touch-action: pan-x;
+	}
+
+	.home-hero__track {
+		display: flex;
+		height: 100%;
+		flex-direction: column;
+		transform: translate3d(0, 0, 0);
+		transition: transform 800ms ease;
+		will-change: transform;
+	}
+
+	.home-hero__pagination {
+		position: absolute;
+		z-index: 3;
+		right: 0;
+		bottom: 1.875rem;
+		left: 0;
+		display: flex;
+		justify-content: center;
+	}
+
+	.home-hero__pagination button {
+		display: grid;
+		width: 3.5rem;
+		height: 3.5rem;
+		padding: 0;
+		place-items: center;
+		margin-inline: 0.625rem;
+		color: rgb(255 255 255 / 70%);
+		font-size: 0.9375rem;
+		font-weight: var(--font-weight-regular);
+		line-height: 1.875rem;
+		background: transparent;
+		border: 0;
+		border-radius: 50%;
+		cursor: pointer;
+		transition:
+			color 400ms ease,
+			background-color 400ms ease;
+	}
+
+	.home-hero__pagination button:hover,
+	.home-hero__pagination button:focus-visible,
+	.home-hero__pagination button[aria-current='true'] {
+		color: var(--color-text-on-strong);
+		background-color: rgb(0 0 0 / 45%);
+	}
+
+	.home-hero__heading,
+	.home-hero__status {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		white-space: nowrap;
+		clip-path: inset(50%);
+	}
+
+	@media (min-width: 36rem) {
+		.home-hero {
+			height: 37.5rem;
+		}
+	}
+
+	@media (min-width: 62rem) {
+		.home-hero {
+			height: 100vh;
+			height: 100svh;
+			min-height: 43.75rem;
+		}
+
+		.home-hero__pagination {
+			top: 50%;
+			right: 3.125rem;
+			bottom: auto;
+			left: auto;
+			width: 4.75rem;
+			flex-direction: column;
+			transform: translateY(-50%);
+		}
+
+		.home-hero__pagination button {
+			margin: 0.3125rem 0.625rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.home-hero__track {
+			transition: none;
+		}
+	}
+</style>

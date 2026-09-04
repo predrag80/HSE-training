@@ -1,0 +1,102 @@
+---
+import Container from '../ui/Container.astro';
+import Section from '../ui/Section.astro';
+---
+
+<Section tone="brand" spacing="compact">
+	<Container>
+		<div class="reference-grid">
+			<div>
+				<p class="reference-label">Participant feedback</p>
+				<blockquote>
+					<p>“This was the best course I have ever attended in Serbia.”</p>
+					<footer>
+						<strong>Aleksandra Aritonovic</strong>
+						<span>HSE Advisor</span>
+					</footer>
+				</blockquote>
+			</div>
+
+			<div class="reference-summary flow">
+				<h2>Clear teaching. Practical examples. Professional delivery.</h2>
+				<p>
+					Participant and client references consistently highlight an ability to make complex
+					safety concepts understandable and relevant to real working situations.
+				</p>
+			</div>
+		</div>
+	</Container>
+</Section>
+
+<style>
+	.reference-grid {
+		display: grid;
+		gap: var(--space-7);
+		align-items: center;
+	}
+
+	.reference-label {
+		margin-bottom: var(--space-5);
+		color: var(--color-accent-on-strong);
+		font-size: var(--font-size-small);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+
+	blockquote {
+		margin: 0;
+	}
+
+	blockquote > p {
+		max-width: 19ch;
+		margin-bottom: var(--space-5);
+		color: var(--color-text-on-strong);
+		font-size: var(--font-size-h2);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: -0.025em;
+		line-height: var(--line-height-heading);
+	}
+
+	blockquote footer {
+		display: grid;
+		color: var(--color-text-on-strong-muted);
+		font-size: var(--font-size-small);
+	}
+
+	blockquote footer strong {
+		color: var(--color-text-on-strong);
+	}
+
+	.reference-summary {
+		--flow-space: var(--space-4);
+
+		padding-top: var(--space-6);
+		border-top: 1px solid var(--color-border-on-strong);
+	}
+
+	.reference-summary h2 {
+		font-size: var(--font-size-h3);
+	}
+
+	.reference-summary p {
+		color: var(--color-text-on-strong-muted);
+	}
+
+	.reference-summary > * {
+		margin-bottom: 0;
+	}
+
+	@media (min-width: 56rem) {
+		.reference-grid {
+			grid-template-columns: minmax(0, 1.25fr) minmax(20rem, 0.75fr);
+			gap: var(--space-9);
+		}
+
+		.reference-summary {
+			padding: 0 0 0 var(--space-7);
+			border-top: 0;
+			border-left: 1px solid var(--color-border-on-strong);
+		}
+	}
+</style>

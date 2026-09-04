@@ -1,0 +1,58 @@
+---
+interface Props {
+	name: 'training' | 'management' | 'consultancy';
+}
+
+const { name } = Astro.props;
+---
+
+<svg class="value-icon" viewBox="0 0 64 64" aria-hidden="true">
+	{
+		name === 'training' && (
+			<>
+				<path class="value-icon__soft" d="M15 45 6 54m13-5-8 8m-1-18L2 47m16-34c12-8 26-9 38-7 2 12 1 26-7 38L32 61l-9-17-17-9 12-22Z" />
+				<path class="value-icon__soft" d="m23 44 21-21" />
+				<path class="value-icon__strong" d="m31 26 14-7-7 14-1-6-6-1Z" />
+				<circle class="value-icon__soft" cx="27" cy="37" r="5" />
+			</>
+		)
+	}
+	{
+		name === 'management' && (
+			<>
+				<path class="value-icon__soft" d="M6 57h52M10 54V43h9v11m5 0V34h9v20m5 0V23h9v31m5 0V12h8v42" />
+				<path class="value-icon__strong" d="m10 35 13-13 9 6L52 8m-8 0h8v8" />
+			</>
+		)
+	}
+	{
+		name === 'consultancy' && (
+			<>
+				<circle class="value-icon__strong" cx="43" cy="17" r="13" />
+				<path class="value-icon__strong" d="M43 9v16m4-12c-1-2-3-3-5-3-3 0-5 2-5 4 0 6 11 3 11 9 0 3-2 5-6 5-2 0-5-1-6-3" />
+				<path class="value-icon__soft" d="M3 36h10l8 16-11 6L3 36Zm11 2 9-4c4-2 8-1 11 1l5 4 13-2c4-1 7 4 3 7L38 55c-3 2-7 2-10 1l-7-3" />
+				<path class="value-icon__soft" d="m27 40 8 4c3 2 1 7-2 7h-8" />
+			</>
+		)
+	}
+</svg>
+
+<style>
+	.value-icon {
+		width: 64px;
+		height: 64px;
+		flex: 0 0 64px;
+		fill: none;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 2.25;
+	}
+
+	.value-icon__soft {
+		stroke: #f6c9b7;
+	}
+
+	.value-icon__strong {
+		stroke: #e8642f;
+	}
+</style>

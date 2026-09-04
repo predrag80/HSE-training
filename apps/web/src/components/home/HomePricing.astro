@@ -1,0 +1,121 @@
+---
+import './home-pricing.css';
+
+const plans = [
+	{ name: 'Standard', price: '20' },
+	{ name: 'Business', price: '24' },
+	{ name: 'Ultimate', price: '30' },
+];
+
+const features = ['Marketing strategy', 'Competitive work analysis', 'Social media share audit'];
+---
+
+<section class="home-pricing" aria-labelledby="home-pricing-title" data-home-pricing>
+	<div class="home-pricing__inner">
+		<div class="home-pricing__intro">
+			<div class="home-pricing__copy" data-pricing-reveal="left">
+				<h2 id="home-pricing-title">Highly flexible pricing options.</h2>
+				<p>Lorem ipsum dolor sit amet consectetur adipiscing elit do eiusmod tempor.</p>
+				<a class="home-pricing__all" href="#pricing-plans">All pricing plans</a>
+			</div>
+
+			<div class="pricing-accordion" data-pricing-reveal="right">
+				<details open>
+					<summary>
+						<span>Unique and bold website design</span>
+						<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+					</summary>
+					<div class="pricing-accordion__panel">
+						<p>Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt.</p>
+					</div>
+				</details>
+				<details>
+					<summary>
+						<span>We're ready to start now</span>
+						<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+					</summary>
+					<div class="pricing-accordion__panel"><p>Lorem ipsum dolor sit amet consectetur adipiscing elit.</p></div>
+				</details>
+				<details>
+					<summary>
+						<span>Something for everyone</span>
+						<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+					</summary>
+					<div class="pricing-accordion__panel"><p>Lorem ipsum dolor sit amet consectetur adipiscing elit.</p></div>
+				</details>
+			</div>
+		</div>
+
+		<div class="pricing-plans" id="pricing-plans" data-pricing-reveal="plans">
+			{
+				plans.map((plan) => (
+					<article class="pricing-plan">
+						<h3>{plan.name}</h3>
+						<p class="pricing-plan__users">Unlimited users</p>
+						<div class="pricing-plan__price-row">
+							<p class="pricing-plan__price"><sup>$</sup>{plan.price}</p>
+							<p class="pricing-plan__period">per user/month billed annually</p>
+						</div>
+						<ul>
+							{features.map((feature) => (
+								<li>
+									<svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6" /></svg>
+									<span>{feature}</span>
+								</li>
+							))}
+						</ul>
+						<a class="pricing-plan__button" href="#contact">Choose package</a>
+					</article>
+				))
+			}
+		</div>
+
+		<ul class="pricing-promises" data-pricing-reveal="promises">
+			<li>
+				<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 2v3M17 2v3M3 9h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2Z" /><path d="m8 14 2.5 2.5L16 11" /></svg>
+				<span>Get 30 day free trial</span>
+			</li>
+			<li>
+				<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 7h18v13H3zM3 10h18M16 15h2" /><path d="M5 7V5h14v2" /></svg>
+				<span>No any hidden fees pay</span>
+			</li>
+			<li>
+				<svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+				<span>You can cancel anytime</span>
+			</li>
+		</ul>
+	</div>
+</section>
+
+<script>
+	document.querySelectorAll<HTMLElement>('[data-home-pricing]').forEach((section) => {
+		if (section.dataset.pricingReady === 'true') return;
+		section.dataset.pricingReady = 'true';
+
+		const details = [...section.querySelectorAll<HTMLDetailsElement>('details')];
+		if (window.matchMedia('(max-width: 74.999rem)').matches && details[0]) details[0].open = false;
+		details.forEach((item) => {
+			item.addEventListener('toggle', () => {
+				if (!item.open) return;
+				details.forEach((other) => {
+					if (other !== item) other.open = false;
+				});
+			});
+		});
+
+		const targets = section.querySelectorAll<HTMLElement>('[data-pricing-reveal]');
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+			targets.forEach((target) => target.setAttribute('data-revealed', 'true'));
+			return;
+		}
+
+		const observer = new IntersectionObserver((entries) => {
+			entries.forEach((entry) => {
+				if (!entry.isIntersecting) return;
+				entry.target.setAttribute('data-revealed', 'true');
+				observer.unobserve(entry.target);
+			});
+		}, { threshold: 0.1, rootMargin: '0px 0px -8% 0px' });
+		targets.forEach((target) => observer.observe(target));
+	});
+</script>

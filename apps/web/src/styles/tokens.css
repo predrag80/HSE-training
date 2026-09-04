@@ -100,5 +100,6 @@
 	--transition-fast: 200ms ease;
 	--transition-base: 300ms ease;
 	--transition-media: 400ms ease;
+	--z-header: 50;
 	--z-skip-link: 100;
 }

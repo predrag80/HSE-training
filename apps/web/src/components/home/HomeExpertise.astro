@@ -1,0 +1,139 @@
+---
+import Container from '../ui/Container.astro';
+import Section from '../ui/Section.astro';
+
+const expertise = [
+	{
+		number: '01',
+		title: 'Professional training',
+		description:
+			'International programmes and practical instruction designed to turn essential safety knowledge into confident action.',
+	},
+	{
+		number: '02',
+		title: 'HSE management support',
+		description:
+			'Clear, usable support for health, safety, environmental and quality systems grounded in real site requirements.',
+	},
+	{
+		number: '03',
+		title: 'On-site consultancy',
+		description:
+			'Flexible delivery at the client location when teams need training and guidance in their own working environment.',
+	},
+];
+---
+
+<Section>
+	<Container>
+		<div class="expertise-intro">
+			<div>
+				<p class="eyebrow">What we do</p>
+				<h2>Practical expertise.<br />International perspective.</h2>
+			</div>
+			<p class="text-lead">
+				Based in Belgrade and working across Eastern Europe, HSE Training helps organisations
+				build knowledge, improve working practices and strengthen their safety culture.
+			</p>
+		</div>
+
+		<ul class="expertise-list">
+			{
+				expertise.map((item) => (
+					<li>
+						<span class="expertise-list__number" aria-hidden="true">{item.number}</span>
+						<h3>{item.title}</h3>
+						<p>{item.description}</p>
+					</li>
+				))
+			}
+		</ul>
+	</Container>
+</Section>
+
+<style>
+	.expertise-intro {
+		display: grid;
+		gap: var(--space-5);
+		align-items: end;
+		margin-bottom: var(--space-8);
+	}
+
+	.expertise-intro h2,
+	.expertise-intro p {
+		margin-bottom: 0;
+	}
+
+	.expertise-intro .text-lead {
+		max-width: 42rem;
+	}
+
+	.expertise-list {
+		display: grid;
+		padding: 0;
+		margin: 0;
+		list-style: none;
+		border-top: 1px solid var(--color-border-strong);
+	}
+
+	.expertise-list li {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		gap: var(--space-3) var(--space-4);
+		max-width: none;
+		padding-block: var(--space-6);
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.expertise-list__number {
+		grid-row: 1 / span 2;
+		color: var(--color-accent);
+		font-size: var(--font-size-small);
+		font-weight: var(--font-weight-bold);
+		letter-spacing: 0.1em;
+	}
+
+	.expertise-list h3,
+	.expertise-list p {
+		margin: 0;
+	}
+
+	.expertise-list p {
+		color: var(--color-text-muted);
+	}
+
+	@media (min-width: 48rem) {
+		.expertise-intro {
+			grid-template-columns: minmax(0, 0.85fr) minmax(22rem, 1fr);
+			gap: var(--space-8);
+		}
+
+		.expertise-list {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+
+		.expertise-list li {
+			display: block;
+			padding: var(--space-6);
+			border-right: 1px solid var(--color-border);
+		}
+
+		.expertise-list li:first-child {
+			padding-left: 0;
+		}
+
+		.expertise-list li:last-child {
+			padding-right: 0;
+			border-right: 0;
+		}
+
+		.expertise-list__number {
+			display: block;
+			margin-bottom: var(--space-7);
+		}
+
+		.expertise-list h3 {
+			margin-bottom: var(--space-3);
+		}
+	}
+</style>

@@ -1,0 +1,115 @@
+---
+interface Props {
+	pathname: string;
+	isHome: boolean;
+}
+
+const { pathname, isHome } = Astro.props;
+const links = [
+	{ label: 'Home', href: '/', current: pathname === '/' },
+	{ label: 'About', href: isHome ? '#about' : '/#about', current: false },
+	{ label: 'Courses', href: '/courses', current: pathname.startsWith('/courses') },
+	{ label: 'Contact', href: isHome ? '#contact' : '/#contact', current: false },
+];
+---
+
+<nav class="site-nav" id="site-navigation" aria-label="Primary navigation" data-site-navigation>
+	<ul class="site-nav__list">
+		{
+			links.map((link) => (
+				<li class="site-nav__item">
+					<a class="site-nav__link" href={link.href} aria-current={link.current ? 'page' : undefined}>
+						{link.label}
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</nav>
+
+<style>
+	.site-nav {
+		position: absolute;
+		top: 100%;
+		left: calc(-1 * var(--header-gutter));
+		display: none;
+		width: calc(100% + (2 * var(--header-gutter)));
+		background: var(--color-surface);
+		border-top: 1px solid var(--color-border);
+		box-shadow: var(--shadow-card);
+	}
+
+	.site-nav[data-open] {
+		display: block;
+	}
+
+	.site-nav__list {
+		padding: var(--space-2) var(--header-gutter) var(--space-4);
+		margin: 0;
+		list-style: none;
+	}
+
+	.site-nav__item {
+		max-width: none;
+	}
+
+	.site-nav__link {
+		display: flex;
+		min-height: 3.125rem;
+		align-items: center;
+		padding-inline: var(--space-3);
+		color: var(--color-ink);
+		font-size: 1rem;
+		font-weight: var(--font-weight-regular);
+		line-height: 1;
+		text-decoration: none;
+		border-bottom: 1px solid var(--color-border);
+		transition:
+			color var(--transition-base),
+			opacity var(--transition-base);
+	}
+
+	.site-nav__link:hover,
+	.site-nav__link:focus-visible,
+	.site-nav__link[aria-current='page'] {
+		color: var(--color-accent-action);
+	}
+
+	@media (min-width: 62rem) {
+		.site-nav {
+			position: static;
+			display: block;
+			width: auto;
+			background: transparent;
+			border: 0;
+			box-shadow: none;
+		}
+
+		.site-nav__list {
+			display: flex;
+			align-items: stretch;
+			padding: 0;
+		}
+
+		.site-nav__link {
+			min-height: 5.9375rem;
+			padding-inline: 1.125rem;
+			color: var(--header-foreground);
+			font-size: 1.125rem;
+			border: 0;
+		}
+
+		.site-nav__link:hover,
+		.site-nav__link:focus-visible,
+		.site-nav__link[aria-current='page'] {
+			color: var(--header-foreground);
+			opacity: 0.62;
+		}
+	}
+
+	@media (min-width: 75rem) {
+		.site-nav__link {
+			padding-inline: 1.5625rem;
+		}
+	}
+</style>

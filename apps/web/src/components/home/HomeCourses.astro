@@ -1,0 +1,101 @@
+---
+import type { Course } from '../../types/course';
+import CourseCard from '../course/CourseCard.astro';
+import Button from '../ui/Button.astro';
+import Container from '../ui/Container.astro';
+import Section from '../ui/Section.astro';
+
+interface Props {
+	courses: Course[];
+}
+
+const { courses } = Astro.props;
+const featuredCourses = courses.slice(0, 3);
+---
+
+<Section tone="muted">
+	<Container>
+		<div class="courses-heading">
+			<div>
+				<p class="eyebrow">Available training</p>
+				<h2>Build capability that lasts beyond the classroom.</h2>
+			</div>
+			<Button href="/courses" variant="secondary">View all courses</Button>
+		</div>
+
+		{
+			featuredCourses.length > 0 ? (
+				<ul class="courses-grid" aria-label="Featured courses">
+					{featuredCourses.map((course) => (
+						<li>
+							<CourseCard course={course} />
+						</li>
+					))}
+				</ul>
+			) : (
+				<div class="courses-empty surface-card flow" role="status">
+					<h3>New courses are being prepared.</h3>
+					<p>Contact us to discuss your organisation’s training requirements.</p>
+				</div>
+			)
+		}
+	</Container>
+</Section>
+
+<style>
+	.courses-heading {
+		display: grid;
+		gap: var(--space-5);
+		align-items: end;
+		margin-bottom: var(--space-7);
+	}
+
+	.courses-heading h2 {
+		max-width: 18ch;
+		margin: 0;
+	}
+
+	.courses-heading :global(.button) {
+		justify-self: start;
+	}
+
+	.courses-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 23.75rem));
+		gap: var(--space-6);
+		padding: 0;
+		margin: 0;
+		list-style: none;
+	}
+
+	.courses-grid > li {
+		max-width: none;
+	}
+
+	.courses-empty {
+		--flow-space: var(--space-3);
+
+		max-width: var(--container-content);
+		padding: var(--space-6);
+	}
+
+	.courses-empty h3,
+	.courses-empty p {
+		margin-bottom: 0;
+	}
+
+	.courses-empty p {
+		color: var(--color-text-muted);
+	}
+
+	@media (min-width: 48rem) {
+		.courses-heading {
+			grid-template-columns: minmax(0, 1fr) auto;
+			gap: var(--space-7);
+		}
+
+		.courses-heading :global(.button) {
+			justify-self: end;
+		}
+	}
+</style>

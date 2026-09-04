@@ -1,0 +1,48 @@
+---
+import './header.css';
+import ConsultWordmark from './ConsultWordmark.astro';
+import HeaderMenu from './HeaderMenu.astro';
+import Navigation from './Navigation.astro';
+import SiteSearch from './SiteSearch.astro';
+
+const pathname = Astro.url.pathname;
+const isHome = pathname === '/';
+---
+
+<header class:list={['site-header', { 'site-header--overlay': isHome }]} data-site-header>
+	<div class="site-header__utility">
+		<div class="site-header__utility-inner">
+			<p>Health, safety and environmental training</p>
+			<div class="site-header__utility-contact">
+				<a href="tel:+381615335010" aria-label="Call HSE Training at +381 61 5335 010">
+					<svg viewBox="0 0 20 20" aria-hidden="true">
+						<path d="M17.8 13.6v2.5a1.7 1.7 0 0 1-1.8 1.7 16.8 16.8 0 0 1-7.3-2.6 16.5 16.5 0 0 1-5.1-5.1A16.8 16.8 0 0 1 1 2.8 1.7 1.7 0 0 1 2.7 1h2.5a1.7 1.7 0 0 1 1.7 1.4c.1.8.3 1.6.6 2.3a1.7 1.7 0 0 1-.4 1.8L6 7.6a13.4 13.4 0 0 0 5.1 5.1l1.1-1.1a1.7 1.7 0 0 1 1.8-.4c.8.3 1.5.5 2.3.6a1.7 1.7 0 0 1 1.5 1.8Z"></path>
+					</svg>
+					<span>+381 61 5335 010</span>
+				</a>
+				<span class="site-header__location">
+					<svg viewBox="0 0 20 20" aria-hidden="true">
+						<path d="M16 8.3c0 4.6-6 9.2-6 9.2S4 12.9 4 8.3a6 6 0 1 1 12 0Z"></path>
+						<circle cx="10" cy="8.3" r="2"></circle>
+					</svg>
+					<span>Belgrade, Serbia</span>
+				</span>
+			</div>
+		</div>
+	</div>
+
+	<div class="site-header__main">
+		<div class="site-header__inner">
+			<a class="site-header__brand" href="/" aria-label="HSE Training home">
+				<ConsultWordmark />
+			</a>
+
+			<Navigation pathname={pathname} isHome={isHome} />
+
+			<div class="site-header__actions">
+				<SiteSearch />
+				<HeaderMenu />
+			</div>
+		</div>
+	</div>
+</header>

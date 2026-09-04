@@ -1,0 +1,321 @@
+---
+interface Props {
+	index: number;
+	total: number;
+	image: string;
+	leadingTitle: string;
+	emphasizedTitle: string;
+	messagePrefix: string;
+	messageLink: string;
+	messageHref: string;
+	active: boolean;
+}
+
+const {
+	index,
+	total,
+	image,
+	leadingTitle,
+	emphasizedTitle,
+	messagePrefix,
+	messageLink,
+	messageHref,
+	active,
+} = Astro.props;
+const title = `${leadingTitle} ${emphasizedTitle}`;
+---
+
+<article
+	class="home-hero-slide"
+	id={`home-hero-slide-${index + 1}`}
+	role="group"
+	aria-roledescription="slide"
+	aria-label={`${index + 1} of ${total}: ${title}`}
+	aria-hidden={!active}
+	inert={!active ? true : undefined}
+	data-hero-slide
+	data-active={active ? '' : undefined}
+	data-slide-position={active ? 'active' : 'after'}
+	data-slide-title={title}
+>
+	<div class="home-hero-slide__cover">
+		<img
+			src={image}
+			alt=""
+			width="1920"
+			height="1080"
+			decoding="async"
+			loading={index === 0 ? 'eager' : 'lazy'}
+			fetchpriority={index === 0 ? 'high' : 'auto'}
+		/>
+		<div class="home-hero-slide__overlay" aria-hidden="true"></div>
+
+		<div class="home-hero-slide__content">
+			<div class="home-hero-slide__title" aria-hidden="true">
+				{leadingTitle}{' '}
+				<span>
+					{emphasizedTitle}
+					<i aria-hidden="true"></i>
+				</span>
+			</div>
+
+			<div class="home-hero-slide__action">
+				<a href="#contact">LET'S WORK TOGETHER</a>
+			</div>
+
+			<div class="home-hero-slide__message">
+				<p>{messagePrefix} <a href={messageHref}>{messageLink}</a></p>
+			</div>
+		</div>
+	</div>
+</article>
+
+<style>
+	.home-hero-slide {
+		--home-hero-ease-out-quad: linear(
+			0,
+			0.0975 5%,
+			0.19 10%,
+			0.2775 15%,
+			0.36 20%,
+			0.4375 25%,
+			0.51 30%,
+			0.5775 35%,
+			0.64 40%,
+			0.6975 45%,
+			0.75 50%,
+			0.7975 55%,
+			0.84 60%,
+			0.8775 65%,
+			0.91 70%,
+			0.9375 75%,
+			0.96 80%,
+			0.9775 85%,
+			0.99 90%,
+			0.9975 95%,
+			1
+		);
+
+		position: relative;
+		width: 100%;
+		height: 100%;
+		flex: 0 0 100%;
+		overflow: hidden;
+	}
+
+	.home-hero-slide__cover {
+		position: absolute;
+		inset: 0;
+		transition: transform 800ms ease;
+		will-change: transform;
+	}
+
+	.home-hero-slide[data-slide-position='before'] .home-hero-slide__cover {
+		transform: translate3d(0, 31.25rem, 0);
+	}
+
+	.home-hero-slide[data-slide-position='after'] .home-hero-slide__cover {
+		transform: translate3d(0, -31.25rem, 0);
+	}
+
+	.home-hero-slide__cover img,
+	.home-hero-slide__overlay {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+	}
+
+	.home-hero-slide__cover img {
+		object-fit: cover;
+		object-position: center;
+	}
+
+	.home-hero-slide__overlay {
+		background: var(--color-ink);
+		opacity: 0.3;
+	}
+
+	.home-hero-slide__content {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		width: min(100%, 74.375rem);
+		height: 100%;
+		align-items: center;
+		justify-content: center;
+		flex-direction: column;
+		margin-inline: auto;
+		text-align: center;
+	}
+
+	.home-hero-slide__title {
+		width: 100%;
+		margin: 0 0 1.875rem;
+		color: var(--color-text-on-strong);
+		font-size: clamp(3.75rem, 12.5vw, 6.875rem);
+		font-weight: var(--font-weight-regular);
+		letter-spacing: -0.125rem;
+		line-height: 1;
+		opacity: 0;
+		transform: none;
+		transform-origin: center;
+	}
+
+	.home-hero-slide__title span {
+		font-weight: var(--font-weight-semibold);
+	}
+
+	.home-hero-slide__title i {
+		display: inline;
+		width: 1.875rem;
+		height: 1px;
+		background: var(--color-border);
+	}
+
+	.home-hero-slide__action {
+		opacity: 0;
+		transform: none;
+	}
+
+	.home-hero-slide__action a {
+		display: inline-block;
+		padding: 1.25rem 2.25rem;
+		margin-inline: 0.25rem;
+		color: var(--color-text-on-strong);
+		font-size: 0.875rem;
+		font-weight: var(--font-weight-medium);
+		letter-spacing: 0.03125rem;
+		line-height: 1.3125rem;
+		text-decoration: none;
+		background: var(--color-accent);
+		border-radius: var(--radius-small);
+		transition:
+			background-color 300ms ease-in-out,
+			transform 300ms ease-in-out;
+	}
+
+	.home-hero-slide__action a:hover,
+	.home-hero-slide__action a:focus-visible {
+		color: var(--color-text-on-strong);
+		background: var(--color-accent-hover);
+		transform: translateY(-2px);
+	}
+
+	.home-hero-slide__message {
+		width: 100%;
+		margin-top: 1.5625rem;
+		color: var(--color-text-on-strong);
+		font-size: 1.25rem;
+		font-weight: var(--font-weight-regular);
+		line-height: 1.875rem;
+		opacity: 0;
+	}
+
+	.home-hero-slide__message p {
+		max-width: none;
+		margin: 0 0 1.5625rem;
+	}
+
+	.home-hero-slide__message a {
+		color: inherit;
+		text-decoration: none;
+		border-bottom: 1px solid currentColor;
+		transition: opacity 300ms ease-in-out;
+	}
+
+	.home-hero-slide__message a:hover,
+	.home-hero-slide__message a:focus-visible {
+		color: inherit;
+		opacity: 0.72;
+	}
+
+	.home-hero-slide[data-active] .home-hero-slide__title {
+		animation: home-hero-title-in 600ms var(--home-hero-ease-out-quad) 200ms both;
+	}
+
+	.home-hero-slide[data-active] .home-hero-slide__action {
+		animation: home-hero-action-in 600ms var(--home-hero-ease-out-quad) 300ms both;
+	}
+
+	.home-hero-slide[data-active] .home-hero-slide__message {
+		animation: home-hero-message-in 500ms var(--home-hero-ease-out-quad) 800ms both;
+	}
+
+	.home-hero-slide:not([data-active]) .home-hero-slide__title,
+	.home-hero-slide:not([data-active]) .home-hero-slide__action {
+		transform: none !important;
+		animation: none !important;
+	}
+
+	@media (min-width: 36rem) {
+		.home-hero-slide__title {
+			width: 70%;
+			margin-bottom: 4%;
+			font-size: 6.015625rem;
+			letter-spacing: -0.25rem;
+			line-height: 0.9091;
+		}
+
+		.home-hero-slide__message {
+			margin-top: 2.5rem;
+		}
+	}
+
+	@media (min-width: 62rem) {
+		.home-hero-slide__title {
+			font-size: 6.875rem;
+		}
+
+		.home-hero-slide__message {
+			position: absolute;
+			bottom: 0;
+			margin: 0 0 5%;
+		}
+	}
+
+	@keyframes home-hero-title-in {
+		from {
+			opacity: 0;
+			transform: rotateX(90deg);
+		}
+		to {
+			opacity: 1;
+			transform: rotateX(0deg);
+		}
+	}
+
+	@keyframes home-hero-action-in {
+		from {
+			opacity: 0;
+			transform: translateY(1.875rem);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@keyframes home-hero-message-in {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.home-hero-slide__cover {
+			transition: none;
+		}
+
+		.home-hero-slide[data-active] .home-hero-slide__title,
+		.home-hero-slide[data-active] .home-hero-slide__action,
+		.home-hero-slide[data-active] .home-hero-slide__message {
+			opacity: 1;
+			transform: none;
+			animation: none;
+		}
+	}
+</style>
