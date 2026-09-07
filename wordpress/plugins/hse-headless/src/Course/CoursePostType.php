@@ -67,7 +67,7 @@ final class CoursePostType {
 				'rewrite'             => false,
 				'query_var'           => false,
 				'menu_icon'           => 'dashicons-welcome-learn-more',
-				'supports'            => array( 'title', 'editor', 'thumbnail', 'revisions', 'custom-fields' ),
+				'supports'            => array( 'title', 'editor', 'thumbnail', 'page-attributes', 'revisions', 'custom-fields' ),
 			)
 		);
 	}

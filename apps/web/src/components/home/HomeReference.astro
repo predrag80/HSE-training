@@ -1,102 +1,182 @@
 ---
-import Container from '../ui/Container.astro';
-import Section from '../ui/Section.astro';
+import type { Reference } from '../../types/reference';
+
+interface Props {
+	readonly references: readonly Reference[];
+}
+
+const { references } = Astro.props;
 ---
 
-<Section tone="brand" spacing="compact">
-	<Container>
-		<div class="reference-grid">
+<section class="home-reference" id="reference" aria-labelledby="home-reference-title" data-home-reference>
+	<div class="home-reference__container">
+		<header class="home-reference__heading" data-reference-reveal="left">
 			<div>
-				<p class="reference-label">Participant feedback</p>
-				<blockquote>
-					<p>“This was the best course I have ever attended in Serbia.”</p>
-					<footer>
-						<strong>Aleksandra Aritonovic</strong>
-						<span>HSE Advisor</span>
-					</footer>
-				</blockquote>
+				<p>Participant and client feedback</p>
+				<h2 id="home-reference-title">Professional training people remember.</h2>
 			</div>
+			<span>Our references highlight clear communication, practical examples and training that connects directly with real work.</span>
+		</header>
 
-			<div class="reference-summary flow">
-				<h2>Clear teaching. Practical examples. Professional delivery.</h2>
-				<p>
-					Participant and client references consistently highlight an ability to make complex
-					safety concepts understandable and relevant to real working situations.
-				</p>
-			</div>
+		<div class="home-reference__grid">
+			{references.map((reference) => (
+				<article class:list={['home-reference__card', { 'home-reference__card--accent': reference.accentOnHomepage }]} data-reference-reveal="up">
+					<span class="home-reference__quote-mark" aria-hidden="true">“</span>
+					<blockquote>
+						<p>{reference.quote}</p>
+						<footer>
+							<strong>{reference.authorName}</strong>
+							<small>{reference.role}</small>
+						</footer>
+					</blockquote>
+				</article>
+			))}
 		</div>
-	</Container>
-</Section>
+	</div>
+</section>
+
+<script>
+	document.querySelectorAll<HTMLElement>('[data-home-reference]').forEach((section) => {
+		if (section.dataset.referenceReady === 'true') return;
+		section.dataset.referenceReady = 'true';
+		const targets = section.querySelectorAll<HTMLElement>('[data-reference-reveal]');
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+			targets.forEach((target) => target.setAttribute('data-revealed', 'true'));
+			return;
+		}
+		const observer = new IntersectionObserver((entries) => {
+			entries.forEach((entry) => {
+				if (!entry.isIntersecting) return;
+				(entry.target as HTMLElement).setAttribute('data-revealed', 'true');
+				observer.unobserve(entry.target);
+			});
+		}, { threshold: 0.14 });
+		targets.forEach((target) => observer.observe(target));
+	});
+</script>
 
 <style>
-	.reference-grid {
-		display: grid;
-		gap: var(--space-7);
-		align-items: center;
+	.home-reference {
+		scroll-margin-top: 5.9375rem;
+		padding: 7rem 0 7.5rem;
+		background: #f7f7f7;
 	}
 
-	.reference-label {
-		margin-bottom: var(--space-5);
-		color: var(--color-accent-on-strong);
-		font-size: var(--font-size-small);
-		font-weight: var(--font-weight-bold);
-		letter-spacing: 0.1em;
+	.home-reference__container {
+		width: min(76.25rem, calc(100% - 3.75rem));
+		margin-inline: auto;
+	}
+
+	.home-reference__heading {
+		display: grid;
+		grid-template-columns: 1fr 0.58fr;
+		gap: 6rem;
+		align-items: end;
+		margin-bottom: 4.5rem;
+	}
+
+	.home-reference__heading p {
+		margin: 0 0 0.75rem;
+		color: #dd6531;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.045em;
 		text-transform: uppercase;
 	}
 
-	blockquote {
+	.home-reference__heading h2 {
+		max-width: 13ch;
 		margin: 0;
+		color: #292d36;
+		font-size: clamp(2.7rem, 4.2vw, 3.65rem);
+		font-weight: 600;
+		letter-spacing: -0.05em;
+		line-height: 1.03;
 	}
 
-	blockquote > p {
-		max-width: 19ch;
-		margin-bottom: var(--space-5);
-		color: var(--color-text-on-strong);
-		font-size: var(--font-size-h2);
-		font-weight: var(--font-weight-semibold);
-		letter-spacing: -0.025em;
-		line-height: var(--line-height-heading);
+	.home-reference__heading > span {
+		padding-bottom: 0.4rem;
+		color: #808291;
+		line-height: 1.75;
 	}
 
-	blockquote footer {
+	.home-reference__grid {
 		display: grid;
-		color: var(--color-text-on-strong-muted);
-		font-size: var(--font-size-small);
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1.5rem;
 	}
 
-	blockquote footer strong {
-		color: var(--color-text-on-strong);
+	.home-reference__card {
+		position: relative;
+		min-height: 19rem;
+		padding: 3rem 3.25rem;
+		overflow: hidden;
+		background: #fff;
+		box-shadow: 0 1.25rem 3.5rem rgb(26 29 35 / 5%);
+		transition: color 500ms ease, transform 500ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 500ms ease;
 	}
 
-	.reference-summary {
-		--flow-space: var(--space-4);
-
-		padding-top: var(--space-6);
-		border-top: 1px solid var(--color-border-on-strong);
+	.home-reference__card::before {
+		position: absolute;
+		inset: auto 0 0;
+		height: 0;
+		content: '';
+		background: #292d36;
+		transition: height 500ms cubic-bezier(0.23, 1, 0.32, 1);
 	}
 
-	.reference-summary h2 {
-		font-size: var(--font-size-h3);
+	.home-reference__card--accent { background: #dd6531; }
+	.home-reference__card--accent::before { background: #292d36; }
+	.home-reference__card > * { position: relative; z-index: 1; }
+	.home-reference__quote-mark { display: block; height: 3.75rem; color: #dd6531; font-family: Georgia, serif; font-size: 5.5rem; line-height: 0.8; }
+	.home-reference__card--accent .home-reference__quote-mark { color: rgb(255 255 255 / 60%); }
+	.home-reference__card blockquote { margin: 0; }
+	.home-reference__card blockquote > p { max-width: 32rem; margin: 0 0 2rem; color: #40434c; font-size: clamp(1.15rem, 1.65vw, 1.45rem); line-height: 1.55; }
+	.home-reference__card footer { display: grid; gap: 0.15rem; }
+	.home-reference__card footer strong { color: #292d36; font-size: 0.95rem; }
+	.home-reference__card footer small { color: #9698a3; font-size: 0.82rem; }
+	.home-reference__card--accent blockquote > p,
+	.home-reference__card--accent footer strong { color: #fff; }
+	.home-reference__card--accent footer small { color: rgb(255 255 255 / 66%); }
+	.home-reference__card:hover { box-shadow: 0 1.75rem 4rem rgb(26 29 35 / 14%); transform: translateY(-0.65rem); }
+	.home-reference__card:hover::before { height: 100%; }
+	.home-reference__card:hover .home-reference__quote-mark { color: #f49a76; }
+	.home-reference__card:hover blockquote > p,
+	.home-reference__card:hover footer strong { color: #fff; }
+	.home-reference__card:hover footer small { color: rgb(255 255 255 / 58%); }
+
+	[data-reference-reveal] { opacity: 0; transition: opacity 850ms cubic-bezier(0.23, 1, 0.32, 1), transform 850ms cubic-bezier(0.23, 1, 0.32, 1); }
+	[data-reference-reveal='left'] { transform: translateX(-2.75rem); }
+	[data-reference-reveal='up'] { transform: translateY(2.25rem); }
+	[data-reference-reveal][data-revealed='true'] { opacity: 1; transform: translate(0); }
+
+	@media (max-width: 74.999rem) {
+		.home-reference__container { width: 60rem; }
 	}
 
-	.reference-summary p {
-		color: var(--color-text-on-strong-muted);
+	@media (max-width: 61.999rem) {
+		.home-reference__container { width: 45rem; }
+		.home-reference__heading { gap: 3rem; }
+		.home-reference__card { padding: 2.5rem; }
 	}
 
-	.reference-summary > * {
-		margin-bottom: 0;
+	@media (max-width: 47.999rem) {
+		.home-reference { padding-block: 5rem; }
+		.home-reference__container { width: calc(100% - 3.75rem); }
+		.home-reference__heading { grid-template-columns: 1fr; gap: 1.5rem; }
+		.home-reference__heading h2 { max-width: none; }
+		.home-reference__grid { grid-template-columns: 1fr; }
 	}
 
-	@media (min-width: 56rem) {
-		.reference-grid {
-			grid-template-columns: minmax(0, 1.25fr) minmax(20rem, 0.75fr);
-			gap: var(--space-9);
-		}
+	@media (max-width: 35.999rem) {
+		.home-reference__container { width: calc(100% - 1.875rem); }
+		.home-reference__heading h2 { font-size: 2.35rem; }
+		.home-reference__card { min-height: 17rem; padding: 2.1rem 1.75rem; }
+	}
 
-		.reference-summary {
-			padding: 0 0 0 var(--space-7);
-			border-top: 0;
-			border-left: 1px solid var(--color-border-on-strong);
-		}
+	@media (prefers-reduced-motion: reduce) {
+		.home-reference__card,
+		.home-reference__card::before,
+		[data-reference-reveal] { opacity: 1; transform: none; transition: none; }
 	}
 </style>

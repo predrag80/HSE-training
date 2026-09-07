@@ -1,6 +1,9 @@
 ---
 import CompanyPage from '../../components/company/CompanyPage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCompanyPage } from '../../lib/cms';
+
+const companyPage = await getCompanyPage();
 ---
 
 <BaseLayout
@@ -8,6 +11,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 	description="Discover the people, expertise and consulting approach behind HSE Training."
 >
 	<main id="main-content">
-		<CompanyPage />
+		<CompanyPage content={companyPage} />
 	</main>
 </BaseLayout>

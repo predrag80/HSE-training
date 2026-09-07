@@ -1,5 +1,6 @@
 ---
 import './home-final-cta.css';
+import { contactDetails } from '../../lib/contact';
 
 const rotatingWords = ['consulting!', 'business!', 'innovative!'];
 ---
@@ -28,7 +29,7 @@ const rotatingWords = ['consulting!', 'business!', 'innovative!'];
 			</span>
 			<div class="home-final-cta__contact-copy">
 				<p>Looking for collaboration?</p>
-				<a href="mailto:info@yourdomain.com">info@yourdomain.com</a>
+				<a href={contactDetails.emailHref}>{contactDetails.email}</a>
 			</div>
 		</div>
 	</div>

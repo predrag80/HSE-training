@@ -1,4 +1,12 @@
-export { getCourseByKey, getCourseBySlug, getCourses } from './courses';
+export { getCompanyPage } from './company';
+export { getCourseByKey, getCourseBySlug, getCourses, getHomepageCourses } from './courses';
+export { getHomepage } from './homepage';
+export { getHomepageReferences, getReferences } from './references';
+export { getServices } from './services';
 export { CmsError, isCmsError } from './errors';
 export type { CmsErrorCode } from './errors';
 export type { Course } from '../../types/course';
+export type { CompanyPageContent, CompanyProfile } from '../../types/company';
+export type { Homepage, HomepageHero, HomepageHeroSlide } from '../../types/homepage';
+export type { Service, ServiceCollection } from '../../types/service';
+export type { Reference, ReferenceCollection } from '../../types/reference';

@@ -36,6 +36,15 @@ function parseCourse(value: unknown): WordPressCourseDto {
 	if (typeof meta.visible_price !== 'string') {
 		return invalidCourse('meta.visible_price is required');
 	}
+	if (typeof meta.homepage_label !== 'string') {
+		return invalidCourse('meta.homepage_label is required');
+	}
+	if (typeof meta.homepage_cta_label !== 'string') {
+		return invalidCourse('meta.homepage_cta_label is required');
+	}
+	if (typeof meta.featured_on_homepage !== 'boolean') {
+		return invalidCourse('meta.featured_on_homepage must be boolean');
+	}
 
 	return value as unknown as WordPressCourseDto;
 }
@@ -71,6 +80,9 @@ export function mapWordPressCourse(value: unknown): Course {
 		descriptionHtml: course.content.rendered,
 		featuredImageUrl: getFeaturedImageUrl(course),
 		visiblePrice: course.meta.visible_price || null,
+		homepageLabel: course.meta.homepage_label,
+		homepageCtaLabel: course.meta.homepage_cta_label,
+		featuredOnHomepage: course.meta.featured_on_homepage,
 		status: course.status,
 	};
 }

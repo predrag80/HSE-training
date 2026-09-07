@@ -1,13 +1,17 @@
 ---
+import type { HomepageHeroImage } from '../../types/homepage';
+
 interface Props {
 	index: number;
 	total: number;
-	image: string;
+	image: HomepageHeroImage;
 	leadingTitle: string;
 	emphasizedTitle: string;
+	primaryCtaLabel: string;
+	primaryCtaUrl: string;
 	messagePrefix: string;
-	messageLink: string;
-	messageHref: string;
+	messageLinkLabel: string;
+	messageLinkUrl: string;
 	active: boolean;
 }
 
@@ -17,9 +21,11 @@ const {
 	image,
 	leadingTitle,
 	emphasizedTitle,
+	primaryCtaLabel,
+	primaryCtaUrl,
 	messagePrefix,
-	messageLink,
-	messageHref,
+	messageLinkLabel,
+	messageLinkUrl,
 	active,
 } = Astro.props;
 const title = `${leadingTitle} ${emphasizedTitle}`;
@@ -40,10 +46,10 @@ const title = `${leadingTitle} ${emphasizedTitle}`;
 >
 	<div class="home-hero-slide__cover">
 		<img
-			src={image}
-			alt=""
-			width="1920"
-			height="1080"
+			src={image.url}
+			alt={image.alt}
+			width={image.width}
+			height={image.height}
 			decoding="async"
 			loading={index === 0 ? 'eager' : 'lazy'}
 			fetchpriority={index === 0 ? 'high' : 'auto'}
@@ -60,11 +66,11 @@ const title = `${leadingTitle} ${emphasizedTitle}`;
 			</div>
 
 			<div class="home-hero-slide__action">
-				<a href="#contact">LET'S WORK TOGETHER</a>
+				<a href={primaryCtaUrl}>{primaryCtaLabel}</a>
 			</div>
 
 			<div class="home-hero-slide__message">
-				<p>{messagePrefix} <a href={messageHref}>{messageLink}</a></p>
+				<p>{messagePrefix} <a href={messageLinkUrl}>{messageLinkLabel}</a></p>
 			</div>
 		</div>
 	</div>

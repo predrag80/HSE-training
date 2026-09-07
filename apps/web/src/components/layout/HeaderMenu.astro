@@ -1,3 +1,8 @@
+---
+import HeaderSocialLinks from './HeaderSocialLinks.astro';
+import { contactDetails } from '../../lib/contact';
+---
+
 <button
 	class="site-menu-button"
 	type="button"
@@ -34,13 +39,16 @@
 			<nav aria-label="Information panel navigation">
 				<a href="/courses">View courses</a>
 				<a href="/#about">About HSE Training</a>
-				<a href="/#contact">Contact us</a>
+				<a href="/contact/">Contact us</a>
 			</nav>
 
-			<address>
-				<a href="tel:+381615335010">+381 61 5335 010</a>
-				<a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a>
-			</address>
+			<div class="site-drawer__footer">
+				<address>
+					<a href={contactDetails.phoneHref}>{contactDetails.phone}</a>
+					<a href={contactDetails.emailHref}>{contactDetails.email}</a>
+				</address>
+				<HeaderSocialLinks variant="drawer" />
+			</div>
 		</div>
 	</div>
 </dialog>
@@ -359,10 +367,9 @@
 
 	.site-drawer address {
 		gap: 0;
-		padding-top: 2.75rem;
+		padding-bottom: 1.65rem;
 		font-size: 1.0625rem;
 		font-style: normal;
-		border-top: 1px solid var(--color-border-on-strong);
 	}
 
 	.site-drawer address a {

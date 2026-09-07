@@ -1,21 +1,28 @@
 ---
 import './contact-page.css';
+import { contactDetails } from '../../lib/contact';
 
 const contactItems = [
 	{
 		icon: '\ue957',
-		title: 'Crafto office',
-		content: '<span>401 Broadway, 24th Floor,</span><span>Orchard View, London, UK</span>',
+		title: contactDetails.companyName,
+		lines: [
+			{ text: contactDetails.streetAddress },
+			{ text: contactDetails.locality },
+		],
 	},
 	{
 		icon: '\ue99e',
 		title: 'Call us directly',
-		content: '<span>Phone: <a class="contact-detail__inline-link" href="tel:1800222000">1-800-222-000</a></span><span>Fax: 1-800-222-002</span>',
+		lines: [
+			{ text: `Phone: ${contactDetails.phone}`, href: contactDetails.phoneHref },
+			{ text: `Skype: ${contactDetails.skype}` },
+		],
 	},
 	{
 		icon: '\uea82',
 		title: 'E-mail us',
-		content: '<a href="mailto:info@yourdomain.com">info@yourdomain.com</a><a href="mailto:hr@yourdomain.com">hr@yourdomain.com</a>',
+		lines: [{ text: contactDetails.email, href: contactDetails.emailHref }],
 	},
 ];
 ---
@@ -23,7 +30,7 @@ const contactItems = [
 <section class="contact-hero" aria-labelledby="contact-page-title" data-contact-parallax>
 	<div class="contact-hero__overlay" aria-hidden="true"></div>
 	<div class="contact-hero__content">
-		<p data-contact-reveal="hero-subtitle">Love to hear from you</p>
+		<p data-contact-reveal="hero-subtitle">{contactDetails.regionalCompanyName}</p>
 		<h1 id="contact-page-title" data-contact-reveal="hero-title">Contact us</h1>
 	</div>
 	<a class="contact-hero__scroll" href="#contact-details" aria-label="Scroll to contact details" data-contact-reveal="hero-scroll">
@@ -37,31 +44,33 @@ const contactItems = [
 			<article class="contact-detail" data-contact-reveal="up" style={`--contact-delay:${index * 100}ms`}>
 				<span class="contact-detail__icon" aria-hidden="true">{item.icon}</span>
 				<h2>{item.title}</h2>
-				<div class="contact-detail__content" set:html={item.content}></div>
+				<div class="contact-detail__content">
+					{item.lines.map((line) => line.href ? <a href={line.href}>{line.text}</a> : <span>{line.text}</span>)}
+				</div>
 			</article>
 		))}
 	</div>
 </section>
 
-<section class="contact-map" aria-label="Map showing the Crafto Consulting office" data-contact-reveal="map">
+<section class="contact-map" aria-label={`Map showing the ${contactDetails.companyName} office in Belgrade`} data-contact-reveal="map">
 	<iframe
-		title="Crafto Consulting office in Melbourne"
-		src="https://www.openstreetmap.org/export/embed.html?bbox=144.80%2C-37.90%2C145.10%2C-37.70&amp;layer=mapnik&amp;marker=-37.805688%2C144.962312"
+		title={`${contactDetails.companyName} office in Belgrade`}
+		src={contactDetails.mapsEmbedUrl}
 		loading="lazy"
 		referrerpolicy="no-referrer-when-downgrade"
 	></iframe>
 	<div class="contact-map__card">
-		<strong>Crafto Consulting</strong>
-		<p>16122 Collins street,<br />Melbourne, Australia</p>
-		<a href="https://maps.google.com/?q=Envato+Pty+Ltd+Melbourne" target="_blank" rel="noreferrer">View larger map</a>
+		<strong>{contactDetails.companyName}</strong>
+		<p>{contactDetails.streetAddress},<br />{contactDetails.locality}</p>
+		<a href={contactDetails.mapsExternalUrl} target="_blank" rel="noreferrer">View larger map</a>
 	</div>
 </section>
 
 <section class="contact-form-section" aria-labelledby="contact-form-title">
 	<div class="contact-container contact-form-section__inner">
 		<header class="contact-form-section__header" data-contact-reveal="up">
-			<p>Feel free to get in touch!</p>
-			<h2 id="contact-form-title">How we can help you?</h2>
+			<p>Contact us</p>
+			<h2 id="contact-form-title">How can we help you?</h2>
 		</header>
 
 		<form class="contact-form" method="post" data-contact-form data-contact-reveal="form">

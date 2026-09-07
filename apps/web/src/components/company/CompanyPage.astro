@@ -1,5 +1,12 @@
 ---
 import './company-page.css';
+import type { CompanyPageContent } from '../../types/company';
+
+interface Props {
+	content: CompanyPageContent;
+}
+
+const { content } = Astro.props;
 
 const milestones = [
 	{ year: 2010, title: 'Crafto founded', text: 'Founded a company' },
@@ -32,8 +39,8 @@ const logos = [
 <section class="company-hero" aria-labelledby="company-page-title" data-company-parallax>
 	<div class="company-hero__overlay"></div>
 	<div class="company-hero__content" data-company-reveal="flip">
-		<p>Business profile</p>
-		<h1 id="company-page-title">About company</h1>
+		<p>{content.hero.eyebrow}</p>
+		<h1 id="company-page-title">{content.hero.title}</h1>
 	</div>
 	<a class="company-hero__scroll" href="#about" aria-label="Scroll to about company">
 		<span></span>
@@ -44,11 +51,11 @@ const logos = [
 	<div class="company-intro__particles" aria-hidden="true"><span></span><span></span><span></span></div>
 	<div class="company-container company-intro__inner">
 		<div class="company-intro__title" data-company-reveal="intro-title">
-			<h2>We develop and create consulting good future.</h2>
+			<h2>{content.profile.headline}</h2>
 		</div>
 		<div class="company-intro__copy" data-company-reveal="children-intro-copy">
-			<p>Adipiscing elit, sed do eusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco. Adipiscing elitdo eiusmod tempor.</p>
-			<a href="/#services">Explore services</a>
+			<p>{content.profile.description}</p>
+			<a href={content.introCta.url}>{content.introCta.label}</a>
 		</div>
 	</div>
 </section>

@@ -1,36 +1,12 @@
 ---
+import type { Service } from '../../types/service';
 import './home-services.css';
 
-const services = [
-	{
-		label: 'Flexible',
-		title: 'Audit assurance',
-		description: 'Innovative solutions',
-		image: '/images/consulting-service-01.webp',
-		alt: 'Consultants discussing a professional training programme',
-	},
-	{
-		label: 'Diversity',
-		title: 'Financial advisory',
-		description: 'Business consalting',
-		image: '/images/consulting-service-02.webp',
-		alt: 'Consultant presenting operational advice to colleagues',
-	},
-	{
-		label: 'Inclusion',
-		title: 'Business analytics',
-		description: 'Driving sustainable',
-		image: '/images/consulting-service-03.webp',
-		alt: 'Project team reviewing HSE management information',
-	},
-	{
-		label: 'Strategy',
-		title: 'Middle marketing',
-		description: 'Inclusive growth',
-		image: '/images/consulting-service-04.webp',
-		alt: 'Consultants collaborating during an on-site session',
-	},
-];
+interface Props {
+	readonly services: readonly Service[];
+}
+
+const { services } = Astro.props;
 ---
 
 <section class="home-services" id="services" aria-labelledby="home-services-title" data-home-services>
@@ -48,21 +24,21 @@ const services = [
 							<div class="service-tilt__scale">
 								<div class="service-tilt__rotate">
 									<div class="service-tilt__inner">
-										<a class="service-card" href="#contact" aria-label={`${service.title}: ${service.description}`}>
+										<a class="service-card" href={service.cta.url} aria-label={`${service.title}: ${service.shortDescription}`}>
 											<img
 												class="service-card__image"
-												src={service.image}
-												alt={service.alt}
-												width="600"
-												height="815"
+												src={service.image.url}
+												alt={service.image.alt}
+												width={service.image.width}
+												height={service.image.height}
 												loading="lazy"
 												decoding="async"
 											/>
 											<span class="service-card__shade" aria-hidden="true"></span>
 											<span class="service-card__content">
-												<span class="service-card__label">{service.label}</span>
+												<span class="service-card__label">{service.cardLabel}</span>
 												<strong class="service-card__title">{service.title}</strong>
-												<span class="service-card__description">{service.description}</span>
+												<span class="service-card__description">{service.shortDescription}</span>
 											</span>
 										</a>
 									</div>

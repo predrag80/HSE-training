@@ -1,28 +1,17 @@
 ---
 import ValueIcon from './ValueIcon.astro';
 import './home-about-value.css';
+import type { CompanyProfile } from '../../types/company';
 
-const values = [
-	{
-		icon: 'training' as const,
-		title: 'Professional training',
-		description: 'International programmes and practical instruction.',
-	},
-	{
-		icon: 'management' as const,
-		title: 'HSE management',
-		description: 'Clear support for health, safety and quality systems.',
-	},
-	{
-		icon: 'consultancy' as const,
-		title: 'On-site consultancy',
-		description: 'Flexible delivery at the client location.',
-	},
-];
+interface Props {
+	content: CompanyProfile;
+}
+
+const { content } = Astro.props;
 ---
 
-<section class="about-value" aria-labelledby="about-value-title" data-about-value>
-	<h2 class="about-value__heading" id="about-value-title">HSE Training values and approach</h2>
+<section class="about-value" id="about" aria-labelledby="about-value-title" data-about-value>
+	<h2 class="about-value__heading" id="about-value-title">{content.headline}</h2>
 	<div class="about-value__particles" aria-hidden="true">
 		<span></span><span></span><span></span><span></span><span></span><span></span>
 	</div>
@@ -30,9 +19,9 @@ const values = [
 	<div class="about-value__inner">
 		<ul class="about-value__highlights" data-about-reveal>
 			{
-				values.map((item) => (
+				content.values.map((item) => (
 					<li class="about-value__highlight">
-						<ValueIcon name={item.icon} />
+						<ValueIcon name={item.iconKey} />
 						<div>
 							<h3>{item.title}</h3>
 							<p>{item.description}</p>
@@ -46,10 +35,10 @@ const values = [
 			<div class="about-value__media" data-about-media>
 				<div class="about-value__image about-value__image--primary">
 					<img
-						src="/images/consulting-about-01.webp"
-						alt="Consultant working at a desk in a modern office"
-						width="430"
-						height="553"
+						src={content.primaryImage.url}
+						alt={content.primaryImage.alt}
+						width={content.primaryImage.width}
+						height={content.primaryImage.height}
 						loading="lazy"
 						decoding="async"
 					/>
@@ -60,10 +49,10 @@ const values = [
 					data-about-parallax
 				>
 					<img
-						src="/images/consulting-about-02.webp"
-						alt=""
-						width="352"
-						height="452"
+						src={content.secondaryImage.url}
+						alt={content.secondaryImage.alt}
+						width={content.secondaryImage.width}
+						height={content.secondaryImage.height}
 						loading="lazy"
 						decoding="async"
 					/>
@@ -71,26 +60,23 @@ const values = [
 			</div>
 
 			<div class="about-value__copy" data-about-reveal>
-				<p class="about-value__eyebrow">Company's vision</p>
-				<h3 class="about-value__title">Safety culture starts with people.</h3>
-				<p class="about-value__description">
-					Belgrade-based HSE Training helps organisations build knowledge, improve working
-					practices and strengthen safety culture.
-				</p>
+				<p class="about-value__eyebrow">{content.eyebrow}</p>
+				<h3 class="about-value__title">{content.headline}</h3>
+				<p class="about-value__description">{content.description}</p>
 
 				<div class="about-value__actions">
-					<a class="about-value__button" href="#about">About company</a>
-					<a class="about-value__text-link" href="#contact">How we work</a>
+					<a class="about-value__button" href={content.primaryCta.url}>{content.primaryCta.label}</a>
+					<a class="about-value__text-link" href={content.secondaryCta.url}>{content.secondaryCta.label}</a>
 				</div>
 
 				<div
 					class="about-value__signature"
-					aria-label="HSE Training, based in Belgrade, providing training and consultancy"
+					aria-label={`HSE Training — ${content.signatureLabel}`}
 				>
 					<strong aria-hidden="true">HSE</strong>
 					<div aria-hidden="true">
 						<span class="about-value__marks">◆ ◆ ◆</span>
-						<span>Training &amp; consultancy</span>
+						<span>{content.signatureLabel}</span>
 					</div>
 				</div>
 			</div>

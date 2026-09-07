@@ -15,6 +15,9 @@ const firstCourse: Course = {
 	descriptionHtml: '<p>Trusted editor content.</p>',
 	featuredImageUrl: null,
 	visiblePrice: '€499',
+	homepageLabel: '',
+	homepageCtaLabel: '',
+	featuredOnHomepage: false,
 	status: 'publish',
 };
 

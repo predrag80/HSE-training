@@ -1,0 +1,150 @@
+---
+import './gallery-page.css';
+
+const images = [
+	'IMG_3052',
+	'IMG_3023',
+	'IMG_3001',
+	'IMG_2976',
+	'IMG_2957',
+	'IMG_2896',
+	'IMG_2898',
+	'IMG_2925',
+	'IMG_2934',
+	'IMG_2851',
+	'IMG_2819',
+	'IMG_2807',
+	'IMG_2802',
+	'IMG_2800',
+	'8-2',
+	'8-4',
+	'9-2',
+	'9-3',
+	'IMG_2767',
+	'7-5',
+	'7-1',
+	'6-1',
+	'5-6',
+	'4-3-1',
+].map((name, index) => ({
+	src: `/images/gallery/${name}.webp`,
+	alt: `HSE Training course session and participants — photograph ${index + 1}`,
+	featured: index % 7 === 0,
+}));
+---
+
+<section class="gallery-hero" aria-labelledby="gallery-title" data-gallery-parallax>
+	<div class="gallery-hero__overlay" aria-hidden="true"></div>
+	<div class="gallery-hero__content" data-gallery-reveal="hero">
+		<p>Learning in practice</p>
+		<h1 id="gallery-title">Gallery</h1>
+	</div>
+	<a class="gallery-hero__scroll" href="#training-gallery" aria-label="Scroll to training gallery"><span></span></a>
+</section>
+
+<section class="training-gallery" id="training-gallery" aria-labelledby="training-gallery-title">
+	<div class="gallery-container">
+		<header class="training-gallery__heading" data-gallery-reveal="up">
+			<div>
+				<p>HSE Training in action</p>
+				<h2 id="training-gallery-title">People, knowledge and practical experience.</h2>
+			</div>
+			<span>A selection of moments from our professional training sessions and participant groups.</span>
+		</header>
+
+		<div class="training-gallery__grid">
+			{images.map((image, index) => (
+				<button
+					class:list={['training-gallery__item', { 'training-gallery__item--featured': image.featured }]}
+					type="button"
+					data-gallery-item
+					data-gallery-src={image.src}
+					data-gallery-alt={image.alt}
+					data-gallery-index={index}
+					aria-label={`Open photograph ${index + 1} of ${images.length}`}
+					data-gallery-reveal="up"
+				>
+					<img src={image.src} width="1600" height="1067" alt={image.alt} loading={index < 4 ? 'eager' : 'lazy'} decoding="async" />
+					<span class="training-gallery__overlay" aria-hidden="true"><i></i></span>
+				</button>
+			))}
+		</div>
+	</div>
+</section>
+
+<dialog class="gallery-lightbox" data-gallery-lightbox aria-label="Expanded gallery photograph">
+	<div class="gallery-lightbox__stage">
+		<button class="gallery-lightbox__close" type="button" aria-label="Close gallery" data-gallery-close>
+			<span></span><span></span>
+		</button>
+		<button class="gallery-lightbox__arrow gallery-lightbox__arrow--previous" type="button" aria-label="Previous photograph" data-gallery-previous>←</button>
+		<figure>
+			<img src="/images/gallery/IMG_3052.webp" alt="" width="1600" height="1067" data-gallery-lightbox-image />
+			<figcaption data-gallery-caption>1 / {images.length}</figcaption>
+		</figure>
+		<button class="gallery-lightbox__arrow gallery-lightbox__arrow--next" type="button" aria-label="Next photograph" data-gallery-next>→</button>
+	</div>
+</dialog>
+
+<script>
+	const revealTargets = document.querySelectorAll<HTMLElement>('[data-gallery-reveal]');
+	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	if (reduceMotion || !('IntersectionObserver' in window)) {
+		revealTargets.forEach((target) => target.setAttribute('data-revealed', 'true'));
+	} else {
+		const observer = new IntersectionObserver((entries) => {
+			entries.forEach((entry) => {
+				if (!entry.isIntersecting) return;
+				(entry.target as HTMLElement).setAttribute('data-revealed', 'true');
+				observer.unobserve(entry.target);
+			});
+		}, { threshold: 0.1 });
+		revealTargets.forEach((target) => observer.observe(target));
+	}
+
+	const hero = document.querySelector<HTMLElement>('[data-gallery-parallax]');
+	let parallaxFrame = 0;
+	if (hero && !reduceMotion) {
+		window.addEventListener('scroll', () => {
+			if (parallaxFrame) return;
+			parallaxFrame = window.requestAnimationFrame(() => {
+				hero.style.setProperty('--gallery-hero-shift', `${Math.min(window.scrollY * 0.42, 210)}px`);
+				parallaxFrame = 0;
+			});
+		}, { passive: true });
+	}
+
+	const lightbox = document.querySelector<HTMLDialogElement>('[data-gallery-lightbox]');
+	const lightboxImage = lightbox?.querySelector<HTMLImageElement>('[data-gallery-lightbox-image]');
+	const caption = lightbox?.querySelector<HTMLElement>('[data-gallery-caption]');
+	const items = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-gallery-item]'));
+	let activeIndex = 0;
+
+	const displayImage = (index: number) => {
+		if (!lightboxImage || !caption || !items.length) return;
+		activeIndex = (index + items.length) % items.length;
+		const item = items[activeIndex];
+		lightboxImage.src = item.dataset.gallerySrc ?? '';
+		lightboxImage.alt = item.dataset.galleryAlt ?? '';
+		caption.textContent = `${activeIndex + 1} / ${items.length}`;
+	};
+
+	items.forEach((item, index) => {
+		item.addEventListener('click', () => {
+			displayImage(index);
+			lightbox?.showModal();
+			document.body.style.overflow = 'hidden';
+		});
+	});
+
+	lightbox?.querySelector('[data-gallery-close]')?.addEventListener('click', () => lightbox.close());
+	lightbox?.querySelector('[data-gallery-previous]')?.addEventListener('click', () => displayImage(activeIndex - 1));
+	lightbox?.querySelector('[data-gallery-next]')?.addEventListener('click', () => displayImage(activeIndex + 1));
+	lightbox?.addEventListener('close', () => { document.body.style.overflow = ''; });
+	lightbox?.addEventListener('click', (event) => { if (event.target === lightbox) lightbox.close(); });
+	lightbox?.addEventListener('keydown', (event) => {
+		if (event.key === 'ArrowLeft') displayImage(activeIndex - 1);
+		if (event.key === 'ArrowRight') displayImage(activeIndex + 1);
+	});
+</script>

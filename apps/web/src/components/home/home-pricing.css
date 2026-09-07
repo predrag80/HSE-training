@@ -143,6 +143,11 @@
 	margin-top: 8%;
 }
 
+.pricing-plans:has(> :only-child) {
+	grid-template-columns: minmax(0, 28.75rem);
+	justify-content: center;
+}
+
 .pricing-plan {
 	display: flex;
 	min-width: 0;
@@ -177,9 +182,11 @@
 
 .pricing-plan__price-row {
 	display: grid;
-	grid-template-columns: 5fr 7fr;
+	grid-template-columns: 1fr;
+	gap: 0.5rem;
 	align-items: end;
 	margin-block: 1.25rem;
+	text-align: center;
 }
 
 .pricing-plan__price {
@@ -198,8 +205,13 @@
 	line-height: 1;
 }
 
+.pricing-plan__price--text {
+	font-size: clamp(1.65rem, 2.4vw, 2.35rem);
+	letter-spacing: -0.06rem;
+}
+
 .pricing-plan__period {
-	padding-left: 0.9375rem;
+	padding-left: 0;
 	font-size: 0.9375rem;
 	line-height: 1.5rem;
 }
@@ -218,7 +230,7 @@
 	color: #292d36;
 	font-size: 1.0625rem;
 	font-weight: 500;
-	line-height: 1.375rem;
+	line-height: 1.55;
 	border-bottom: 0.0625rem solid #e4e4e4;
 }
 

@@ -5,13 +5,20 @@ CMS integration.
 
 ## Current Status
 
-The plugin provides the first headless content slice: an editor-managed Course
-post type with registered metadata, validation, and core REST API support.
+The plugin provides editor-managed Course content, an ordered Homepage Hero
+Slide collection, a canonical Company profile, and a Service collection shared
+by the Homepage and Consulting Page. Course promotions and client References
+also feed their Homepage sections from WordPress.
 
 ## Responsibilities
 
 - HSE-specific WordPress content models
 - Course metadata validation and admin editing
+- Homepage Hero Slide publishing, ordering, and featured images
+- Company Page settings and shared About/Value content
+- Ordered Services with a Homepage-featured subset
+- Explicit Homepage Course promotion fields and ordering
+- Ordered client References with a Homepage-featured subset
 - Small REST API extensions needed by headless consumers
 - Headless CMS integration
 
@@ -30,10 +37,81 @@ Run the focused local integration checks from the WordPress runtime:
 
 ```sh
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/integration.php
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/course-promotion-integration.php
 ```
 
-These are ownership boundaries for future tasks, not claims of implemented
-functionality.
+## Homepage API
+
+Editors manage slides through **Homepage → Hero Slides** in WordPress. Each
+published slide has a stable key, content fields, featured image, and numeric
+Order value. Between one and five slides may be published. Editors deliberately
+cannot change Astro layout, section order, CSS, or animation behavior.
+
+The public, read-only representation is available at:
+
+```text
+/wp-json/hse/v1/homepage
+```
+
+The endpoint returns HTTP 503 until at least one complete Hero Slide is
+published. The contract is documented in
+[`docs/api/wordpress-homepage.md`](../../../docs/api/wordpress-homepage.md).
+
+Run its focused local integration checks with:
+
+```sh
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/homepage-integration.php
+```
+
+## Company Page API
+
+Administrators edit canonical company content through **Company Page**. The
+shared About profile is included in both the Homepage response and the dedicated
+Company response:
+
+```text
+/wp-json/hse/v1/company
+```
+
+The contract is documented in
+[`docs/api/wordpress-company.md`](../../../docs/api/wordpress-company.md).
+
+```sh
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/company-integration.php
+```
+
+## Services API
+
+Editors manage the canonical consulting collection through **Services**. The
+complete collection is available at:
+
+```text
+/wp-json/hse/v1/services
+```
+
+The Homepage endpoint includes the selected one-to-four featured Services. The
+contract is documented in
+[`docs/api/wordpress-services.md`](../../../docs/api/wordpress-services.md).
+
+```sh
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/service-integration.php
+```
+
+## References API
+
+Editors manage testimonials through **References**. The public collection is
+available at:
+
+```text
+/wp-json/hse/v1/references
+```
+
+The contract is documented in
+[`docs/api/wordpress-references.md`](../../../docs/api/wordpress-references.md).
+
+```sh
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/reference-integration.php
+```
 
 ## Not Responsible For
 

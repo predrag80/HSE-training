@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { getCourseByKey, getCourseBySlug, getCourses } from './courses';
+import { getCourseByKey, getCourseBySlug, getCourses, getHomepageCourses } from './courses';
 
 const rawCourse = {
 	slug: 'nebosh-international-general-certificate',
@@ -12,6 +12,9 @@ const rawCourse = {
 		course_key: 'nebosh-igc',
 		short_description: 'Course summary.',
 		visible_price: '€499',
+		homepage_label: 'Popular course',
+		homepage_cta_label: 'View course',
+		featured_on_homepage: true,
 	},
 };
 
@@ -85,6 +88,60 @@ describe('getCourses', () => {
 			code: 'unavailable',
 			status: null,
 		});
+	});
+});
+
+describe('getHomepageCourses', () => {
+	it('requests promoted Courses in explicit WordPress order', async () => {
+		const promotedCourse = {
+			...rawCourse,
+			featured_media: 42,
+			_embedded: {
+				'wp:featuredmedia': [{ source_url: 'https://cms.example.test/course.jpg' }],
+			},
+		};
+		const fetchMock = vi.fn().mockResolvedValue(jsonResponse([promotedCourse]));
+		vi.stubGlobal('fetch', fetchMock);
+
+		await expect(getHomepageCourses()).resolves.toEqual([
+			expect.objectContaining({ courseKey: 'nebosh-igc', featuredOnHomepage: true }),
+		]);
+
+		const requestedUrl = new URL(String(fetchMock.mock.calls[0]?.[0]));
+		expect(requestedUrl.searchParams.get('featured_on_homepage')).toBe('true');
+		expect(requestedUrl.searchParams.get('orderby')).toBe('menu_order');
+		expect(requestedUrl.searchParams.get('order')).toBe('asc');
+		expect(requestedUrl.searchParams.get('per_page')).toBe('4');
+	});
+
+	it('rejects an incomplete promoted Course', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse([rawCourse])));
+
+		await expect(getHomepageCourses()).rejects.toMatchObject({ code: 'invalid-response' });
+	});
+
+	it('rejects more than three promoted Courses', async () => {
+		const promotedCourse = {
+			...rawCourse,
+			featured_media: 42,
+			_embedded: {
+				'wp:featuredmedia': [{ source_url: 'https://cms.example.test/course.jpg' }],
+			},
+		};
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(
+				jsonResponse(
+					Array.from({ length: 4 }, (_, index) => ({
+						...promotedCourse,
+						slug: `course-${index + 1}`,
+						meta: { ...promotedCourse.meta, course_key: `course-${index + 1}` },
+					})),
+				),
+			),
+		);
+
+		await expect(getHomepageCourses()).rejects.toThrow('between 1 and 3');
 	});
 });
 

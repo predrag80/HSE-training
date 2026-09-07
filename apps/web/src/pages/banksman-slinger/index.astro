@@ -1,0 +1,52 @@
+---
+import OtherCourseDetailPage from '../../components/other-courses/OtherCourseDetailPage.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const facts = [
+	{ label: 'Duration', value: '5 days' },
+	{ label: 'Price', value: 'Upon enquiry' },
+	{ label: 'Language', value: 'Serbian' },
+	{ label: 'Group size', value: 'Maximum 8' },
+	{ label: 'Format', value: 'Theory + practice' },
+];
+
+const outcomes = [
+	{ title: 'Apply slinging techniques', text: 'Select and use appropriate slinging methods for a range of loads and working conditions.' },
+	{ title: 'Inspect lifting gear', text: 'Select and inspect lifting gear and equipment before work begins.' },
+	{ title: 'Direct crane operators', text: 'Use safe communication to guide load movement and placement, including out-of-view operations.' },
+	{ title: 'Control lifting risks', text: 'Apply legislation, standards and risk-management procedures relevant to lifting operations.' },
+	{ title: 'Understand crane operations', text: 'Recognise crane types, uses, characteristics, set-up requirements and operational limitations.' },
+	{ title: 'Communicate clearly', text: 'Use hand signals, whistles and two-way radio communication during lifting work.' },
+];
+---
+
+<BaseLayout
+	title="Banksman / Slinger Course | HSE Training"
+	description="Five-day theory and practical Banksman and Slinger training for safe lifting operations, equipment inspection and crane communication."
+>
+	<main id="main-content">
+		<OtherCourseDetailPage
+			title="Banksman / Slinger"
+			eyebrow="Theory and practical training"
+			heroImage="/images/consulting-service-04.webp"
+			featureImage="/images/consulting-company-timeline.webp"
+			introKicker="Safe lifting operations"
+			introTitle="Build the competence to move loads safely and efficiently."
+			intro={[
+				'This course gives participants the practical skills and knowledge required to undertake banksman and slinger duties safely in a range of working environments.',
+				'The programme combines essential theory with hands-on practice, helping participants understand lifting equipment, load control, communication and the risks involved in crane operations.',
+			]}
+			{facts}
+			outcomesTitle="What participants will learn and demonstrate."
+			outcomesIntro="Training covers the complete working process, from selecting equipment and identifying hazards to directing the crane operator and placing the load."
+			{outcomes}
+			audienceTitle="Teams involved in lifting and load movement."
+			audience={[
+				'Personnel responsible for attaching, securing or releasing loads.',
+				'Workers who direct crane operators during lifting operations.',
+				'Supervisors responsible for lifting safety and risk controls.',
+				'Employees who need practical knowledge of lifting gear inspection and selection.',
+			]}
+		/>
+	</main>
+</BaseLayout>

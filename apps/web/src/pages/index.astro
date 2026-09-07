@@ -5,8 +5,16 @@ import HomeExperts from '../components/home/HomeExperts.astro';
 import HomeFinalCta from '../components/home/HomeFinalCta.astro';
 import HomeHero from '../components/home/HomeHero.astro';
 import HomePricing from '../components/home/HomePricing.astro';
+import HomeReference from '../components/home/HomeReference.astro';
 import HomeServices from '../components/home/HomeServices.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getHomepage, getHomepageCourses, getHomepageReferences } from '../lib/cms';
+
+const [homepage, homepageCourses, homepageReferences] = await Promise.all([
+	getHomepage(),
+	getHomepageCourses(),
+	getHomepageReferences(),
+]);
 ---
 
 <BaseLayout
@@ -14,11 +22,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 	description="Professional health, safety and environmental training and consultancy from Belgrade, Serbia."
 >
 	<main id="main-content">
-		<HomeHero />
-		<HomeAboutValue />
-		<HomeServices />
-		<HomePricing />
+		<HomeHero content={homepage.hero} />
+		<HomeAboutValue content={homepage.about} />
+		<HomeServices services={homepage.featuredServices} />
+		<HomePricing courses={homepageCourses} />
 		<HomeClients />
+		<HomeReference references={homepageReferences} />
 		<HomeExperts />
 		<HomeFinalCta />
 	</main>

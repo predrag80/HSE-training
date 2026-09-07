@@ -2,6 +2,7 @@
 import Button from '../ui/Button.astro';
 import Container from '../ui/Container.astro';
 import Section from '../ui/Section.astro';
+import { contactDetails } from '../../lib/contact';
 ---
 
 <Section id="contact" spacing="compact">
@@ -17,8 +18,8 @@ import Section from '../ui/Section.astro';
 			</div>
 
 			<div class="contact-panel__actions">
-				<Button href="mailto:info@hsetraining.rs" variant="inverse">Email HSE Training</Button>
-				<a class="contact-panel__phone" href="tel:+381615335010">Call +381 61 5335 010</a>
+				<Button href={contactDetails.emailHref} variant="inverse">Email HSE Training</Button>
+				<a class="contact-panel__phone" href={contactDetails.phoneHref}>Call {contactDetails.phone}</a>
 			</div>
 		</div>
 	</Container>

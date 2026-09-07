@@ -1,6 +1,7 @@
 ---
 import './nebosh-pages.css';
 import type { Course } from '../../types/course';
+import { contactDetails } from '../../lib/contact';
 import NeboshHero from './NeboshHero.astro';
 import NeboshMotion from './NeboshMotion.astro';
 
@@ -98,7 +99,7 @@ const outcomes = [
 			<details><summary>How do I receive course access?</summary><p>Contact HSE Training for current delivery options, dates and access arrangements.</p></details>
 		</div>
 	</div>
-	<p class="nebosh-inline-cta">Ready to discuss the International General Certificate? <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a></p>
+	<p class="nebosh-inline-cta">Ready to discuss the International General Certificate? <a href={contactDetails.emailHref}>{contactDetails.email}</a></p>
 </section>
 
 <NeboshMotion />

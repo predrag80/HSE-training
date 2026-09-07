@@ -1,0 +1,49 @@
+---
+import './other-courses.css';
+import OtherCoursesHero from './OtherCoursesHero.astro';
+import OtherCoursesMotion from './OtherCoursesMotion.astro';
+
+const courses = [
+	{
+		title: 'Banksman / Slinger',
+		details: '5 days · Serbian · Maximum 8 participants',
+		text: 'Practical skills and knowledge for safely selecting, inspecting and using lifting equipment and directing crane operations.',
+		href: '/banksman-slinger/',
+		image: '/images/consulting-service-04.webp',
+	},
+	{
+		title: 'Train the trainer',
+		details: '3 days · Serbian · Maximum 6 participants',
+		text: 'Hands-on practice in the essential skills required to plan and deliver effective training sessions to groups.',
+		href: '/train-the-trainer/',
+		image: '/images/consulting-hero-02.webp',
+	},
+];
+---
+
+<OtherCoursesHero eyebrow="Practical professional development" title="Other courses" image="/images/consulting-hero-03.webp" titleId="other-courses-title" />
+
+<section class="other-courses-selector" id="course-content" aria-labelledby="other-courses-selector-title">
+	<div class="other-courses-container">
+		<header class="other-courses-heading" data-other-courses-reveal="up">
+			<p>Choose your course</p>
+			<h2 id="other-courses-selector-title">Practical training for safer, stronger teams.</h2>
+		</header>
+		<div class="other-courses-selector__grid">
+			{courses.map((course) => (
+				<a class="other-course-card" href={course.href} data-other-courses-reveal="up">
+					<img src={course.image} width="900" height="800" alt="" loading="lazy" decoding="async" />
+					<div class="other-course-card__shade" aria-hidden="true"></div>
+					<div class="other-course-card__content">
+						<span>{course.details}</span>
+						<h3>{course.title}</h3>
+						<p>{course.text}</p>
+						<strong>Explore the course <i aria-hidden="true">→</i></strong>
+					</div>
+				</a>
+			))}
+		</div>
+	</div>
+</section>
+
+<OtherCoursesMotion />

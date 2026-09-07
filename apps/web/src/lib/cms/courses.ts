@@ -6,6 +6,7 @@ import { mapWordPressCourse } from './mappers';
 
 const COURSE_ENDPOINT = '/wp-json/wp/v2/courses';
 const COURSE_FIELDS = 'slug,status,title,content,featured_media,meta,_links,_embedded';
+const MAX_HOMEPAGE_COURSES = 3;
 
 const COLLECTION_QUERY = {
 	_embed: 'wp:featuredmedia',
@@ -44,6 +45,40 @@ function validateLookupValue(value: string, name: 'slug' | 'course_key', maxLeng
 /** Returns up to 100 published Courses in newest-first WordPress date order. */
 export async function getCourses(): Promise<Course[]> {
 	return mapCourseCollection(await fetchCmsJson(COURSE_ENDPOINT, COLLECTION_QUERY));
+}
+
+/** Returns the ordered one-to-three Courses explicitly promoted on the Homepage. */
+export async function getHomepageCourses(): Promise<Course[]> {
+	const courses = mapCourseCollection(
+		await fetchCmsJson(COURSE_ENDPOINT, {
+			...COLLECTION_QUERY,
+			per_page: String(MAX_HOMEPAGE_COURSES + 1),
+			orderby: 'menu_order',
+			order: 'asc',
+			featured_on_homepage: 'true',
+		}),
+	);
+
+	if (courses.length === 0 || courses.length > MAX_HOMEPAGE_COURSES) {
+		throw new CmsError(
+			'invalid-response',
+			`CMS must return between 1 and ${MAX_HOMEPAGE_COURSES} Homepage Courses.`,
+		);
+	}
+	for (const course of courses) {
+		if (
+			!course.featuredOnHomepage ||
+			course.homepageLabel.trim().length === 0 ||
+			course.homepageCtaLabel.trim().length === 0 ||
+			course.shortDescription.trim().length === 0 ||
+			course.visiblePrice === null ||
+			course.featuredImageUrl === null
+		) {
+			throw new CmsError('invalid-response', 'CMS returned an incomplete Homepage Course.');
+		}
+	}
+
+	return courses;
 }
 
 /** Returns a published Course by its mutable WordPress route slug, or null when absent. */

@@ -156,14 +156,10 @@
 	}
 
 	.site-header--overlay .site-header__utility {
-		display: none;
-	}
-
-	.site-header--overlay-utility .site-header__utility {
 		display: block;
 	}
 
-	.site-header--overlay-utility .site-header__utility-message {
+	.site-header--overlay .site-header__utility-message {
 		width: auto;
 	}
 

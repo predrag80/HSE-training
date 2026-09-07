@@ -1,11 +1,14 @@
 ---
+import HeaderSocialLinks from './HeaderSocialLinks.astro';
+
 interface Props {
 	pathname: string;
-	isHome: boolean;
 }
 
-const { pathname, isHome } = Astro.props;
+const { pathname } = Astro.props;
+const isHome = pathname === '/';
 const neboshCurrent = pathname.startsWith('/nebosh');
+const otherCoursesCurrent = pathname.startsWith('/other-courses') || pathname.startsWith('/banksman-slinger') || pathname.startsWith('/train-the-trainer');
 const links = [
 	{ label: 'Home', href: '/', current: pathname === '/' },
 	{ label: 'Company', href: '/company/', current: pathname.startsWith('/company') },
@@ -26,8 +29,26 @@ const links = [
 			},
 		],
 	},
-	{ label: 'Services', href: isHome ? '#services' : '/#services', current: false },
-	{ label: 'Clients', href: isHome ? '#clients' : '/#clients', current: false },
+	{
+		label: 'Other courses',
+		href: '/other-courses/',
+		current: otherCoursesCurrent,
+		children: [
+			{
+				label: 'Banksman / Slinger',
+				href: '/banksman-slinger/',
+				current: pathname.startsWith('/banksman-slinger'),
+			},
+			{
+				label: 'Train the trainer',
+				href: '/train-the-trainer/',
+				current: pathname.startsWith('/train-the-trainer'),
+			},
+		],
+	},
+	{ label: 'Consulting', href: '/consulting/', current: pathname.startsWith('/consulting') },
+	{ label: 'Gallery', href: '/gallery/', current: pathname.startsWith('/gallery') },
+	{ label: 'Reference', href: isHome ? '#reference' : '/#reference', current: false },
 	{ label: 'Contact', href: '/contact/', current: pathname.startsWith('/contact') },
 ];
 ---
@@ -42,7 +63,7 @@ const links = [
 							{link.label}
 						</a>
 						{link.children && (
-							<button class="site-nav__submenu-toggle" type="button" aria-expanded="false" aria-label="Toggle NEBOSH submenu" data-submenu-toggle>
+							<button class="site-nav__submenu-toggle" type="button" aria-expanded="false" aria-label={`Toggle ${link.label} submenu`} data-submenu-toggle>
 								<svg viewBox="0 0 12 8" aria-hidden="true"><path d="m1 1 5 5 5-5" /></svg>
 							</button>
 						)}
@@ -58,6 +79,7 @@ const links = [
 			))
 		}
 	</ul>
+	<HeaderSocialLinks variant="mobile" />
 </nav>
 
 <script>
@@ -206,6 +228,10 @@ const links = [
 		.site-nav__submenu a:hover,
 		.site-nav__submenu a:focus-visible,
 		.site-nav__submenu a[aria-current='page'] { color: #dd6531; transform: translateX(0.25rem); }
+	}
+
+	@media (min-width: 62rem) and (max-width: 74.999rem) {
+		.site-nav__link { padding-inline: 0.5rem; font-size: 0.875rem; }
 	}
 
 	@media (min-width: 75rem) {

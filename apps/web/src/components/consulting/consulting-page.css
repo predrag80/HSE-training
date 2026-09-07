@@ -1,0 +1,199 @@
+.consulting-container { width: min(76.25rem, calc(100% - 3.75rem)); margin-inline: auto; }
+.consulting-kicker,
+.consulting-section-heading > p,
+.consulting-section-heading > div > p { margin: 0 0 0.75rem; color: #dd6531; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.045em; text-transform: uppercase; }
+
+.consulting-hero { --consulting-hero-shift: 0px; position: relative; display: grid; min-height: 38.75rem; place-items: center; overflow: hidden; color: #fff; background: url('/images/consulting-clients-parallax.jpg') center calc(50% + var(--consulting-hero-shift)) / cover no-repeat; }
+.consulting-hero__overlay { position: absolute; inset: 0; background: rgb(25 28 34 / 57%); }
+.consulting-hero__content { position: relative; z-index: 1; padding-top: 5.9375rem; text-align: center; }
+.consulting-hero__content p { margin: 0 0 0.35rem; color: rgb(255 255 255 / 65%); font-size: 1.35rem; }
+.consulting-hero__content h1 { margin: 0; color: #fff; font-size: clamp(3.25rem, 5vw, 4rem); font-weight: 500; letter-spacing: -0.055em; line-height: 1; }
+.consulting-hero__scroll { position: absolute; bottom: 4.35rem; left: 50%; z-index: 2; width: 1.25rem; height: 2rem; border: 2px solid rgb(255 255 255 / 72%); border-radius: 1rem; transform: translateX(-50%); }
+.consulting-hero__scroll span { position: absolute; top: 0.35rem; left: 50%; width: 0.15rem; height: 0.4rem; background: #fff; border-radius: 50%; transform: translateX(-50%); animation: consulting-scroll 1.8s ease-in-out infinite; }
+
+.consulting-intro { padding: 7rem 0 6.6rem; background: #fff; }
+.consulting-intro__inner { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 8rem; align-items: center; }
+.consulting-intro h2,
+.consulting-section-heading h2,
+.consulting-people h2,
+.consulting-experience h2,
+.consulting-languages h2 { margin: 0; color: #292d36; font-size: clamp(2.7rem, 4.25vw, 3.65rem); font-weight: 600; letter-spacing: -0.05em; line-height: 1.02; }
+.consulting-intro__copy > p { max-width: 39rem; margin: 0 0 1rem; color: #808291; line-height: 1.8; }
+.consulting-text-link { display: inline-flex; gap: 0.65rem; align-items: center; margin-top: 1rem; padding-bottom: 0.2rem; color: #292d36; border-bottom: 2px solid #292d36; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.035em; text-decoration: none; text-transform: uppercase; }
+.consulting-text-link span { color: #dd6531; font-size: 1.2rem; transition: transform 300ms ease; }
+.consulting-text-link:hover span { transform: translateX(0.35rem); }
+
+.consulting-facts { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; }
+.consulting-facts__item { display: flex; min-height: 12rem; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #e5e5e5; text-align: center; }
+.consulting-facts__item:last-child { border-right: 0; }
+.consulting-facts strong { color: #292d36; font-size: clamp(2.1rem, 3vw, 3rem); font-weight: 600; letter-spacing: -0.04em; line-height: 1; }
+.consulting-facts span { margin-top: 0.65rem; color: #808291; font-size: 0.9rem; }
+
+.consulting-services { padding: 7rem 0 7.5rem; background: #f7f7f7; }
+.consulting-section-heading { max-width: 48rem; margin-bottom: 4.5rem; }
+.consulting-services__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+.consulting-service-card { position: relative; min-height: 22rem; padding: 2.5rem 2.15rem; overflow: hidden; background: #fff; box-shadow: 0 1rem 3rem rgb(28 30 35 / 5%); transition: color 450ms ease, transform 450ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 450ms ease; }
+.consulting-service-card::before { position: absolute; inset: auto 0 0; height: 0; content: ''; background: #292d36; transition: height 450ms cubic-bezier(0.23, 1, 0.32, 1); }
+.consulting-service-card > * { position: relative; z-index: 1; }
+.consulting-service-card > span { display: block; margin-bottom: 3.3rem; color: #dd6531; font-size: 1.55rem; font-weight: 500; }
+.consulting-service-card h3 { margin: 0 0 0.8rem; color: #292d36; font-size: 1.25rem; transition: color 350ms ease; }
+.consulting-service-card p { margin: 0; color: #8b8d98; font-size: 0.94rem; line-height: 1.65; transition: color 350ms ease; }
+.consulting-service-card a { position: absolute; right: 2.15rem; bottom: 2rem; left: 2.15rem; display: flex; align-items: center; justify-content: space-between; color: #292d36; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-decoration: none; text-transform: uppercase; transition: color 350ms ease; }
+.consulting-service-card a i { color: #dd6531; font-size: 1.25rem; font-style: normal; transition: transform 300ms ease; }
+.consulting-service-card:hover { box-shadow: 0 1.5rem 3.5rem rgb(28 30 35 / 15%); transform: translateY(-0.65rem); }
+.consulting-service-card:hover::before { height: 100%; }
+.consulting-service-card:hover h3,
+.consulting-service-card:hover a { color: #fff; }
+.consulting-service-card:hover p { color: rgb(255 255 255 / 62%); }
+.consulting-service-card:hover a i { transform: translateX(0.3rem); }
+
+.consulting-people { display: grid; grid-template-columns: 1fr 1fr; min-height: 42rem; }
+.consulting-people__visual { overflow: hidden; }
+.consulting-people__visual img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s cubic-bezier(0.23, 1, 0.32, 1); }
+.consulting-people:hover .consulting-people__visual img { transform: scale(1.035); }
+.consulting-people__content { display: flex; flex-direction: column; justify-content: center; padding: 5rem max(3.5rem, calc((100vw - 76.25rem) / 2)); background: #fff; }
+.consulting-people__content h2 { max-width: 11ch; }
+.consulting-people__content > p:not(.consulting-kicker) { max-width: 34rem; margin: 1.5rem 0 0; color: #808291; line-height: 1.75; }
+.consulting-people__content ul { padding: 0; margin: 1.7rem 0 0; list-style: none; }
+.consulting-people__content li { display: flex; gap: 0.8rem; max-width: none; margin-top: 0.8rem; color: #4e515b; }
+.consulting-people__content li span { color: #dd6531; }
+
+.consulting-industries { padding: 7rem 0 7.5rem; background: #292d36; }
+.consulting-section-heading--split { display: grid; max-width: none; grid-template-columns: 1fr 0.7fr; gap: 6rem; align-items: end; }
+.consulting-section-heading--split h2 { max-width: 13ch; color: #fff; }
+.consulting-section-heading--split > span { padding-bottom: 0.35rem; color: rgb(255 255 255 / 57%); line-height: 1.75; }
+.consulting-industries__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+.consulting-industry-card { position: relative; display: flex; min-height: 31rem; align-items: flex-end; overflow: hidden; }
+.consulting-industry-card > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 650ms cubic-bezier(0.23, 1, 0.32, 1); }
+.consulting-industry-card__shade { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 20%, rgb(17 19 24 / 93%) 100%); transition: background-color 450ms ease; }
+.consulting-industry-card__content { position: relative; z-index: 1; padding: 2.2rem; transition: transform 450ms cubic-bezier(0.23, 1, 0.32, 1); }
+.consulting-industry-card h3 { margin: 0 0 0.55rem; color: #fff; font-size: 1.35rem; }
+.consulting-industry-card p { margin: 0; color: rgb(255 255 255 / 62%); font-size: 0.9rem; line-height: 1.6; }
+.consulting-industry-card:hover > img { transform: scale(1.07); }
+.consulting-industry-card:hover .consulting-industry-card__shade { background-color: rgb(221 101 49 / 18%); }
+.consulting-industry-card:hover .consulting-industry-card__content { transform: translateY(-0.5rem); }
+
+.consulting-experience { padding: 7rem 0; }
+.consulting-experience__inner { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 7rem; }
+.consulting-experience__copy > p:not(.consulting-kicker) { margin: 1.5rem 0 0; color: #808291; line-height: 1.75; }
+.consulting-experience__list { display: grid; grid-template-columns: repeat(2, 1fr); padding: 0; margin: 0; border-top: 1px solid #ddd; list-style: none; }
+.consulting-experience__list li { display: flex; min-height: 5.5rem; max-width: none; gap: 1.2rem; align-items: center; padding: 1rem 1.4rem; border-right: 1px solid #ddd; border-bottom: 1px solid #ddd; }
+.consulting-experience__list li:nth-child(2n) { border-right: 0; }
+.consulting-experience__list span { color: #dd6531; font-size: 0.8rem; }
+.consulting-experience__list strong { color: #292d36; font-size: 1rem; }
+
+.consulting-languages { padding: 6.5rem 0 7rem; background: #f7f7f7; }
+.consulting-languages__inner { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 7rem; align-items: start; }
+.consulting-languages__inner ul { display: flex; flex-wrap: wrap; gap: 0.75rem; padding: 0; margin: 0; list-style: none; }
+.consulting-languages__inner li { max-width: none; padding: 0.7rem 1.1rem; color: #51545e; background: #fff; border: 1px solid #e3e3e3; border-radius: 2rem; font-size: 0.9rem; transition: color 300ms ease, background 300ms ease, transform 300ms ease; }
+.consulting-languages__inner li:hover { color: #fff; background: #dd6531; border-color: #dd6531; transform: translateY(-0.2rem); }
+
+.consulting-qualifications { position: relative; min-height: 38rem; display: grid; place-items: center; color: #fff; background: url('/images/consulting-footer-bg.jpg') center / cover no-repeat fixed; }
+.consulting-qualifications__overlay { position: absolute; inset: 0; background: rgb(29 32 39 / 76%); }
+.consulting-qualifications__inner { position: relative; z-index: 1; text-align: center; }
+.consulting-qualifications__inner > p { margin: 0 0 0.85rem; color: #f49a76; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+.consulting-qualifications h2 { max-width: 18ch; margin: 0 auto; color: #fff; font-size: clamp(2.8rem, 4.6vw, 4rem); font-weight: 500; letter-spacing: -0.05em; line-height: 1.04; }
+.consulting-qualifications ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem 2.5rem; padding: 0; margin: 2.5rem 0 0; list-style: none; }
+.consulting-qualifications li { position: relative; max-width: none; color: rgb(255 255 255 / 72%); }
+.consulting-qualifications li + li::before { position: absolute; top: 50%; left: -1.4rem; width: 0.3rem; height: 0.3rem; content: ''; background: #dd6531; border-radius: 50%; }
+
+.consulting-cta { padding: 5.3rem 0; background: #dd6531; }
+.consulting-cta__inner { display: flex; align-items: center; justify-content: space-between; gap: 3rem; }
+.consulting-cta p { margin: 0 0 0.3rem; color: rgb(255 255 255 / 68%); }
+.consulting-cta h2 { margin: 0; color: #fff; font-size: clamp(2rem, 3.2vw, 2.8rem); font-weight: 500; letter-spacing: -0.04em; }
+.consulting-cta a { display: inline-flex; min-width: 14rem; min-height: 3.75rem; gap: 1rem; align-items: center; justify-content: center; padding: 0.5rem 1.75rem; color: #292d36; background: #fff; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.035em; text-decoration: none; text-transform: uppercase; transition: color 300ms ease, background 300ms ease, transform 300ms ease; }
+.consulting-cta a:hover { color: #fff; background: #292d36; transform: translateY(-0.25rem); }
+
+[data-consulting-reveal] { opacity: 0; transition: opacity 850ms cubic-bezier(0.23, 1, 0.32, 1), transform 850ms cubic-bezier(0.23, 1, 0.32, 1); }
+[data-consulting-reveal='hero'],
+[data-consulting-reveal='up'] { transform: translateY(2.2rem); }
+[data-consulting-reveal='left'] { transform: translateX(-3rem); }
+[data-consulting-reveal='right'] { transform: translateX(3rem); }
+[data-consulting-reveal][data-revealed='true'] { opacity: 1; transform: translate(0); }
+
+@keyframes consulting-scroll { 0% { opacity: 0; transform: translate(-50%, 0); } 35% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, 0.6rem); } }
+
+@media (max-width: 74.999rem) {
+	.consulting-container { width: 60rem; }
+	.consulting-intro__inner { gap: 5rem; }
+	.consulting-services__grid { gap: 1rem; }
+	.consulting-service-card { padding-inline: 1.5rem; }
+	.consulting-service-card a { right: 1.5rem; left: 1.5rem; }
+	.consulting-experience__inner,
+	.consulting-languages__inner { gap: 4rem; }
+}
+
+@media (max-width: 61.999rem) {
+	.consulting-container { width: 45rem; }
+	.consulting-hero { min-height: 32rem; }
+	.consulting-intro__inner { gap: 3rem; }
+	.consulting-facts { grid-template-columns: repeat(2, 1fr); }
+	.consulting-facts__item:nth-child(2) { border-right: 0; }
+	.consulting-facts__item:nth-child(-n + 2) { border-bottom: 1px solid #e5e5e5; }
+	.consulting-services__grid,
+	.consulting-industries__grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+	.consulting-people { min-height: 36rem; }
+	.consulting-people__content { padding: 3.5rem; }
+	.consulting-section-heading--split { gap: 3rem; }
+	.consulting-experience__inner,
+	.consulting-languages__inner { gap: 3rem; }
+	.consulting-qualifications { min-height: 32rem; background-attachment: scroll; }
+}
+
+@media (max-width: 47.999rem) {
+	.consulting-container { width: calc(100% - 3.75rem); }
+	.consulting-hero { min-height: 25rem; }
+	.consulting-hero__content { padding-top: 2rem; }
+	.consulting-hero__content h1 { font-size: 2.8rem; }
+	.consulting-hero__scroll { bottom: 2rem; }
+	.consulting-intro,
+	.consulting-services,
+	.consulting-industries,
+	.consulting-experience,
+	.consulting-languages { padding-block: 5rem; }
+	.consulting-intro__inner,
+	.consulting-people,
+	.consulting-section-heading--split,
+	.consulting-experience__inner,
+	.consulting-languages__inner { grid-template-columns: 1fr; }
+	.consulting-people__visual { min-height: 28rem; }
+	.consulting-people__content { padding: 5rem 1.875rem; }
+	.consulting-people__content h2 { max-width: none; }
+	.consulting-section-heading--split { gap: 1.5rem; }
+	.consulting-section-heading--split h2 { max-width: none; }
+	.consulting-cta__inner { align-items: flex-start; flex-direction: column; }
+}
+
+@media (max-width: 35.999rem) {
+	.consulting-container { width: calc(100% - 1.875rem); }
+	.consulting-hero { min-height: 18.75rem; }
+	.consulting-hero__content p { font-size: 1rem; }
+	.consulting-hero__scroll { display: none; }
+	.consulting-intro h2,
+	.consulting-section-heading h2,
+	.consulting-people h2,
+	.consulting-experience h2,
+	.consulting-languages h2 { font-size: 2.35rem; }
+	.consulting-facts { grid-template-columns: 1fr; }
+	.consulting-facts__item { min-height: 9rem; border-right: 0; border-bottom: 1px solid #e5e5e5; }
+	.consulting-services__grid,
+	.consulting-industries__grid,
+	.consulting-experience__list { grid-template-columns: 1fr; }
+	.consulting-industry-card { min-height: 27rem; }
+	.consulting-experience__list li { border-right: 0; }
+	.consulting-qualifications { min-height: 36rem; }
+	.consulting-qualifications h2 { font-size: 2.5rem; }
+	.consulting-qualifications ul { display: block; }
+	.consulting-qualifications li + li { margin-top: 0.6rem; }
+	.consulting-qualifications li + li::before { display: none; }
+	.consulting-cta a { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.consulting-hero__scroll span { animation: none; }
+	.consulting-people__visual img,
+	.consulting-service-card,
+	.consulting-service-card::before,
+	.consulting-industry-card > img,
+	[data-consulting-reveal] { opacity: 1; transform: none; transition: none; }
+}

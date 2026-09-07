@@ -1,0 +1,16 @@
+---
+import ConsultingPage from '../../components/consulting/ConsultingPage.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getServices } from '../../lib/cms';
+
+const serviceCollection = await getServices();
+---
+
+<BaseLayout
+	title="HSE Consulting Services | HSE Training"
+	description="HSEQ personnel and project HSE management support for renewable energy, mining, oil and gas, and construction operations."
+>
+	<main id="main-content">
+		<ConsultingPage services={serviceCollection.services} />
+	</main>
+</BaseLayout>

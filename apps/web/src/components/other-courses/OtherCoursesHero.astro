@@ -1,0 +1,25 @@
+---
+interface Props {
+	eyebrow: string;
+	title: string;
+	image: string;
+	titleId: string;
+	compact?: boolean;
+}
+
+const { eyebrow, title, image, titleId, compact = false } = Astro.props;
+---
+
+<section
+	class:list={['other-courses-hero', { 'other-courses-hero--compact': compact }]}
+	style={`--other-courses-hero-image: url('${image}')`}
+	aria-labelledby={titleId}
+	data-other-courses-parallax
+>
+	<div class="other-courses-hero__overlay" aria-hidden="true"></div>
+	<div class="other-courses-hero__content" data-other-courses-reveal="hero">
+		<p>{eyebrow}</p>
+		<h1 id={titleId}>{title}</h1>
+	</div>
+	<a class="other-courses-hero__scroll" href="#course-content" aria-label="Scroll to course content"><span></span></a>
+</section>

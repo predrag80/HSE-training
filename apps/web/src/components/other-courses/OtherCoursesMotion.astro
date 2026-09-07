@@ -1,0 +1,29 @@
+<script>
+	const revealTargets = document.querySelectorAll<HTMLElement>('[data-other-courses-reveal]');
+	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	if (reduceMotion || !('IntersectionObserver' in window)) {
+		revealTargets.forEach((target) => target.setAttribute('data-revealed', 'true'));
+	} else {
+		const observer = new IntersectionObserver((entries) => {
+			entries.forEach((entry) => {
+				if (!entry.isIntersecting) return;
+				(entry.target as HTMLElement).setAttribute('data-revealed', 'true');
+				observer.unobserve(entry.target);
+			});
+		}, { threshold: 0.14 });
+		revealTargets.forEach((target) => observer.observe(target));
+	}
+
+	const hero = document.querySelector<HTMLElement>('[data-other-courses-parallax]');
+	let frame = 0;
+	const updateHero = () => {
+		frame = 0;
+		if (hero) hero.style.setProperty('--other-courses-hero-shift', `${Math.min(window.scrollY * 0.4, 190)}px`);
+	};
+	if (hero && !reduceMotion) {
+		window.addEventListener('scroll', () => {
+			if (!frame) frame = window.requestAnimationFrame(updateHero);
+		}, { passive: true });
+	}
+</script>

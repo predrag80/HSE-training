@@ -1,42 +1,23 @@
 ---
 import HomeHeroSlide from './HomeHeroSlide.astro';
+import type { HomepageHero } from '../../types/homepage';
 
-const slides = [
-	{
-		image: '/images/consulting-hero-01.webp',
-		leadingTitle: 'Professional',
-		emphasizedTitle: 'consulting',
-		messagePrefix: 'Request a free',
-		messageLink: 'business consulting!',
-		messageHref: '#contact',
-	},
-	{
-		image: '/images/consulting-hero-02.webp',
-		leadingTitle: 'Contribute',
-		emphasizedTitle: 'guidance',
-		messagePrefix: 'Discover our',
-		messageLink: 'business process!',
-		messageHref: '#about',
-	},
-	{
-		image: '/images/consulting-hero-03.webp',
-		leadingTitle: 'Business',
-		emphasizedTitle: 'strategies',
-		messagePrefix: 'Become a part of',
-		messageLink: 'business venture!',
-		messageHref: '#contact',
-	},
-];
+interface Props {
+	content: HomepageHero;
+}
+
+const { content } = Astro.props;
+const slides = content.slides;
 ---
 
 <section
 	class="home-hero"
 	role="region"
 	aria-roledescription="carousel"
-	aria-label="Consulting highlights"
+	aria-label={content.ariaLabel}
 	data-home-hero
 >
-	<h1 class="home-hero__heading">Professional consulting</h1>
+	<h1 class="home-hero__heading">{content.heading}</h1>
 
 	<div class="home-hero__track" data-hero-track>
 		{
@@ -68,7 +49,7 @@ const slides = [
 	</div>
 
 	<p class="home-hero__status" aria-live="polite" aria-atomic="true" data-hero-status>
-		Slide 1 of {slides.length}: Professional consulting
+		Slide 1 of {slides.length}: {slides[0].leadingTitle} {slides[0].emphasizedTitle}
 	</p>
 </section>
 

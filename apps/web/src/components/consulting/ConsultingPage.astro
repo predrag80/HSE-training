@@ -1,0 +1,218 @@
+---
+import type { Service } from '../../types/service';
+import './consulting-page.css';
+
+interface Props {
+	readonly services: readonly Service[];
+}
+
+const { services } = Astro.props;
+
+const industries = [
+	{
+		title: 'Renewable energy',
+		text: 'HSE support for renewable-energy development, construction and operations.',
+		image: '/images/consulting-service-01.webp',
+	},
+	{
+		title: 'Mining',
+		text: 'Practical personnel and project support for mineral exploration and mining activities.',
+		image: '/images/consulting-service-02.webp',
+	},
+	{
+		title: 'Oil and gas',
+		text: 'Operational safety experience across seismic, drilling, pipeline and plant environments.',
+		image: '/images/consulting-service-03.webp',
+	},
+	{
+		title: 'Construction',
+		text: 'Site-focused HSE guidance for construction teams, contractors and project leadership.',
+		image: '/images/consulting-service-04.webp',
+	},
+];
+
+const experienceAreas = [
+	'Seismic operations',
+	'Drilling',
+	'Pipeline construction',
+	'Plant construction',
+	'Plant operations',
+	'Maintenance',
+];
+
+const languages = [
+	'Serbian',
+	'Croatian',
+	'English',
+	'Albanian',
+	'Romanian',
+	'Polish',
+	'Spanish',
+	'Slovenian',
+	'Bosnian',
+	'Italian',
+	'Turkish',
+	'Russian',
+	'Arabic',
+];
+---
+
+<section class="consulting-hero" aria-labelledby="consulting-page-title" data-consulting-parallax>
+	<div class="consulting-hero__overlay" aria-hidden="true"></div>
+	<div class="consulting-hero__content" data-consulting-reveal="hero">
+		<p>Professional HSEQ expertise</p>
+		<h1 id="consulting-page-title">Consulting</h1>
+	</div>
+	<a class="consulting-hero__scroll" href="#consulting-intro" aria-label="Scroll to consulting services"><span></span></a>
+</section>
+
+<section class="consulting-intro" id="consulting-intro">
+	<div class="consulting-container consulting-intro__inner">
+		<div class="consulting-intro__heading" data-consulting-reveal="left">
+			<p class="consulting-kicker">Local capability. International experience.</p>
+			<h2>HSEQ personnel and project support where you need it.</h2>
+		</div>
+		<div class="consulting-intro__copy" data-consulting-reveal="right">
+			<p>HSE Training can provide local HSEQ personnel and project HSE management services for operations and projects across Eastern Europe and international locations.</p>
+			<p>Our personnel database combines international experience, tertiary qualifications and professionals who bring practical knowledge from operational and technical roles.</p>
+			<a class="consulting-text-link" href="/contact/">Discuss your requirements <span aria-hidden="true">→</span></a>
+		</div>
+	</div>
+</section>
+
+<section class="consulting-facts" aria-label="Consulting capabilities">
+	<div class="consulting-facts__item" data-consulting-reveal="up"><strong>HSEQ</strong><span>Specialist personnel</span></div>
+	<div class="consulting-facts__item" data-consulting-reveal="up"><strong>13</strong><span>Working languages</span></div>
+	<div class="consulting-facts__item" data-consulting-reveal="up"><strong>4</strong><span>Core industries</span></div>
+	<div class="consulting-facts__item" data-consulting-reveal="up"><strong>On-site</strong><span>Project support</span></div>
+</section>
+
+<section class="consulting-services" aria-labelledby="consulting-services-title">
+	<div class="consulting-container">
+		<header class="consulting-section-heading" data-consulting-reveal="up">
+			<p>Consulting services</p>
+			<h2 id="consulting-services-title">The right expertise for demanding environments.</h2>
+		</header>
+		<div class="consulting-services__grid">
+			{services.map((service, index) => (
+				<article class="consulting-service-card" data-consulting-reveal="up">
+					<span>{String(index + 1).padStart(2, '0')}</span>
+					<h3>{service.title}</h3>
+					<p>{service.detailedDescription}</p>
+					<a href={service.cta.url} aria-label={`${service.cta.label}: ${service.title}`}>{service.cta.label} <i aria-hidden="true">→</i></a>
+				</article>
+			))}
+		</div>
+	</div>
+</section>
+
+<section class="consulting-people" aria-labelledby="consulting-people-title">
+	<div class="consulting-people__visual" data-consulting-reveal="left">
+		<img src="/images/consulting-about-01.webp" width="950" height="800" alt="HSE professionals planning operational support" loading="lazy" decoding="async" />
+	</div>
+	<div class="consulting-people__content" data-consulting-reveal="right">
+		<p class="consulting-kicker">People with practical perspective</p>
+		<h2 id="consulting-people-title">Experience beyond the classroom.</h2>
+		<p>Our network includes professionals with international project experience and people who developed their HSE expertise after working directly on the shop floor or with the tools.</p>
+		<ul>
+			<li><span aria-hidden="true">✓</span> International and regional project experience</li>
+			<li><span aria-hidden="true">✓</span> Tertiary and professional HSE qualifications</li>
+			<li><span aria-hidden="true">✓</span> Operational and technical backgrounds</li>
+			<li><span aria-hidden="true">✓</span> Multilingual communication</li>
+		</ul>
+	</div>
+</section>
+
+<section class="consulting-industries" aria-labelledby="consulting-industries-title">
+	<div class="consulting-container">
+		<header class="consulting-section-heading consulting-section-heading--split" data-consulting-reveal="up">
+			<div><p>Industry experience</p><h2 id="consulting-industries-title">Support shaped around your operation.</h2></div>
+			<span>Our consultants bring experience from field operations, complex projects and high-risk working environments.</span>
+		</header>
+		<div class="consulting-industries__grid">
+			{industries.map((industry) => (
+				<article class="consulting-industry-card" data-consulting-reveal="up">
+					<img src={industry.image} width="600" height="815" alt="" loading="lazy" decoding="async" />
+					<div class="consulting-industry-card__shade" aria-hidden="true"></div>
+					<div class="consulting-industry-card__content"><h3>{industry.title}</h3><p>{industry.text}</p></div>
+				</article>
+			))}
+		</div>
+	</div>
+</section>
+
+<section class="consulting-experience" aria-labelledby="consulting-experience-title">
+	<div class="consulting-container consulting-experience__inner">
+		<div class="consulting-experience__copy" data-consulting-reveal="left">
+			<p class="consulting-kicker">Operational knowledge</p>
+			<h2 id="consulting-experience-title">Ready for every stage of the project lifecycle.</h2>
+			<p>Personnel in our network have supported specialist operations from exploration and drilling through construction, commissioning, ongoing operations and maintenance.</p>
+		</div>
+		<ol class="consulting-experience__list" data-consulting-reveal="right">
+			{experienceAreas.map((area, index) => <li><span>{String(index + 1).padStart(2, '0')}</span><strong>{area}</strong></li>)}
+		</ol>
+	</div>
+</section>
+
+<section class="consulting-languages" aria-labelledby="consulting-languages-title">
+	<div class="consulting-container consulting-languages__inner">
+		<div data-consulting-reveal="left">
+			<p class="consulting-kicker">International communication</p>
+			<h2 id="consulting-languages-title">Multilingual teams for regional and global work.</h2>
+		</div>
+		<ul data-consulting-reveal="right">
+			{languages.map((language) => <li>{language}</li>)}
+		</ul>
+	</div>
+</section>
+
+<section class="consulting-qualifications" aria-labelledby="consulting-qualifications-title">
+	<div class="consulting-qualifications__overlay" aria-hidden="true"></div>
+	<div class="consulting-container consulting-qualifications__inner" data-consulting-reveal="up">
+		<p>Qualified leadership</p>
+		<h2 id="consulting-qualifications-title">Professional knowledge backed by recognised HSEQ education.</h2>
+		<ul aria-label="Lead consultant qualification profile">
+			<li>Master’s — HSEQ</li>
+			<li>Bachelor — Occupational Health and Safety</li>
+			<li>Diploma — Occupational Health and Safety</li>
+		</ul>
+	</div>
+</section>
+
+<section class="consulting-cta">
+	<div class="consulting-container consulting-cta__inner" data-consulting-reveal="up">
+		<div><p>Planning a project or strengthening your HSE team?</p><h2>Let’s discuss the expertise you need.</h2></div>
+		<a href="/contact/">Contact HSE Training <span aria-hidden="true">→</span></a>
+	</div>
+</section>
+
+<script>
+	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const revealTargets = document.querySelectorAll<HTMLElement>('[data-consulting-reveal]');
+
+	if (reducedMotion || !('IntersectionObserver' in window)) {
+		revealTargets.forEach((target) => target.setAttribute('data-revealed', 'true'));
+	} else {
+		const observer = new IntersectionObserver((entries) => {
+			entries.forEach((entry) => {
+				if (!entry.isIntersecting) return;
+				entry.target.setAttribute('data-revealed', 'true');
+				observer.unobserve(entry.target);
+			});
+		}, { threshold: 0.12, rootMargin: '0px 0px -7% 0px' });
+		revealTargets.forEach((target) => observer.observe(target));
+	}
+
+	const hero = document.querySelector<HTMLElement>('[data-consulting-parallax]');
+	let animationFrame = 0;
+	const updateParallax = () => {
+		animationFrame = 0;
+		if (hero) hero.style.setProperty('--consulting-hero-shift', `${Math.min(scrollY * 0.45, 220)}px`);
+	};
+	const requestParallax = () => {
+		if (animationFrame || reducedMotion) return;
+		animationFrame = requestAnimationFrame(updateParallax);
+	};
+	addEventListener('scroll', requestParallax, { passive: true });
+	updateParallax();
+</script>

@@ -30,6 +30,9 @@ scalar values under `meta`:
 | `meta.course_key` | string, 80 characters | Stable cross-system business identifier |
 | `meta.short_description` | string, 500 characters | Concise editorial summary |
 | `meta.visible_price` | string, 100 characters | Display-only price text |
+| `meta.homepage_label` | string, 120 characters | Short label above the Homepage card title |
+| `meta.homepage_cta_label` | string, 120 characters | Homepage card action text |
+| `meta.featured_on_homepage` | boolean | Explicit Homepage selection |
 
 `visible_price` is a UTF-8 display string such as `€499`. Consumers must not
 parse it into authoritative currency or amount values. Lemon Squeezy will own
@@ -50,10 +53,11 @@ The Course post type uses these headless settings:
 | `has_archive` | `false` | No WordPress Course archive |
 | `rewrite` | `false` | No Course rewrite rules or duplicate public URLs |
 
-The post type supports title, editor, featured image, revisions, and the
+The post type supports title, editor, featured image, page attributes, revisions, and the
 `custom-fields` feature required by WordPress for registered REST metadata. The
 generic custom-fields meta box is hidden; editors use the plugin-owned Course
-details box.
+details and Homepage promotion boxes. Page Attributes → Order controls promoted
+Course order.
 
 ## Endpoint and lookups
 
@@ -74,6 +78,19 @@ The plugin adds one allowlisted collection parameter for stable identity:
 ```text
 GET /wp-json/wp/v2/courses?course_key=nebosh-igc
 ```
+
+It also provides an explicit Homepage promotion filter and supports
+`menu_order` ordering:
+
+```text
+GET /wp-json/wp/v2/courses?featured_on_homepage=true&orderby=menu_order&order=asc
+```
+
+Between one and three complete published Courses may be selected for the
+Homepage. A promoted Course requires its card label, CTA label, short
+description, visible price, and Featured image. The CTA destination is derived
+by Astro from `course_key` and route configuration rather than stored as an
+editable payment or business-state URL.
 
 `course_key` lookup is exact after validation against the canonical key format.
 Both lookups return a collection because the endpoint uses the core WordPress
@@ -147,7 +164,10 @@ is CMS-local and must not be propagated as the business identifier.
     "meta": {
       "course_key": "nebosh-igc",
       "short_description": "Local development test course.",
-      "visible_price": "€499"
+      "visible_price": "€499",
+      "homepage_label": "NEBOSH qualification",
+      "homepage_cta_label": "View course",
+      "featured_on_homepage": true
     }
   }
 ]

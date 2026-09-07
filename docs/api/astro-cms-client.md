@@ -1,13 +1,13 @@
-# Astro Course CMS Client
+# Astro CMS Client
 
 Status: Implemented local contract
 
 ## Purpose
 
 The CMS client is the only application boundary between Astro code and the
-published WordPress Course API. Future pages import the domain-facing functions
-from `src/lib/cms`; they do not construct WordPress URLs or consume raw
-WordPress response objects.
+published WordPress content APIs. Pages import domain-facing functions from
+`src/lib/cms`; they do not construct WordPress URLs or consume raw WordPress
+response objects.
 
 ## Configuration
 
@@ -28,6 +28,12 @@ HTTP or HTTPS scheme. The value is not imported into browser code.
 getCourses(): Promise<Course[]>
 getCourseBySlug(slug: string): Promise<Course | null>
 getCourseByKey(courseKey: string): Promise<Course | null>
+getHomepageCourses(): Promise<Course[]>
+getHomepage(): Promise<Homepage>
+getCompanyPage(): Promise<CompanyPageContent>
+getServices(): Promise<ServiceCollection>
+getReferences(): Promise<ReferenceCollection>
+getHomepageReferences(): Promise<readonly Reference[]>
 ```
 
 `getCourses()` returns published Courses in newest-first WordPress date order.
@@ -45,6 +51,23 @@ downloading the collection. It accepts only the canonical stable-key format.
 `getCourseBySlug()` uses URL query encoding so slug content cannot add or modify
 other query parameters.
 
+`getHomepageCourses()` requests only Courses explicitly selected by an editor,
+orders them by the WordPress Order field, and requires one to three complete
+promotion records. The Oil & Gas legacy Course can therefore remain published
+without being presented as available for enrolment.
+
+`getHomepage()` consumes the versioned, composed HSE endpoint. The current
+domain shape contains a Hero slide collection, the shared Company profile, and
+the selected Homepage Services. `getCompanyPage()` consumes the same profile
+alongside Company-specific hero and intro action data. `getServices()` returns
+the canonical ordered consulting collection. Layout, component selection,
+section order, and animation remain in Astro rather than entering the CMS
+contract.
+
+`getReferences()` returns the canonical testimonial collection.
+`getHomepageReferences()` selects the ordered one-to-four records explicitly
+marked for the Homepage.
+
 ## Internal Course shape
 
 ```ts
@@ -56,6 +79,9 @@ interface Course {
   readonly descriptionHtml: string;
   readonly featuredImageUrl: string | null;
   readonly visiblePrice: string | null;
+  readonly homepageLabel: string;
+  readonly homepageCtaLabel: string;
+  readonly featuredOnHomepage: boolean;
   readonly status: 'publish';
 }
 ```
@@ -79,22 +105,53 @@ request per Course. A Course with `featured_media: 0` maps to
 media data is an invalid CMS response.
 
 Lookups add one of these documented filters:
-
 ```text
 ?slug=<encoded-slug>
 ?course_key=<canonical-course-key>
 ```
 
-The raw DTO and snake_case-to-camelCase mapping remain private to the CMS
-module. Extra WordPress properties are ignored.
+Homepage content uses:
+
+```text
+GET /wp-json/hse/v1/homepage
+```
+
+Company Page content uses:
+
+```text
+GET /wp-json/hse/v1/company
+```
+
+Consulting Service content uses:
+
+```text
+GET /wp-json/hse/v1/services
+```
+
+Reference content uses:
+
+```text
+GET /wp-json/hse/v1/references
+```
+
+The Homepage mapper requires contract version 1, the stable `home` page key, at least one
+Hero slide, safe links, and complete HTTP(S) image metadata. WordPress IDs do
+not enter the Astro Homepage model. Raw DTOs and snake_case-to-camelCase mapping
+remain private to the CMS module. Extra WordPress properties are ignored.
 
 ## Validation and errors
 
 External JSON is checked manually at the CMS boundary; the client does not
-blindly cast response bodies and does not add a schema dependency for this
-small contract. It requires a published status, canonical `course_key`, slug,
-rendered title, unprotected rendered content, scalar metadata, and coherent
-featured-media data.
+blindly cast response bodies and does not add a schema dependency for these
+small contracts. Course validation requires a published status, canonical
+`course_key`, slug, rendered title, unprotected rendered content, scalar
+metadata, and coherent featured-media data. Homepage validation checks its
+versioned document, content keys, text, links, slides, featured Services, and
+image metadata. Service validation additionally requires canonical keys, a
+boolean Homepage selection, safe CTA data, and complete images.
+
+Reference validation requires a canonical key, complete plain-text attribution,
+and boolean Homepage presentation flags.
 
 `CmsError.code` provides these stable categories:
 
@@ -119,10 +176,10 @@ input into this value.
 
 ## Static build consequence
 
-Astro executes data fetching for statically rendered components during the
-build. When Course pages are added, the production build environment must be
-able to reach `https://cms.hsetraining.rs`; published CMS changes will appear
-after a new build. Runtime caching and CMS-triggered rebuilds remain separate
+Astro executes Homepage and Course data fetching during the static build. The
+production build environment must be able to reach
+`https://cms.hsetraining.rs`; published CMS changes appear after a new build.
+Runtime caching and the authenticated CMS-triggered rebuild remain separate
 deployment decisions.
 
 References:

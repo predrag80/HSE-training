@@ -1,0 +1,108 @@
+---
+import './other-courses.css';
+import OtherCoursesHero from './OtherCoursesHero.astro';
+import OtherCoursesMotion from './OtherCoursesMotion.astro';
+
+interface Fact {
+	label: string;
+	value: string;
+}
+
+interface SectionItem {
+	title: string;
+	text: string;
+}
+
+interface Props {
+	title: string;
+	eyebrow: string;
+	heroImage: string;
+	featureImage: string;
+	introKicker: string;
+	introTitle: string;
+	intro: string[];
+	facts: Fact[];
+	outcomesTitle: string;
+	outcomesIntro: string;
+	outcomes: SectionItem[];
+	audienceTitle: string;
+	audience: string[];
+}
+
+const {
+	title,
+	eyebrow,
+	heroImage,
+	featureImage,
+	introKicker,
+	introTitle,
+	intro,
+	facts,
+	outcomesTitle,
+	outcomesIntro,
+	outcomes,
+	audienceTitle,
+	audience,
+} = Astro.props;
+---
+
+<OtherCoursesHero {eyebrow} {title} image={heroImage} titleId="other-course-title" compact />
+
+<section class="other-course-facts" aria-label="Course information">
+	{facts.map((fact) => <div data-other-courses-reveal="up"><span>{fact.label}</span><strong>{fact.value}</strong></div>)}
+</section>
+
+<section class="other-course-intro" id="course-content">
+	<div class="other-courses-container other-course-intro__inner">
+		<div class="other-course-intro__visual" data-other-courses-reveal="left">
+			<img src={featureImage} width="850" height="760" alt="Professional practical training session" loading="lazy" decoding="async" />
+		</div>
+		<div class="other-course-intro__copy" data-other-courses-reveal="right">
+			<p class="other-courses-kicker">{introKicker}</p>
+			<h2>{introTitle}</h2>
+			{intro.map((paragraph) => <p>{paragraph}</p>)}
+			<a class="other-courses-button" href="/contact/">Enquire about this course</a>
+		</div>
+	</div>
+</section>
+
+<section class="other-course-outcomes" aria-labelledby="course-outcomes-title">
+	<div class="other-courses-container other-course-outcomes__inner">
+		<header data-other-courses-reveal="left">
+			<p class="other-courses-kicker">Course content</p>
+			<h2 id="course-outcomes-title">{outcomesTitle}</h2>
+			<p>{outcomesIntro}</p>
+		</header>
+		<div class="other-course-outcomes__grid">
+			{outcomes.map((outcome, index) => (
+				<article data-other-courses-reveal="up">
+					<span>{String(index + 1).padStart(2, '0')}</span>
+					<h3>{outcome.title}</h3>
+					<p>{outcome.text}</p>
+				</article>
+			))}
+		</div>
+	</div>
+</section>
+
+<section class="other-course-audience" aria-labelledby="course-audience-title">
+	<div class="other-courses-container other-course-audience__inner">
+		<div data-other-courses-reveal="left">
+			<p class="other-courses-kicker">Who should attend</p>
+			<h2 id="course-audience-title">{audienceTitle}</h2>
+		</div>
+		<ul data-other-courses-reveal="right">
+			{audience.map((item) => <li><span aria-hidden="true">✓</span>{item}</li>)}
+		</ul>
+	</div>
+</section>
+
+<section class="other-course-cta">
+	<div class="other-courses-container" data-other-courses-reveal="up">
+		<p>Course dates and pricing are available upon enquiry.</p>
+		<h2>Ready to train your team?</h2>
+		<a href="/contact/">Contact HSE Training <span aria-hidden="true">→</span></a>
+	</div>
+</section>
+
+<OtherCoursesMotion />
