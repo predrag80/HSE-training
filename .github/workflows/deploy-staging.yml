@@ -1,0 +1,121 @@
+name: Deploy Astro to staging
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/ssh_known_hosts
+      - .github/workflows/deploy-staging.yml
+      - .node-version
+      - apps/web/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hsetraining-staging
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: staging
+      url: https://staging.hsetraining.rs
+    env:
+      DEPLOY_HOST: 178.104.200.82
+      DEPLOY_ROOT: /var/www/hsetraining-staging
+      DEPLOY_USER: deploy
+      STAGING_URL: https://staging.hsetraining.rs
+      WORDPRESS_API_URL: https://cms.hsetraining.rs
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: apps/web
+
+      - name: Run tests
+        run: npm run test
+        working-directory: apps/web
+
+      - name: Check Astro and TypeScript
+        run: npm run check
+        working-directory: apps/web
+
+      - name: Lint application
+        run: npm run lint
+        working-directory: apps/web
+
+      - name: Build static site
+        run: npm run build
+        working-directory: apps/web
+
+      - name: Configure deployment key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.HETZNER_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_PRIVATE_KEY"
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          install -m 600 .github/ssh_known_hosts "$HOME/.ssh/known_hosts"
+
+      - name: Publish release and run smoke tests
+        env:
+          RELEASE_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+
+          release_path="${DEPLOY_ROOT}/releases/${RELEASE_ID}"
+          ssh_target="${DEPLOY_USER}@${DEPLOY_HOST}"
+          ssh_options=(-i "$HOME/.ssh/id_ed25519" -o IdentitiesOnly=yes)
+
+          previous_release="$(
+            ssh "${ssh_options[@]}" "$ssh_target" \
+              "readlink -f '${DEPLOY_ROOT}/current' || true"
+          )"
+
+          ssh "${ssh_options[@]}" "$ssh_target" "mkdir -p '$release_path'"
+          rsync -az --delete \
+            -e "ssh -i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes" \
+            apps/web/dist/ "$ssh_target:$release_path/"
+
+          ssh "${ssh_options[@]}" "$ssh_target" \
+            "ln -sfn '$release_path' '${DEPLOY_ROOT}/current.next' && mv -Tf '${DEPLOY_ROOT}/current.next' '${DEPLOY_ROOT}/current'"
+
+          if curl --fail --show-error --silent --retry 5 --retry-delay 2 \
+              --output /dev/null "${STAGING_URL}/" \
+            && curl --fail --show-error --silent --retry 5 --retry-delay 2 \
+              --output /dev/null "${STAGING_URL}/contact/"; then
+            echo "Staging deployment is healthy: $release_path"
+            exit 0
+          fi
+
+          echo "Smoke tests failed; attempting rollback to: $previous_release" >&2
+          if [[ "$previous_release" == "${DEPLOY_ROOT}/releases/"* ]]; then
+            ssh "${ssh_options[@]}" "$ssh_target" \
+              "ln -sfn '$previous_release' '${DEPLOY_ROOT}/current.next' && mv -Tf '${DEPLOY_ROOT}/current.next' '${DEPLOY_ROOT}/current'"
+            echo "Rollback completed." >&2
+          else
+            echo "Rollback skipped because the previous release path was not valid." >&2
+          fi
+          exit 1
+
+      - name: Remove deployment key
+        if: always()
+        run: rm -f "$HOME/.ssh/id_ed25519"
