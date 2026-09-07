@@ -1,0 +1,379 @@
+.nebosh-container {
+	width: min(76.25rem, calc(100% - 3.75rem));
+	margin-inline: auto;
+}
+
+.nebosh-hero {
+	--nebosh-hero-shift: 0px;
+	position: relative;
+	display: grid;
+	height: 38.75rem;
+	overflow: hidden;
+	place-items: center;
+	color: #fff;
+	background-image: var(--nebosh-hero-image);
+	background-position: center calc(50% + var(--nebosh-hero-shift));
+	background-size: cover;
+}
+
+.nebosh-hero__overlay {
+	position: absolute;
+	inset: 0;
+	background: rgb(22 24 29 / 48%);
+}
+
+.nebosh-hero__content {
+	position: relative;
+	z-index: 1;
+	max-width: min(64rem, calc(100% - 3rem));
+	padding-top: 3.25rem;
+	text-align: center;
+}
+
+.nebosh-hero__content p {
+	margin: 0 0 0.5rem;
+	color: rgb(255 255 255 / 68%);
+	font-size: 1.25rem;
+	line-height: 1.5;
+}
+
+.nebosh-hero__content h1 {
+	max-width: 19ch;
+	margin: 0 auto;
+	color: #fff;
+	font-size: clamp(3rem, 4.35vw, 4rem);
+	font-weight: 500;
+	letter-spacing: -0.055em;
+	line-height: 1.06;
+}
+
+.nebosh-hero--compact-title .nebosh-hero__content h1 { max-width: 22ch; font-size: clamp(2.7rem, 4vw, 3.75rem); }
+
+.nebosh-hero__scroll {
+	position: absolute;
+	bottom: 4.35rem;
+	left: 50%;
+	z-index: 2;
+	display: block;
+	width: 1.125rem;
+	height: 1.875rem;
+	border: 2px solid #fff;
+	border-radius: 1rem;
+	transform: translateX(-50%);
+}
+
+.nebosh-hero__scroll span {
+	position: absolute;
+	top: 0.35rem;
+	left: 50%;
+	width: 0.125rem;
+	height: 0.375rem;
+	background: #fff;
+	border-radius: 1rem;
+	transform: translateX(-50%);
+	animation: nebosh-scroll-dot 1.8s ease infinite;
+}
+
+.nebosh-kicker,
+.nebosh-section-heading > p {
+	margin: 0 0 0.75rem;
+	color: #dd6531;
+	font-size: 0.75rem;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	line-height: 1.4;
+	text-transform: uppercase;
+}
+
+.nebosh-button {
+	display: inline-flex;
+	min-height: 3.5rem;
+	align-items: center;
+	justify-content: center;
+	padding: 0.25rem 1.875rem;
+	color: #fff;
+	background: #292d36;
+	font-size: 0.75rem;
+	font-weight: 600;
+	letter-spacing: 0.035em;
+	text-decoration: none;
+	text-transform: uppercase;
+	transition: color 350ms ease, background-color 350ms ease, transform 350ms ease;
+}
+
+.nebosh-button:hover,
+.nebosh-button:focus-visible { color: #292d36; background: #fff; box-shadow: inset 0 0 0 2px #292d36; transform: translateY(-0.1875rem); }
+
+.nebosh-section-heading { margin-bottom: 4.25rem; text-align: center; }
+.nebosh-section-heading h2 { margin: 0; color: #292d36; font-size: clamp(2.5rem, 4vw, 3.4375rem); font-weight: 600; line-height: 1.05; }
+
+/* NEBOSH overview — based on the Crafto Services composition. */
+.nebosh-overview-strip { display: grid; grid-template-columns: repeat(4, 1fr); background: #f7f7f7; }
+.nebosh-overview-strip article { min-height: 14.375rem; padding: 3.6rem 1.75rem 2.75rem; text-align: center; border-right: 1px solid #e4e4e4; }
+.nebosh-overview-strip article:last-child { border-right: 0; }
+.nebosh-overview-strip span { display: block; margin-bottom: 1rem; color: #dd6531; font-size: 2.15rem; font-weight: 400; line-height: 1; }
+.nebosh-overview-strip h2 { margin: 0 0 0.35rem; font-size: 1.1875rem; font-weight: 600; letter-spacing: -0.02em; }
+.nebosh-overview-strip p { max-width: 15rem; margin: auto; color: #9294a0; font-size: 0.9375rem; line-height: 1.55; }
+
+.nebosh-overview-intro { padding: 6.9rem 0 7.5rem; }
+.nebosh-overview-intro__inner { display: grid; grid-template-columns: 0.91fr 1.09fr; align-items: center; gap: 8.5rem; }
+.nebosh-overview-intro__copy { padding-left: 0.9375rem; }
+.nebosh-overview-intro__copy h2,
+.nebosh-detail-intro__copy h2,
+.nebosh-outcomes header h2,
+.iogc-status h2 { margin: 0 0 1.5rem; color: #292d36; font-size: clamp(2.6rem, 4vw, 3.6rem); font-weight: 600; line-height: 1.02; }
+.nebosh-overview-intro__copy > p:not(.nebosh-kicker) { margin: 0 0 1rem; color: #808291; line-height: 1.8; }
+.nebosh-overview-intro__copy .nebosh-button { margin-top: 1.2rem; }
+.nebosh-overview-intro__visual { position: relative; min-height: 35rem; padding-right: 1.5rem; }
+.nebosh-overview-intro__visual::before { position: absolute; top: 0; right: 0; width: 78%; height: 91%; content: ''; background: #292d36; }
+.nebosh-overview-intro__visual img { position: relative; z-index: 1; width: 76%; height: 31rem; margin: 2rem 0 0 auto; object-fit: cover; }
+.nebosh-overview-intro__visual > div { position: absolute; bottom: 0; left: 0; z-index: 2; width: 48%; padding: 2.4rem; color: #fff; background: rgb(221 101 49 / 88%); }
+.nebosh-overview-intro__visual strong,
+.nebosh-overview-intro__visual span { display: block; }
+.nebosh-overview-intro__visual strong { margin-bottom: 0.4rem; font-size: 1.25rem; }
+.nebosh-overview-intro__visual span { color: rgb(255 255 255 / 75%); font-size: 0.9rem; line-height: 1.55; }
+
+.nebosh-courses { padding: 7rem 0 7.75rem; background: #f7f7f7; }
+.nebosh-courses__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.875rem; }
+.nebosh-course-card { position: relative; display: flex; min-height: 32rem; align-items: flex-end; overflow: hidden; color: #fff; background-position: center; background-size: cover; text-decoration: none; }
+.nebosh-course-card--igc { background-image: url('/images/consulting-service-01.webp'); }
+.nebosh-course-card--iogc { background-image: url('/images/consulting-service-04.webp'); }
+.nebosh-course-card__image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.nebosh-course-card__shade { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 12%, rgb(18 21 27 / 88%) 100%); transition: background-color 450ms ease; }
+.nebosh-course-card__content { position: relative; z-index: 1; width: 100%; padding: 3rem; transition: transform 450ms cubic-bezier(0.23, 1, 0.32, 1); }
+.nebosh-course-card__content > span { color: #f49a76; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+.nebosh-course-card h3 { max-width: 19ch; margin: 0.75rem 0 0.75rem; color: #fff; font-size: 2.15rem; font-weight: 600; line-height: 1.08; }
+.nebosh-course-card p { max-width: 31rem; margin: 0 0 1.5rem; color: rgb(255 255 255 / 68%); line-height: 1.6; }
+.nebosh-course-card strong { display: inline-flex; gap: 0.7rem; align-items: center; color: #fff; font-size: 0.8rem; letter-spacing: 0.03em; text-transform: uppercase; }
+.nebosh-course-card strong i { font-size: 1.3rem; font-style: normal; transition: transform 300ms ease; }
+.nebosh-course-card:hover { color: #fff; }
+.nebosh-course-card:hover .nebosh-course-card__shade { background-color: rgb(221 101 49 / 22%); }
+.nebosh-course-card:hover .nebosh-course-card__content { transform: translateY(-0.75rem); }
+.nebosh-course-card:hover strong i { transform: translateX(0.35rem); }
+
+.nebosh-quote { padding: 6.6rem 0 7rem; }
+.nebosh-quote__inner { display: grid; grid-template-columns: 5rem 1fr; max-width: 61rem; }
+.nebosh-quote__inner > span { color: #dd6531; font-family: Georgia, serif; font-size: 6.5rem; line-height: 0.8; }
+.nebosh-quote blockquote { margin: 0; }
+.nebosh-quote blockquote > p { max-width: none; margin: 0 0 1.8rem; color: #292d36; font-size: clamp(1.45rem, 2.2vw, 2rem); line-height: 1.5; }
+.nebosh-quote footer strong,
+.nebosh-quote footer small { display: block; }
+.nebosh-quote footer strong { font-size: 1rem; }
+.nebosh-quote footer small { color: #808291; font-size: 0.875rem; }
+
+/* IGC — based on Crafto Service Details. */
+.nebosh-detail-intro { padding: 7rem 0 6.4rem; }
+.nebosh-detail-intro__inner { display: grid; grid-template-columns: 1fr 0.86fr; align-items: center; gap: 7.5rem; }
+.nebosh-detail-intro__image { position: relative; }
+.nebosh-detail-intro__image::before { position: absolute; inset: 0; content: ''; background: #dd6531; transform: translate(-1.5rem, 1.5rem); }
+.nebosh-detail-intro__image img { position: relative; width: 100%; aspect-ratio: 1.02; object-fit: cover; }
+.nebosh-detail-intro__copy > p:not(.nebosh-kicker) { color: #808291; line-height: 1.8; }
+.nebosh-course-price { display: flex; align-items: baseline; justify-content: space-between; padding: 1rem 0; margin-top: 1.5rem; border-top: 1px solid #e4e4e4; border-bottom: 1px solid #e4e4e4; }
+.nebosh-course-price span { color: #808291; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.nebosh-course-price strong { color: #292d36; font-size: 1.5rem; }
+.nebosh-icon-list { padding: 0; margin: 2rem 0 0; list-style: none; }
+.nebosh-icon-list li { display: grid; max-width: none; grid-template-columns: 3.25rem 1fr; gap: 1rem; align-items: start; margin-top: 1.4rem; }
+.nebosh-icon-list li > span { display: grid; width: 2.65rem; height: 2.65rem; place-items: center; color: #dd6531; border: 1px solid #f1c4b1; border-radius: 50%; }
+.nebosh-icon-list strong,
+.nebosh-icon-list small { display: block; }
+.nebosh-icon-list strong { color: #292d36; font-size: 1rem; }
+.nebosh-icon-list small { margin-top: 0.2rem; color: #808291; font-size: 0.9375rem; line-height: 1.5; }
+
+.nebosh-cms-content { padding: 6.25rem 0; border-top: 1px solid #e4e4e4; }
+.nebosh-cms-content--muted { background: #f7f7f7; }
+.nebosh-cms-content__inner { max-width: 55rem; }
+.nebosh-cms-content h2 { margin: 0 0 2rem; color: #292d36; font-size: clamp(2.6rem, 4vw, 3.6rem); font-weight: 600; line-height: 1.02; }
+.nebosh-cms-content__body { color: #808291; line-height: 1.8; }
+.nebosh-cms-content__body h2,
+.nebosh-cms-content__body h3,
+.nebosh-cms-content__body h4 { margin: 2.25rem 0 0.8rem; color: #292d36; }
+.nebosh-cms-content__body p,
+.nebosh-cms-content__body ul,
+.nebosh-cms-content__body ol { max-width: none; margin: 0 0 1rem; }
+.nebosh-cms-content__body img { width: 100%; height: auto; margin: 2rem 0; }
+.nebosh-cms-content__body a { color: #292d36; text-decoration-color: #dd6531; text-underline-offset: 0.25rem; }
+
+.nebosh-outcomes { padding: 6.25rem 0 6.75rem; border-top: 1px solid #e4e4e4; }
+.nebosh-outcomes__inner { display: grid; grid-template-columns: 0.75fr 1.25fr; gap: 5.5rem; }
+.nebosh-outcomes header > p:not(.nebosh-kicker) { color: #808291; line-height: 1.75; }
+.nebosh-outcomes header .nebosh-button { margin-top: 1.25rem; }
+.nebosh-outcomes__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2.6rem 3.5rem; }
+.nebosh-outcomes__grid article { position: relative; padding-left: 4rem; }
+.nebosh-outcomes__grid article > span { position: absolute; top: -0.15rem; left: 0; color: #dd6531; font-size: 1.7rem; font-weight: 500; }
+.nebosh-outcomes__grid h3 { margin: 0 0 0.45rem; font-size: 1.1rem; letter-spacing: -0.02em; }
+.nebosh-outcomes__grid p { margin: 0; color: #9294a0; font-size: 0.9375rem; line-height: 1.55; }
+
+.nebosh-assessment { display: grid; grid-template-columns: 1fr 1fr; min-height: 39rem; }
+.nebosh-assessment__visual { background: url('/images/nebosh-igc-support.webp') center / cover no-repeat; }
+.nebosh-assessment__copy { display: flex; flex-direction: column; justify-content: center; padding: 5rem max(3rem, calc((100vw - 76.25rem) / 2 + 0.9375rem)); color: rgb(255 255 255 / 66%); background: #292d36; }
+.nebosh-assessment__copy h2 { max-width: 11ch; margin: 0 0 1.5rem; color: #fff; font-size: clamp(2.75rem, 4vw, 3.6rem); font-weight: 500; line-height: 1.02; }
+.nebosh-assessment__copy > p:not(.nebosh-kicker) { max-width: 32rem; margin: 0; line-height: 1.75; }
+.nebosh-assessment__copy ul { padding: 0; margin: 2rem 0 0; list-style: none; }
+.nebosh-assessment__copy li { display: flex; max-width: 34rem; gap: 1rem; align-items: flex-start; margin-top: 1.1rem; color: #fff; line-height: 1.55; }
+.nebosh-assessment__copy li span { min-width: 3.5rem; color: #f49a76; font-weight: 600; }
+
+.nebosh-faq { padding: 7rem 0 6.75rem; }
+.nebosh-faq__inner { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 7rem; }
+.nebosh-faq header h2 { max-width: 10ch; margin: 0; font-size: clamp(2.7rem, 4vw, 3.55rem); line-height: 1.02; }
+.nebosh-faq__items details { border-bottom: 1px solid #d9d9d9; }
+.nebosh-faq__items summary { position: relative; padding: 1.2rem 2.5rem 1.2rem 0; color: #292d36; font-size: 1.05rem; font-weight: 600; list-style: none; cursor: pointer; }
+.nebosh-faq__items summary::-webkit-details-marker { display: none; }
+.nebosh-faq__items summary::after { position: absolute; top: 1.15rem; right: 0; content: '+'; color: #dd6531; font-size: 1.5rem; font-weight: 400; }
+.nebosh-faq__items details[open] summary::after { content: '−'; }
+.nebosh-faq__items details p { margin: -0.2rem 2.5rem 1.35rem 0; color: #808291; font-size: 0.95rem; line-height: 1.65; }
+.nebosh-inline-cta { max-width: none; margin: 5rem auto 0; text-align: center; }
+.nebosh-inline-cta a { color: #292d36; font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-decoration-color: #dd6531; text-underline-offset: 0.35rem; }
+
+/* IOGC — based on Crafto Process, intentionally informational rather than sales-led. */
+.iogc-status { padding: 6.75rem 0 6.25rem; }
+.iogc-status__inner { display: grid; grid-template-columns: 1fr 1fr; gap: 7rem; }
+.iogc-status h2 { max-width: 12ch; margin-bottom: 0; }
+.iogc-status__inner > div:last-child p { margin: 0 0 1rem; color: #808291; line-height: 1.8; }
+.iogc-status__inner strong { color: #292d36; }
+.nebosh-text-link { display: inline-flex; gap: 0.6rem; align-items: center; margin-top: 1rem; color: #292d36; font-size: 0.8rem; font-weight: 600; text-decoration: none; text-transform: uppercase; }
+.nebosh-text-link span { color: #dd6531; font-size: 1.2rem; transition: transform 250ms ease; }
+.nebosh-text-link:hover span { transform: translateX(0.3rem); }
+.iogc-status__links { display: flex; flex-wrap: wrap; gap: 1.5rem 2rem; }
+
+.iogc-focus { padding: 6.75rem 0 7.5rem; background: #f7f7f7; }
+.iogc-focus__header { display: flex; align-items: end; justify-content: space-between; margin-bottom: 5rem; }
+.iogc-focus__header h2 { max-width: 13ch; margin: 0; font-size: clamp(2.8rem, 4.2vw, 3.75rem); line-height: 1.02; }
+.iogc-focus__header strong { padding-bottom: 0.55rem; color: #808291; font-size: 1rem; font-weight: 500; }
+.iogc-focus__steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3.75rem; }
+.iogc-focus__steps article { position: relative; padding-top: 5rem; border-top: 1px solid #d9d9d9; }
+.iogc-focus__steps article > span { position: absolute; top: -1.65rem; left: 0; display: grid; width: 3.3rem; height: 3.3rem; place-items: center; color: #292d36; background: #fff; border-radius: 50%; box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 7%); font-size: 0.75rem; font-weight: 600; }
+.iogc-focus__steps h3 { margin: 0 0 0.65rem; font-size: 1.15rem; }
+.iogc-focus__steps p { max-width: 20rem; margin: 0; color: #9294a0; font-size: 0.95rem; line-height: 1.65; }
+
+.iogc-band { position: relative; display: grid; min-height: 36rem; place-items: center; color: #fff; background: url('/images/nebosh-iogc-band.jpg') center / cover fixed; }
+.iogc-band__overlay { position: absolute; inset: 0; background: rgb(21 23 27 / 56%); }
+.iogc-band__content { position: relative; z-index: 1; max-width: 59rem; padding: 2rem; text-align: center; }
+.iogc-band__content > span { display: grid; width: 4.25rem; height: 4.25rem; margin: 0 auto 2rem; place-items: center; border: 1px solid rgb(255 255 255 / 55%); border-radius: 50%; font-size: 1.25rem; }
+.iogc-band__content p { margin: 0 0 0.9rem; color: rgb(255 255 255 / 62%); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; }
+.iogc-band__content h2 { margin: 0; color: #fff; font-size: clamp(3rem, 5vw, 4.65rem); font-weight: 500; line-height: 1.04; }
+
+.iogc-audience { padding: 7rem 0 6.75rem; background: #f7f7f7; }
+.iogc-audience__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.875rem; }
+.iogc-audience__grid article { position: relative; min-height: 10.5rem; padding: 2.1rem 2.25rem 2rem 5.5rem; background: #fff; box-shadow: 0 1.2rem 3.5rem rgb(0 0 0 / 5%); transition: transform 400ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 400ms ease; }
+.iogc-audience__grid article:hover { box-shadow: 0 1.5rem 3.75rem rgb(0 0 0 / 10%); transform: translateY(-0.5rem); }
+.iogc-audience__grid span { position: absolute; top: 2.1rem; left: 2rem; color: #dd6531; font-size: 1.4rem; }
+.iogc-audience__grid h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+.iogc-audience__grid p { margin: 0; color: #9294a0; font-size: 0.95rem; line-height: 1.65; }
+
+/* Shared entrance motion mirrors the restrained Crafto transitions. */
+[data-nebosh-reveal] { opacity: 0; transition: opacity 800ms cubic-bezier(0.23, 1, 0.32, 1), transform 800ms cubic-bezier(0.23, 1, 0.32, 1); }
+[data-nebosh-reveal='hero'] { transform: translateY(1.5rem); transition-delay: 180ms; }
+[data-nebosh-reveal='up'] { transform: translateY(2.25rem); }
+[data-nebosh-reveal='left'] { transform: translateX(-2.75rem); }
+[data-nebosh-reveal='right'] { transform: translateX(2.75rem); }
+[data-nebosh-reveal][data-revealed='true'] { opacity: 1; transform: translate(0); }
+
+@keyframes nebosh-scroll-dot {
+	0% { opacity: 0; transform: translate(-50%, 0); }
+	35% { opacity: 1; }
+	100% { opacity: 0; transform: translate(-50%, 0.55rem); }
+}
+
+@media (max-width: 74.999rem) {
+	.nebosh-container { width: 60rem; }
+	.nebosh-overview-intro__inner { gap: 5rem; }
+	.nebosh-detail-intro__inner { gap: 5rem; }
+	.nebosh-outcomes__inner { gap: 3.5rem; }
+	.nebosh-faq__inner { gap: 4rem; }
+}
+
+@media (max-width: 61.999rem) {
+	.nebosh-container { width: 45rem; }
+	.nebosh-hero { height: 32rem; background-position: center; }
+	.nebosh-hero__content { padding-top: 0; }
+	.nebosh-overview-strip { grid-template-columns: repeat(2, 1fr); }
+	.nebosh-overview-strip article:nth-child(2) { border-right: 0; }
+	.nebosh-overview-strip article:nth-child(-n + 2) { border-bottom: 1px solid #e4e4e4; }
+	.nebosh-overview-intro__inner,
+	.nebosh-detail-intro__inner { grid-template-columns: 1fr 1fr; gap: 3rem; }
+	.nebosh-overview-intro__visual { min-height: 30rem; }
+	.nebosh-overview-intro__visual img { height: 27rem; }
+	.nebosh-course-card { min-height: 29rem; }
+	.nebosh-course-card__content { padding: 2.25rem; }
+	.nebosh-outcomes__inner { grid-template-columns: 1fr; }
+	.nebosh-assessment { min-height: 34rem; }
+	.nebosh-assessment__copy { padding: 3.5rem; }
+	.nebosh-faq__inner { gap: 3rem; }
+	.iogc-status__inner { gap: 3rem; }
+	.iogc-band { background-attachment: scroll; }
+}
+
+@media (max-width: 47.999rem) {
+	.nebosh-container { width: calc(100% - 3.75rem); }
+	.nebosh-hero { height: 25rem; }
+	.nebosh-hero__content h1,
+	.nebosh-hero--compact-title .nebosh-hero__content h1 { max-width: 100%; font-size: 1.9rem; overflow-wrap: anywhere; }
+	.nebosh-hero__content p { font-size: 1.05rem; }
+	.nebosh-hero__scroll { bottom: 2rem; }
+	.nebosh-overview-intro,
+	.nebosh-detail-intro,
+	.nebosh-cms-content,
+	.nebosh-outcomes,
+	.nebosh-faq,
+	.iogc-status,
+	.iogc-focus,
+	.iogc-audience { padding-block: 5rem; }
+	.nebosh-overview-intro__inner,
+	.nebosh-detail-intro__inner,
+	.nebosh-assessment,
+	.nebosh-faq__inner,
+	.iogc-status__inner { grid-template-columns: 1fr; }
+	.nebosh-overview-intro__copy { padding-left: 0; }
+	.nebosh-overview-intro__visual { min-height: 32rem; }
+	.nebosh-courses { padding-block: 5rem; }
+	.nebosh-courses__grid { grid-template-columns: 1fr; }
+	.nebosh-course-card { min-height: 27rem; }
+	.nebosh-quote { padding-block: 5rem; }
+	.nebosh-quote__inner { grid-template-columns: 3.5rem 1fr; }
+	.nebosh-detail-intro__image { width: calc(100% - 1.5rem); margin-left: 1.5rem; }
+	.nebosh-assessment__visual { min-height: 28rem; }
+	.nebosh-faq header h2 { max-width: none; }
+	.iogc-focus__header { display: block; }
+	.iogc-focus__header strong { display: block; margin-top: 1rem; }
+	.iogc-focus__steps { grid-template-columns: 1fr; gap: 4rem; }
+	.iogc-focus__steps p { max-width: none; }
+	.iogc-band { min-height: 30rem; }
+}
+
+@media (max-width: 35.999rem) {
+	.nebosh-container { width: calc(100% - 1.875rem); }
+	.nebosh-hero { height: 18.75rem; }
+	.nebosh-hero__content { max-width: calc(100% - 1.875rem); }
+	.nebosh-hero__content p { margin-bottom: 0.35rem; font-size: 0.95rem; }
+	.nebosh-hero__scroll { display: none; }
+	.nebosh-overview-strip { grid-template-columns: 1fr; }
+	.nebosh-overview-strip article { min-height: 12.5rem; border-right: 0; border-bottom: 1px solid #e4e4e4; }
+	.nebosh-overview-intro__copy h2,
+	.nebosh-detail-intro__copy h2,
+	.nebosh-outcomes header h2,
+	.iogc-status h2 { font-size: 2.35rem; }
+	.nebosh-overview-intro__visual { min-height: 27rem; }
+	.nebosh-overview-intro__visual img { width: 86%; height: 24rem; }
+	.nebosh-overview-intro__visual > div { width: 68%; padding: 1.5rem; }
+	.nebosh-section-heading { margin-bottom: 3rem; }
+	.nebosh-section-heading h2 { font-size: 2.35rem; }
+	.nebosh-course-card__content { padding: 1.75rem; }
+	.nebosh-course-card h3 { font-size: 1.75rem; }
+	.nebosh-quote__inner { display: block; }
+	.nebosh-quote__inner > span { display: block; height: 3.25rem; }
+	.nebosh-outcomes__grid { grid-template-columns: 1fr; }
+	.nebosh-assessment__visual { min-height: 21rem; }
+	.nebosh-assessment__copy { padding: 4rem 1.25rem; }
+	.nebosh-assessment__copy h2 { font-size: 2.45rem; }
+	.nebosh-faq__inner { gap: 2.25rem; }
+	.nebosh-inline-cta { margin-top: 3.5rem; }
+	.iogc-focus__header h2,
+	.iogc-band__content h2 { font-size: 2.45rem; }
+	.iogc-audience__grid { grid-template-columns: 1fr; }
+	.iogc-audience__grid article { padding-right: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.nebosh-hero__scroll span { animation: none; }
+	[data-nebosh-reveal] { opacity: 1; transform: none; transition: none; }
+}

@@ -1,0 +1,30 @@
+<script>
+	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const revealElements = document.querySelectorAll<HTMLElement>('[data-nebosh-reveal]');
+
+	if (reducedMotion || !('IntersectionObserver' in window)) {
+		revealElements.forEach((element) => { element.dataset.revealed = 'true'; });
+	} else {
+		const observer = new IntersectionObserver((entries) => {
+			entries.forEach((entry) => {
+				if (!entry.isIntersecting || !(entry.target instanceof HTMLElement)) return;
+				entry.target.dataset.revealed = 'true';
+				observer.unobserve(entry.target);
+			});
+		}, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+		revealElements.forEach((element) => observer.observe(element));
+	}
+
+	const heroes = document.querySelectorAll<HTMLElement>('[data-nebosh-parallax]');
+	let frame = 0;
+	const updateParallax = () => {
+		frame = 0;
+		heroes.forEach((hero) => hero.style.setProperty('--nebosh-hero-shift', `${Math.min(scrollY * 0.5, 220)}px`));
+	};
+	const requestParallax = () => {
+		if (frame || reducedMotion) return;
+		frame = requestAnimationFrame(updateParallax);
+	};
+	addEventListener('scroll', requestParallax, { passive: true });
+	updateParallax();
+</script>

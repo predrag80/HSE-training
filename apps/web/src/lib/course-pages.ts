@@ -1,4 +1,5 @@
 import type { Course } from '../types/course';
+import { hasBespokeCoursePage } from './course-routes';
 
 export interface CourseStaticPath {
 	readonly params: {
@@ -29,6 +30,10 @@ export function createCourseStaticPaths(courses: readonly Course[]): CourseStati
 			props: { course },
 		};
 	});
+}
+
+export function createGenericCourseStaticPaths(courses: readonly Course[]): CourseStaticPath[] {
+	return createCourseStaticPaths(courses.filter((course) => !hasBespokeCoursePage(course.courseKey)));
 }
 
 export function getCoursePageMetadata(course: Course): CoursePageMetadata {

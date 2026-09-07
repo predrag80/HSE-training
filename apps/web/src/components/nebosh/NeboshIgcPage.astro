@@ -1,0 +1,104 @@
+---
+import './nebosh-pages.css';
+import type { Course } from '../../types/course';
+import NeboshHero from './NeboshHero.astro';
+import NeboshMotion from './NeboshMotion.astro';
+
+interface Props {
+	course?: Course | null;
+}
+
+const { course = null } = Astro.props;
+const courseTitle = course?.title ?? 'NEBOSH International General Certificate';
+const courseSummary =
+	course?.shortDescription ??
+	'The NEBOSH International General Certificate is relevant to every workplace. It is suitable for managers, supervisors, people with health and safety responsibilities and those starting an HSE career.';
+const heroImage = course?.featuredImageUrl ?? '/images/nebosh-igc-hero.jpg';
+
+const outcomes = [
+	{ title: 'Manage health and safety', text: 'Understand how to organise, influence and improve health and safety performance.' },
+	{ title: 'Control workplace hazards', text: 'Identify common hazards and select proportionate, practical controls.' },
+	{ title: 'Measure success', text: 'Review performance and understand whether safety arrangements are working.' },
+	{ title: 'Apply international standards', text: 'Use relevant international principles wherever in the world you work.' },
+];
+---
+
+<NeboshHero eyebrow="International qualification" title={courseTitle} image={heroImage} titleId="igc-title" compact />
+
+<section class="nebosh-detail-intro" id="course-content">
+	<div class="nebosh-container nebosh-detail-intro__inner">
+		<div class="nebosh-detail-intro__image" data-nebosh-reveal="left">
+			<img src="/images/nebosh-igc-feature.webp" width="600" height="590" alt="Professional reviewing a workplace safety plan" />
+		</div>
+		<div class="nebosh-detail-intro__copy" data-nebosh-reveal="right">
+			<p class="nebosh-kicker">Knowledge you can use at work</p>
+			<h2>A globally respected health and safety qualification.</h2>
+			<p>{courseSummary}</p>
+			{course?.visiblePrice && <p class="nebosh-course-price"><span>Course price</span><strong>{course.visiblePrice}</strong></p>}
+			<ul class="nebosh-icon-list">
+				<li><span aria-hidden="true">✓</span><div><strong>No formal entry requirements</strong><small>A suitable standard of English is important.</small></div></li>
+				<li><span aria-hidden="true">✓</span><div><strong>Practical workplace application</strong><small>Risk assessment is central to the qualification.</small></div></li>
+			</ul>
+		</div>
+	</div>
+</section>
+
+{
+	course?.descriptionHtml && (
+		<section class="nebosh-cms-content" aria-labelledby="igc-cms-content-title">
+			<div class="nebosh-container nebosh-cms-content__inner" data-nebosh-reveal="up">
+				<p class="nebosh-kicker">Course information</p>
+				<h2 id="igc-cms-content-title">Details from HSE Training</h2>
+				{/* This HTML is trusted editor-authored content validated at the CMS boundary. */}
+				<div class="nebosh-cms-content__body">
+					<Fragment set:html={course.descriptionHtml} />
+				</div>
+			</div>
+		</section>
+	)
+}
+
+<section class="nebosh-outcomes" aria-labelledby="igc-outcomes-title">
+	<div class="nebosh-container nebosh-outcomes__inner">
+		<header data-nebosh-reveal="left">
+			<p class="nebosh-kicker">Course content</p>
+			<h2 id="igc-outcomes-title">What will you know and do?</h2>
+			<p>Develop the core skills needed to assess risk, improve controls and support a positive health and safety culture.</p>
+			<a class="nebosh-button" href="/contact/">Ask about the course</a>
+		</header>
+		<div class="nebosh-outcomes__grid">
+			{outcomes.map((outcome, index) => (
+				<article data-nebosh-reveal="up">
+					<span>0{index + 1}</span><h3>{outcome.title}</h3><p>{outcome.text}</p>
+				</article>
+			))}
+		</div>
+	</div>
+</section>
+
+<section class="nebosh-assessment">
+	<div class="nebosh-assessment__visual" role="img" aria-label="Consultant working through an assessment" data-nebosh-reveal="left"></div>
+	<div class="nebosh-assessment__copy" data-nebosh-reveal="right">
+		<p class="nebosh-kicker">2026 specification</p>
+		<h2>Assessment built around real capability.</h2>
+		<p>The revised qualification uses two complementary assessments so learners can demonstrate both knowledge and practical application.</p>
+		<ul>
+			<li><span>GIC1</span> Scenario-based open book examination with a closing interview.</li>
+			<li><span>GIC2</span> Practical workplace risk assessment and action plan.</li>
+		</ul>
+	</div>
+</section>
+
+<section class="nebosh-faq" aria-labelledby="igc-faq-title">
+	<div class="nebosh-container nebosh-faq__inner">
+		<header data-nebosh-reveal="left"><p class="nebosh-kicker">Course questions</p><h2 id="igc-faq-title">Is the IGC right for you?</h2></header>
+		<div class="nebosh-faq__items" data-nebosh-reveal="right">
+			<details open><summary>Who normally takes this qualification?</summary><p>Managers, supervisors, employees with safety responsibilities and people preparing for a career in health and safety.</p></details>
+			<details><summary>Do I need previous health and safety knowledge?</summary><p>No formal health and safety qualification is required. Learners need sufficient English to understand and explain the concepts in the syllabus.</p></details>
+			<details><summary>How do I receive course access?</summary><p>Contact HSE Training for current delivery options, dates and access arrangements.</p></details>
+		</div>
+	</div>
+	<p class="nebosh-inline-cta">Ready to discuss the International General Certificate? <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a></p>
+</section>
+
+<NeboshMotion />

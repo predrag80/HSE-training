@@ -1,0 +1,19 @@
+---
+import NeboshIogcPage from '../../components/nebosh/NeboshIogcPage.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { NEBOSH_COURSE_KEYS } from '../../lib/course-routes';
+import { loadOptionalNeboshCourse } from '../../lib/nebosh-course-content';
+
+const course = await loadOptionalNeboshCourse(NEBOSH_COURSE_KEYS.iogc);
+const title = course ? `${course.title} | HSE Training` : 'NEBOSH International Oil & Gas Certificate | HSE Training';
+const description =
+	course?.shortDescription ??
+	'Important status and course information for the withdrawn NEBOSH International Oil and Gas Operational Safety qualification.';
+---
+
+<BaseLayout
+	title={title}
+	description={description}
+>
+	<main id="main-content"><NeboshIogcPage course={course} /></main>
+</BaseLayout>

@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Course } from '../types/course';
-import { createCourseStaticPaths, getCoursePageMetadata } from './course-pages';
+import {
+	createCourseStaticPaths,
+	createGenericCourseStaticPaths,
+	getCoursePageMetadata,
+} from './course-pages';
 
 const firstCourse: Course = {
 	slug: 'nebosh-international-general-certificate',
@@ -57,5 +61,16 @@ describe('getCoursePageMetadata', () => {
 			title: firstCourse.title,
 			description: firstCourse.shortDescription,
 		});
+	});
+});
+
+describe('createGenericCourseStaticPaths', () => {
+	it('omits courses with bespoke public pages', () => {
+		expect(createGenericCourseStaticPaths([firstCourse, secondCourse])).toEqual([
+			{
+				params: { slug: secondCourse.slug },
+				props: { course: secondCourse },
+			},
+		]);
 	});
 });

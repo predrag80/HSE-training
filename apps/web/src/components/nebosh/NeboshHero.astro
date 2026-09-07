@@ -1,0 +1,25 @@
+---
+interface Props {
+	eyebrow: string;
+	title: string;
+	image: string;
+	titleId: string;
+	compact?: boolean;
+}
+
+const { eyebrow, title, image, titleId, compact = false } = Astro.props;
+---
+
+<section
+	class:list={['nebosh-hero', { 'nebosh-hero--compact-title': compact }]}
+	style={`--nebosh-hero-image:url('${image}')`}
+	aria-labelledby={titleId}
+	data-nebosh-parallax
+>
+	<div class="nebosh-hero__overlay" aria-hidden="true"></div>
+	<div class="nebosh-hero__content" data-nebosh-reveal="hero">
+		<p>{eyebrow}</p>
+		<h1 id={titleId}>{title}</h1>
+	</div>
+	<a class="nebosh-hero__scroll" href="#course-content" aria-label="Scroll to course content"><span></span></a>
+</section>

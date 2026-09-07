@@ -1,0 +1,246 @@
+---
+import './company-page.css';
+
+const milestones = [
+	{ year: 2010, title: 'Crafto founded', text: 'Founded a company' },
+	{ year: 2014, title: 'Expand team', text: 'Opportunity to expand' },
+	{ year: 2019, title: 'Build new office', text: 'Building a new office' },
+	{ year: 2021, title: 'Winning award', text: 'The power of winning' },
+];
+
+const expertise = [
+	{ value: 96, title: 'Strategy consulting' },
+	{ value: 88, title: 'Modeling analytics' },
+	{ value: 90, title: 'Operations careers' },
+];
+
+const reasons = [
+	{ title: 'Honorable', icon: 'like', glyph: '\uea44' },
+	{ title: 'Analytics', icon: 'analytics', glyph: '\uea0b' },
+	{ title: 'Leadership', icon: 'leadership', glyph: '\uea93' },
+	{ title: 'Production', icon: 'production', glyph: '\ue68d' },
+];
+
+const logos = [
+	{ src: '/images/consulting-logo-logitech.svg', alt: 'Logitech' },
+	{ src: '/images/consulting-logo-amazon.svg', alt: 'Amazon' },
+	{ src: '/images/consulting-logo-walmart.svg', alt: 'Walmart' },
+	{ src: '/images/consulting-logo-yahoo.svg', alt: 'Yahoo!' },
+];
+---
+
+<section class="company-hero" aria-labelledby="company-page-title" data-company-parallax>
+	<div class="company-hero__overlay"></div>
+	<div class="company-hero__content" data-company-reveal="flip">
+		<p>Business profile</p>
+		<h1 id="company-page-title">About company</h1>
+	</div>
+	<a class="company-hero__scroll" href="#about" aria-label="Scroll to about company">
+		<span></span>
+	</a>
+</section>
+
+<section class="company-intro" id="about">
+	<div class="company-intro__particles" aria-hidden="true"><span></span><span></span><span></span></div>
+	<div class="company-container company-intro__inner">
+		<div class="company-intro__title" data-company-reveal="intro-title">
+			<h2>We develop and create consulting good future.</h2>
+		</div>
+		<div class="company-intro__copy" data-company-reveal="children-intro-copy">
+			<p>Adipiscing elit, sed do eusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco. Adipiscing elitdo eiusmod tempor.</p>
+			<a href="/#services">Explore services</a>
+		</div>
+	</div>
+</section>
+
+<section class="company-timeline" aria-label="Company milestones">
+	<div class="company-container company-timeline__inner">
+		<div class="company-timeline__side" data-company-reveal="children-from-right">
+			{milestones.slice(0, 2).map((milestone) => (
+				<article class="company-milestone">
+					<strong data-company-counter={milestone.year}>{milestone.year}</strong>
+					<div><h2>{milestone.title}</h2><p>{milestone.text}</p></div>
+				</article>
+			))}
+		</div>
+		<div class="company-timeline__image" data-company-reveal="timeline-image">
+			<img src="/images/consulting-company-timeline.webp" width="485" height="485" alt="Consulting team celebrating a milestone" />
+		</div>
+		<div class="company-timeline__side" data-company-reveal="children-from-left">
+			{milestones.slice(2).map((milestone) => (
+				<article class="company-milestone">
+					<strong data-company-counter={milestone.year}>{milestone.year}</strong>
+					<div><h2>{milestone.title}</h2><p>{milestone.text}</p></div>
+				</article>
+			))}
+		</div>
+	</div>
+</section>
+
+<section class="company-agency">
+	<div class="company-agency__image" role="img" aria-label="Business consultant working at a desk" data-company-reveal="agency-image"></div>
+	<div class="company-agency__content" data-company-reveal="children-up-delayed">
+		<h2>Superior business consulting agency.</h2>
+		<p>Lorem ipsum dolor sit amet consectetur adipiscing elit do eiusmod tempor incididunt ut labore et dolore magna aliqua ipsum dolor sit amet consectetur.</p>
+		<ul>
+			<li><span aria-hidden="true">✓</span>Change all you have in your world.</li>
+			<li><span aria-hidden="true">✓</span>We develop good teams and leaders.</li>
+			<li><span aria-hidden="true">✓</span>The business guru gives you the idea.</li>
+		</ul>
+	</div>
+</section>
+
+<section class="company-expertise" aria-labelledby="company-expertise-title">
+	<div class="company-container">
+		<header class="company-expertise__header" data-company-reveal="fade">
+			<p>Work performance</p>
+			<h2 id="company-expertise-title">Our expertise</h2>
+		</header>
+		<div class="company-expertise__grid" data-company-reveal="children-up">
+			{expertise.map((item) => (
+				<article class="company-skill" style={`--skill-value:${item.value}`}>
+					<div class="company-skill__chart" data-company-chart>
+						<svg aria-hidden="true" viewBox="0 0 180 180">
+							<defs>
+								<linearGradient id={`company-skill-gradient-${item.value}`} x1="0" y1="0" x2="1" y2="1">
+									<stop offset="0" stop-color="#f66c34"></stop>
+									<stop offset="1" stop-color="#f49a76"></stop>
+								</linearGradient>
+							</defs>
+							<circle class="company-skill__track" cx="90" cy="90" r="86.5" pathLength="100"></circle>
+							<circle class="company-skill__value" cx="90" cy="90" r="86.5" pathLength="100" style={`stroke:url(#company-skill-gradient-${item.value})`}></circle>
+						</svg>
+						<strong><span data-company-percentage={item.value}>0</span>%</strong>
+					</div>
+					<h3>{item.title}</h3>
+					<p>Lorem ipsum dolor consectetur<br />adipiscing eiusmod tempor.</p>
+				</article>
+			))}
+		</div>
+	</div>
+</section>
+
+<section class="company-reasons" aria-labelledby="company-reasons-title">
+	<div class="company-container company-reasons__inner">
+		<div class="company-reasons__cards" data-company-reasons>
+			<div class="company-reasons__column company-reasons__column--down">
+				{reasons.slice(0, 2).map((reason) => (
+					<article class="company-reason-card">
+						<div class="company-reason-card__content">
+							<span class:list={['company-reason-card__icon', `company-reason-card__icon--${reason.icon}`]} aria-hidden="true">{reason.glyph}</span>
+							<h3>{reason.title}</h3>
+							<p>Lorem ipsum is simply dummy text.</p>
+						</div>
+					</article>
+				))}
+			</div>
+			<div class="company-reasons__column company-reasons__column--up">
+				{reasons.slice(2).map((reason) => (
+					<article class="company-reason-card">
+						<div class="company-reason-card__content">
+							<span class:list={['company-reason-card__icon', `company-reason-card__icon--${reason.icon}`]} aria-hidden="true">{reason.glyph}</span>
+							<h3>{reason.title}</h3>
+							<p>Lorem ipsum is simply dummy text.</p>
+						</div>
+					</article>
+				))}
+			</div>
+		</div>
+
+		<div class="company-reasons__copy" data-company-reveal="children-from-right">
+			<h2 id="company-reasons-title">Why choose our company services?</h2>
+			<p>Lorem ipsum dolor amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ut enim ad minim veniam.</p>
+			<a href="/#contact">Get started now!</a>
+		</div>
+	</div>
+</section>
+
+<section class="company-logos" aria-label="Trusted companies">
+	<div class="company-container company-logos__inner" data-company-reveal="children-from-right-slow">
+		{logos.map((logo) => <a href="#" aria-label={logo.alt}><img src={logo.src} alt={logo.alt} /></a>)}
+	</div>
+</section>
+
+<script>
+	const sections = document.querySelectorAll<HTMLElement>('[data-company-reveal]');
+	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	const reveal = (element: HTMLElement) => {
+		element.dataset.revealed = 'true';
+		element.querySelectorAll<HTMLElement>('[data-company-counter]').forEach((counter) => {
+			const target = Number(counter.dataset.companyCounter ?? 0);
+			if (reducedMotion) {
+				counter.textContent = String(target);
+				return;
+			}
+			const startedAt = performance.now();
+			const tick = (now: number) => {
+				const progress = Math.min((now - startedAt) / 900, 1);
+				counter.textContent = String(Math.round(target * (1 - Math.pow(1 - progress, 3))));
+				if (progress < 1) requestAnimationFrame(tick);
+			};
+			requestAnimationFrame(tick);
+		});
+		element.querySelectorAll<HTMLElement>('[data-company-percentage]').forEach((counter) => {
+			const target = Number(counter.dataset.companyPercentage ?? 0);
+			if (reducedMotion) {
+				counter.textContent = String(target);
+				return;
+			}
+			const startedAt = performance.now();
+			const tick = (now: number) => {
+				const progress = Math.min((now - startedAt) / 1100, 1);
+				counter.textContent = String(Math.round(target * (1 - Math.pow(1 - progress, 3))));
+				if (progress < 1) requestAnimationFrame(tick);
+			};
+			requestAnimationFrame(tick);
+		});
+	};
+
+	if (reducedMotion || !('IntersectionObserver' in window)) {
+		sections.forEach(reveal);
+	} else {
+		const observer = new IntersectionObserver((entries) => {
+			entries.forEach((entry) => {
+				if (!entry.isIntersecting || !(entry.target instanceof HTMLElement)) return;
+				reveal(entry.target);
+				observer.unobserve(entry.target);
+			});
+		}, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+		sections.forEach((section) => observer.observe(section));
+	}
+
+	const hero = document.querySelector<HTMLElement>('[data-company-parallax]');
+	const reasonCards = document.querySelector<HTMLElement>('[data-company-reasons]');
+	if (reasonCards) {
+		reasonCards.dataset.entryReady = 'true';
+		if (reducedMotion || !('IntersectionObserver' in window)) {
+			reasonCards.dataset.entryRevealed = 'true';
+		} else {
+			const cardObserver = new IntersectionObserver((entries) => {
+				if (!entries.some((entry) => entry.isIntersecting)) return;
+				reasonCards.dataset.entryRevealed = 'true';
+				cardObserver.disconnect();
+			}, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+			cardObserver.observe(reasonCards);
+		}
+	}
+	let ticking = false;
+	const updateParallax = () => {
+		if (hero) hero.style.setProperty('--company-hero-shift', `${Math.min(scrollY * 0.5, 220)}px`);
+		if (reasonCards) {
+			const rect = reasonCards.getBoundingClientRect();
+			const centerDelta = rect.top + rect.height / 2 - innerHeight / 2;
+			const shift = Math.max(-50, Math.min(50, centerDelta * 0.067 + 7));
+			reasonCards.style.setProperty('--company-card-shift', `${shift}px`);
+		}
+		ticking = false;
+	};
+	const requestParallax = () => {
+		if (ticking || reducedMotion) return;
+		ticking = true;
+		requestAnimationFrame(updateParallax);
+	};
+	addEventListener('scroll', requestParallax, { passive: true });
+	updateParallax();
+</script>

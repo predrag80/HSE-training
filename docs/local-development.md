@@ -250,14 +250,18 @@ npm run build
 Public pages use Astro's default static/prerendered output. No server adapter is
 installed yet. Server endpoints will be introduced later only for operations
 that require request-time execution, such as contact and payment handling. The
-CMS URL is typed server-side configuration, but the application does not fetch
-WordPress content yet.
+CMS URL is typed server-side configuration. Course collections and generic
+course pages are generated from the WordPress REST API, while NEBOSH courses
+with recognised `course_key` values use their dedicated Astro page designs.
+WordPress must therefore be reachable when creating a production build.
 
 ## Deferred Work
 
-- Do not integrate the WordPress API or implement Course pages until their
-  dedicated tasks.
 - Do not add a server adapter until a server endpoint requires one.
+- Implement server-side contact-form processing before enabling real public
+  submissions.
+- Define a production build trigger so published WordPress changes produce a
+  new static Astro deployment.
 - Do not connect to production services or create production credentials.
 
 ## Official References

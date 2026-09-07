@@ -5,14 +5,14 @@ import Eyebrow from '../../components/ui/Eyebrow.astro';
 import Section from '../../components/ui/Section.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCourses, type Course } from '../../lib/cms';
-import { createCourseStaticPaths, getCoursePageMetadata } from '../../lib/course-pages';
+import { createGenericCourseStaticPaths, getCoursePageMetadata } from '../../lib/course-pages';
 
 interface Props {
 	course: Course;
 }
 
 export async function getStaticPaths() {
-	return createCourseStaticPaths(await getCourses());
+	return createGenericCourseStaticPaths(await getCourses());
 }
 
 const { course } = Astro.props;

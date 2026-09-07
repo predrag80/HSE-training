@@ -1,0 +1,19 @@
+---
+import NeboshIgcPage from '../../components/nebosh/NeboshIgcPage.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { NEBOSH_COURSE_KEYS } from '../../lib/course-routes';
+import { loadOptionalNeboshCourse } from '../../lib/nebosh-course-content';
+
+const course = await loadOptionalNeboshCourse(NEBOSH_COURSE_KEYS.igc);
+const title = course ? `${course.title} | HSE Training` : 'NEBOSH International General Certificate | HSE Training';
+const description =
+	course?.shortDescription ??
+	'Learn about the NEBOSH International General Certificate in Occupational Health and Safety, its audience, content and assessment.';
+---
+
+<BaseLayout
+	title={title}
+	description={description}
+>
+	<main id="main-content"><NeboshIgcPage course={course} /></main>
+</BaseLayout>

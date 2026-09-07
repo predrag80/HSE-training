@@ -1,12 +1,14 @@
 ---
 import Button from '../ui/Button.astro';
 import type { Course } from '../../types/course';
+import { getCoursePublicPath } from '../../lib/course-routes';
 
 interface Props {
 	course: Course;
 }
 
 const { course } = Astro.props;
+const coursePath = getCoursePublicPath(course);
 ---
 
 <article class="course-card surface-card">
@@ -28,7 +30,7 @@ const { course } = Astro.props;
 		<h2 class="course-card__title">{course.title}</h2>
 		<p class="course-card__summary">{course.shortDescription}</p>
 		{course.visiblePrice && <p class="course-card__price">{course.visiblePrice}</p>}
-		<Button class="course-card__action" href={`/courses/${course.slug}`}>View course</Button>
+		<Button class="course-card__action" href={coursePath}>View course</Button>
 	</div>
 </article>
 

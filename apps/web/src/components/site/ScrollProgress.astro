@@ -1,0 +1,118 @@
+<div class="page-scroll-progress" data-scroll-progress>
+	<button class="page-scroll-progress__button" type="button" aria-label="Scroll to top">
+		<span class="page-scroll-progress__text" aria-hidden="true">Scroll</span>
+		<span class="page-scroll-progress__line" aria-hidden="true">
+			<span class="page-scroll-progress__point"></span>
+		</span>
+	</button>
+</div>
+
+<script>
+	const scrollProgress = document.querySelector<HTMLElement>('[data-scroll-progress]');
+
+	if (scrollProgress) {
+		const button = scrollProgress.querySelector<HTMLButtonElement>(
+			'.page-scroll-progress__button',
+		);
+		let animationFrame = 0;
+
+		const updateProgress = () => {
+			animationFrame = 0;
+
+			const scrollRange = document.documentElement.scrollHeight - window.innerHeight;
+			const progress = scrollRange > 0 ? Math.min(Math.max(window.scrollY / scrollRange, 0), 1) : 0;
+
+			scrollProgress.style.setProperty('--page-scroll-progress', `${progress * 100}%`);
+			scrollProgress.classList.toggle('is-visible', window.scrollY > 0 && scrollRange > 0);
+		};
+
+		const requestProgressUpdate = () => {
+			if (animationFrame === 0) {
+				animationFrame = window.requestAnimationFrame(updateProgress);
+			}
+		};
+
+		button?.addEventListener('click', () => {
+			const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+		});
+
+		window.addEventListener('scroll', requestProgressUpdate, { passive: true });
+		window.addEventListener('resize', requestProgressUpdate);
+		updateProgress();
+	}
+</script>
+
+<style>
+	.page-scroll-progress {
+		--page-scroll-progress: 0%;
+		position: fixed;
+		top: 50%;
+		right: 20px;
+		z-index: 111;
+		visibility: hidden;
+		opacity: 0;
+		transform: translateY(-50%);
+		mix-blend-mode: difference;
+		transition:
+			opacity 300ms linear,
+			visibility 300ms linear;
+	}
+
+	.page-scroll-progress.is-visible {
+		visibility: visible;
+		opacity: 1;
+	}
+
+	.page-scroll-progress__button {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		margin: 0;
+		padding: 0;
+		color: #fff;
+		background: transparent;
+		border: 0;
+		border-radius: 0;
+		box-shadow: none;
+		cursor: pointer;
+	}
+
+	.page-scroll-progress__text {
+		margin-bottom: 15px;
+		color: #fff;
+		font-size: 11px;
+		font-weight: 400;
+		letter-spacing: 0;
+		line-height: normal;
+		text-transform: uppercase;
+		writing-mode: vertical-lr;
+		transform: rotate(180deg);
+	}
+
+	.page-scroll-progress__line {
+		position: relative;
+		display: block;
+		width: 2px;
+		height: 60px;
+		overflow: hidden;
+		background-color: rgb(255 255 255 / 15%);
+	}
+
+	.page-scroll-progress__point {
+		position: absolute;
+		top: 0;
+		left: 0;
+		display: inline-block;
+		width: 100%;
+		height: var(--page-scroll-progress);
+		background-color: #fff;
+	}
+
+	@media (max-width: 1199px) {
+		.page-scroll-progress {
+			display: none;
+		}
+	}
+</style>

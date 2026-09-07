@@ -7,12 +7,15 @@ import SiteSearch from './SiteSearch.astro';
 
 const pathname = Astro.url.pathname;
 const isHome = pathname === '/';
+const isNebosh = pathname.startsWith('/nebosh');
+const isOverlay = isHome || pathname.startsWith('/company') || pathname.startsWith('/contact') || isNebosh;
+const hasOverlayUtility = pathname.startsWith('/contact') || isNebosh;
 ---
 
-<header class:list={['site-header', { 'site-header--overlay': isHome }]} data-site-header>
+<header class:list={['site-header', { 'site-header--overlay': isOverlay, 'site-header--overlay-utility': hasOverlayUtility }]} data-site-header>
 	<div class="site-header__utility">
 		<div class="site-header__utility-inner">
-			<p>Health, safety and environmental training</p>
+			<p class="site-header__utility-message">Professional HSE training and consultancy. <a href="/contact/">Contact now</a></p>
 			<div class="site-header__utility-contact">
 				<a href="tel:+381615335010" aria-label="Call HSE Training at +381 61 5335 010">
 					<svg viewBox="0 0 20 20" aria-hidden="true">
@@ -21,10 +24,7 @@ const isHome = pathname === '/';
 					<span>+381 61 5335 010</span>
 				</a>
 				<span class="site-header__location">
-					<svg viewBox="0 0 20 20" aria-hidden="true">
-						<path d="M16 8.3c0 4.6-6 9.2-6 9.2S4 12.9 4 8.3a6 6 0 1 1 12 0Z"></path>
-						<circle cx="10" cy="8.3" r="2"></circle>
-					</svg>
+					<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 8.3c0 4.6-6.5 9.2-6.5 9.2S3.5 12.9 3.5 8.3a6.5 6.5 0 1 1 13 0Z"></path><circle cx="10" cy="8.2" r="2.1"></circle></svg>
 					<span>Belgrade, Serbia</span>
 				</span>
 			</div>

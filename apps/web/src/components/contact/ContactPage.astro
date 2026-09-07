@@ -1,0 +1,120 @@
+---
+import './contact-page.css';
+
+const contactItems = [
+	{
+		icon: '\ue957',
+		title: 'Crafto office',
+		content: '<span>401 Broadway, 24th Floor,</span><span>Orchard View, London, UK</span>',
+	},
+	{
+		icon: '\ue99e',
+		title: 'Call us directly',
+		content: '<span>Phone: <a class="contact-detail__inline-link" href="tel:1800222000">1-800-222-000</a></span><span>Fax: 1-800-222-002</span>',
+	},
+	{
+		icon: '\uea82',
+		title: 'E-mail us',
+		content: '<a href="mailto:info@yourdomain.com">info@yourdomain.com</a><a href="mailto:hr@yourdomain.com">hr@yourdomain.com</a>',
+	},
+];
+---
+
+<section class="contact-hero" aria-labelledby="contact-page-title" data-contact-parallax>
+	<div class="contact-hero__overlay" aria-hidden="true"></div>
+	<div class="contact-hero__content">
+		<p data-contact-reveal="hero-subtitle">Love to hear from you</p>
+		<h1 id="contact-page-title" data-contact-reveal="hero-title">Contact us</h1>
+	</div>
+	<a class="contact-hero__scroll" href="#contact-details" aria-label="Scroll to contact details" data-contact-reveal="hero-scroll">
+		<span></span>
+	</a>
+</section>
+
+<section class="contact-details" id="contact-details" aria-label="Contact details">
+	<div class="contact-container contact-details__grid">
+		{contactItems.map((item, index) => (
+			<article class="contact-detail" data-contact-reveal="up" style={`--contact-delay:${index * 100}ms`}>
+				<span class="contact-detail__icon" aria-hidden="true">{item.icon}</span>
+				<h2>{item.title}</h2>
+				<div class="contact-detail__content" set:html={item.content}></div>
+			</article>
+		))}
+	</div>
+</section>
+
+<section class="contact-map" aria-label="Map showing the Crafto Consulting office" data-contact-reveal="map">
+	<iframe
+		title="Crafto Consulting office in Melbourne"
+		src="https://www.openstreetmap.org/export/embed.html?bbox=144.80%2C-37.90%2C145.10%2C-37.70&amp;layer=mapnik&amp;marker=-37.805688%2C144.962312"
+		loading="lazy"
+		referrerpolicy="no-referrer-when-downgrade"
+	></iframe>
+	<div class="contact-map__card">
+		<strong>Crafto Consulting</strong>
+		<p>16122 Collins street,<br />Melbourne, Australia</p>
+		<a href="https://maps.google.com/?q=Envato+Pty+Ltd+Melbourne" target="_blank" rel="noreferrer">View larger map</a>
+	</div>
+</section>
+
+<section class="contact-form-section" aria-labelledby="contact-form-title">
+	<div class="contact-container contact-form-section__inner">
+		<header class="contact-form-section__header" data-contact-reveal="up">
+			<p>Feel free to get in touch!</p>
+			<h2 id="contact-form-title">How we can help you?</h2>
+		</header>
+
+		<form class="contact-form" method="post" data-contact-form data-contact-reveal="form">
+			<div class="contact-form__fields">
+				<label><span>Your name</span><input type="text" name="name" placeholder="Your name*" autocomplete="name" required /></label>
+				<label><span>Your email address</span><input type="email" name="email" placeholder="Your email address*" autocomplete="email" required /></label>
+				<label><span>Your phone</span><input type="tel" name="phone" placeholder="Your phone" autocomplete="tel" /></label>
+				<label><span>Your subject</span><input type="text" name="subject" placeholder="Your subject" /></label>
+				<label class="contact-form__message"><span>Your message</span><textarea name="message" rows="4" placeholder="Your message"></textarea></label>
+			</div>
+			<div class="contact-form__footer">
+				<p>We are committed to protecting your privacy. We will never collect<br class="contact-form__desktop-break" /> information about you without your explicit consent.</p>
+				<button type="submit">Send message</button>
+			</div>
+			<p class="contact-form__status" role="status" aria-live="polite" data-contact-form-status></p>
+		</form>
+	</div>
+</section>
+
+<script>
+	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	document.querySelectorAll<HTMLElement>('[data-contact-reveal]').forEach((element) => {
+		if (reducedMotion || !('IntersectionObserver' in window)) {
+			element.dataset.revealed = 'true';
+			return;
+		}
+		const observer = new IntersectionObserver((entries) => {
+			if (!entries.some((entry) => entry.isIntersecting)) return;
+			element.dataset.revealed = 'true';
+			observer.disconnect();
+		}, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+		observer.observe(element);
+	});
+
+	const hero = document.querySelector<HTMLElement>('[data-contact-parallax]');
+	let frame = 0;
+	const updateParallax = () => {
+		frame = 0;
+		if (hero) hero.style.setProperty('--contact-hero-shift', `${Math.min(scrollY * 0.5, 220)}px`);
+	};
+	const requestParallax = () => {
+		if (frame || reducedMotion) return;
+		frame = requestAnimationFrame(updateParallax);
+	};
+	addEventListener('scroll', requestParallax, { passive: true });
+	updateParallax();
+
+	document.querySelectorAll<HTMLFormElement>('[data-contact-form]').forEach((form) => {
+		form.addEventListener('submit', (event) => {
+			event.preventDefault();
+			const status = form.querySelector<HTMLElement>('[data-contact-form-status]');
+			if (!form.reportValidity() || !status) return;
+			status.textContent = 'Thank you. Your message is ready to be sent.';
+		});
+	});
+</script>

@@ -1,0 +1,93 @@
+---
+import './home-final-cta.css';
+
+const rotatingWords = ['consulting!', 'business!', 'innovative!'];
+---
+
+<section
+	class="home-final-cta"
+	aria-labelledby="home-final-cta-title"
+	data-final-cta
+	data-rotating-words={JSON.stringify(rotatingWords)}
+>
+	<div class="home-final-cta__inner">
+		<div class="home-final-cta__headline">
+			<h2 id="home-final-cta-title">
+				<span>Let's discuss your now </span>
+				<span class="home-final-cta__rotator" aria-live="polite" data-rotating-word>
+					{rotatingWords[0]}
+				</span>
+			</h2>
+		</div>
+
+		<div class="home-final-cta__contact">
+			<span class="home-final-cta__icon" aria-hidden="true">
+				<svg viewBox="0 0 24 24">
+					<path d="M8.2 11.4 5.6 14l4.1 4.1a2 2 0 0 0 2.8 0l.5-.5m-4.8-6.2 3.1-3.1a2 2 0 0 1 2.8 0l4.3 4.3m-10.2-1.2L5.4 8.6 2 12l6.6 6.6m5.5-10.3 2.5-2.5L22 11.2l-3.6 3.6m-5.9 3.3 1.1 1.1a1.7 1.7 0 0 0 2.4-2.4l.6.6a1.7 1.7 0 0 0 2.4-2.4l-.6-.6" />
+				</svg>
+			</span>
+			<div class="home-final-cta__contact-copy">
+				<p>Looking for collaboration?</p>
+				<a href="mailto:info@yourdomain.com">info@yourdomain.com</a>
+			</div>
+		</div>
+	</div>
+</section>
+
+<script>
+	const setupRotator = (section: Element) => {
+		if (!(section instanceof HTMLElement) || section.dataset.rotatorReady === 'true') return;
+		section.dataset.rotatorReady = 'true';
+		const target = section.querySelector('[data-rotating-word]');
+		if (!(target instanceof HTMLElement)) return;
+		const rotatingWords = JSON.parse(section.dataset.rotatingWords ?? '[]') as string[];
+		if (rotatingWords.length === 0) return;
+
+		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		let activeIndex = 0;
+		let timer: number | undefined;
+
+		const renderWord = (word: string) => {
+			target.replaceChildren(
+				...[...word].map((letter, index) => {
+					const span = document.createElement('span');
+					span.className = 'home-final-cta__letter';
+					span.style.setProperty('--letter-index', String(index));
+					span.textContent = letter;
+					return span;
+				}),
+			);
+		};
+
+		if (reducedMotion) return;
+
+		const advance = () => {
+			target.dataset.leaving = 'true';
+			window.setTimeout(() => {
+				activeIndex = (activeIndex + 1) % rotatingWords.length;
+				renderWord(rotatingWords[activeIndex]);
+				target.removeAttribute('data-leaving');
+			}, 420);
+		};
+
+		const start = () => {
+			renderWord(rotatingWords[activeIndex]);
+			timer = window.setInterval(advance, 2800);
+		};
+
+		if (!('IntersectionObserver' in window)) {
+			start();
+			return;
+		}
+
+		const observer = new IntersectionObserver((entries) => {
+			if (!entries.some((entry) => entry.isIntersecting)) return;
+			start();
+			observer.disconnect();
+		}, { threshold: 0.2 });
+		observer.observe(section);
+		window.addEventListener('pagehide', () => window.clearInterval(timer), { once: true });
+	};
+
+	document.querySelectorAll('[data-final-cta]').forEach(setupRotator);
+</script>
