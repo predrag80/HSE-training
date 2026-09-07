@@ -8,7 +8,8 @@ CMS integration.
 The plugin provides editor-managed Course content, an ordered Homepage Hero
 Slide collection, a canonical Company profile, and a Service collection shared
 by the Homepage and Consulting Page. Course promotions and client References
-also feed their Homepage sections from WordPress.
+also feed their Homepage sections from WordPress. WordPress theme rendering is
+disabled so the installation remains a CMS rather than a second public site.
 
 ## Responsibilities
 
@@ -21,6 +22,22 @@ also feed their Homepage sections from WordPress.
 - Ordered client References with a Homepage-featured subset
 - Small REST API extensions needed by headless consumers
 - Headless CMS integration
+- Closed, non-indexable WordPress theme frontend
+
+## Headless Access Boundary
+
+Normal theme requests return HTTP 404 and a minimal non-indexable response.
+WordPress administration, login processing, AJAX, cron, XML-RPC, and REST API
+requests remain available because they do not render the public theme.
+
+Run the focused local check with:
+
+```sh
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/headless-mode-integration.php
+```
+
+The custom login entry route is an operational security control documented in
+[`docs/security/wordpress-cms-access.md`](../../../docs/security/wordpress-cms-access.md).
 
 ## Course API
 

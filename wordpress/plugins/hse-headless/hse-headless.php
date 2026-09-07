@@ -2,7 +2,7 @@
 /**
  * Plugin Name: HSE Training Headless
  * Description: Custom headless CMS functionality for the HSE Training platform.
- * Version: 0.7.0
+ * Version: 0.8.0
  * Text Domain: hse-headless
  *
  * @package HSETraining\Headless
@@ -30,6 +30,7 @@ require_once __DIR__ . '/src/Homepage/HeroSlideMeta.php';
 require_once __DIR__ . '/src/Homepage/HomepageSettings.php';
 require_once __DIR__ . '/src/Homepage/HomepageRestController.php';
 require_once __DIR__ . '/src/Homepage/HomepageMigration.php';
+require_once __DIR__ . '/src/Infrastructure/HeadlessMode.php';
 
 Course\CoursePostType::register_hooks();
 Course\CourseMeta::register_hooks();
@@ -47,3 +48,4 @@ Homepage\HeroSlideMeta::register_hooks();
 Homepage\HomepageSettings::register_hooks();
 Homepage\HomepageRestController::register_hooks();
 Homepage\HomepageMigration::register_hooks();
+Infrastructure\HeadlessMode::register_hooks();
