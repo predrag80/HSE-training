@@ -19,6 +19,17 @@ body {
 	font-size: var(--font-size-body);
 }
 
+main {
+	min-width: 0;
+	overflow-x: hidden;
+}
+
+@supports (overflow: clip) {
+	main {
+		overflow-x: clip;
+	}
+}
+
 body,
 h1,
 h2,
