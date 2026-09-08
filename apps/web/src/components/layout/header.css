@@ -1,6 +1,7 @@
 .site-header {
 	--header-gutter: 0.9375rem;
 	--header-foreground: var(--color-ink);
+	--header-logo-width: 10.5rem;
 	--wordmark-mark-color: var(--color-accent);
 
 	position: relative;
@@ -99,7 +100,7 @@
 
 .site-header__brand {
 	display: inline-flex;
-	min-width: 9.3125rem;
+	min-width: var(--header-logo-width);
 	min-height: 5rem;
 	align-items: center;
 	color: var(--header-foreground);
@@ -143,6 +144,7 @@
 @media (min-width: 62rem) {
 	.site-header {
 		--header-gutter: 3.125rem;
+		--header-logo-width: 11.5rem;
 	}
 
 	.site-header--overlay {
@@ -172,7 +174,7 @@
 	.site-header__inner {
 		display: grid;
 		min-height: 5.9375rem;
-		grid-template-columns: 9.3125rem minmax(0, 1fr) auto;
+		grid-template-columns: var(--header-logo-width) minmax(0, 1fr) auto;
 	}
 
 	.site-header__brand {

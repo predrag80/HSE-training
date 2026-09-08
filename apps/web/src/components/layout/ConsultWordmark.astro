@@ -5,7 +5,7 @@
 <style>
 	.hse-wordmark {
 		display: block;
-		width: 9.3125rem;
+		width: var(--header-logo-width);
 		line-height: 0;
 	}
 
@@ -18,5 +18,12 @@
 	:global(.site-header:not(.site-header--overlay)) .hse-wordmark img {
 		padding: 0.35rem 0.45rem;
 		background: #292d36;
+	}
+
+	@media (max-width: 61.999rem) {
+		:global(.site-header--overlay) .hse-wordmark img {
+			padding: 0.35rem 0.45rem;
+			background: #292d36;
+		}
 	}
 </style>
