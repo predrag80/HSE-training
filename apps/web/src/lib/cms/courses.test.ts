@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getCourseByKey, getCourseBySlug, getCourses, getHomepageCourses } from './courses';
 
 const rawCourse = {
+	locale: 'en',
 	slug: 'nebosh-international-general-certificate',
 	status: 'publish',
 	title: { rendered: 'NEBOSH International General Certificate' },
@@ -48,6 +49,7 @@ describe('getCourses', () => {
 		expect(requestedUrl.searchParams.get('per_page')).toBe('100');
 		expect(requestedUrl.searchParams.get('orderby')).toBe('date');
 		expect(requestedUrl.searchParams.get('order')).toBe('desc');
+		expect(requestedUrl.searchParams.get('lang')).toBe('en');
 	});
 
 	it('returns an empty array when WordPress has no published Courses', async () => {
@@ -112,6 +114,34 @@ describe('getHomepageCourses', () => {
 		expect(requestedUrl.searchParams.get('orderby')).toBe('menu_order');
 		expect(requestedUrl.searchParams.get('order')).toBe('asc');
 		expect(requestedUrl.searchParams.get('per_page')).toBe('4');
+		expect(requestedUrl.searchParams.get('lang')).toBe('en');
+	});
+
+	it('requests and validates Serbian promoted Courses', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(
+			jsonResponse([
+				{
+					...rawCourse,
+					locale: 'sr',
+					featured_media: 42,
+					_embedded: {
+						'wp:featuredmedia': [{ source_url: 'https://cms.example.test/course.jpg' }],
+					},
+				},
+			]),
+		);
+		vi.stubGlobal('fetch', fetchMock);
+
+		await expect(getHomepageCourses('sr')).resolves.toEqual([
+			expect.objectContaining({ locale: 'sr', courseKey: 'nebosh-igc' }),
+		]);
+		expect(new URL(String(fetchMock.mock.calls[0]?.[0])).searchParams.get('lang')).toBe('sr');
+	});
+
+	it('rejects a Course returned in the wrong language', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse([rawCourse])));
+
+		await expect(getCourses('sr')).rejects.toMatchObject({ code: 'invalid-response' });
 	});
 
 	it('rejects an incomplete promoted Course', async () => {
@@ -159,6 +189,7 @@ describe('getCourseBySlug', () => {
 		expect(requestedUrl.searchParams.get('slug')).toBe(
 			'nebosh-international-general-certificate',
 		);
+		expect(requestedUrl.searchParams.get('lang')).toBe('en');
 	});
 
 	it('returns null when no published Course has the slug', async () => {
@@ -207,6 +238,7 @@ describe('getCourseByKey', () => {
 
 		const requestedUrl = new URL(String(fetchMock.mock.calls[0]?.[0]));
 		expect(requestedUrl.searchParams.get('course_key')).toBe('nebosh-igc');
+		expect(requestedUrl.searchParams.get('lang')).toBe('en');
 	});
 
 	it('returns null when the course_key is unknown', async () => {

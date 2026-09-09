@@ -7,6 +7,8 @@
 
 namespace HSETraining\Headless\Course;
 
+use HSETraining\Headless\Content\ContentLocale;
+
 defined( 'ABSPATH' ) || exit;
 
 /** Owns the optional Course representation used by the Homepage. */
@@ -223,12 +225,12 @@ final class CoursePromotionMeta {
 	/** Map the Homepage filter to a parameterized metadata query. */
 	public static function filter_collection_query( $args, $request ) {
 		if ( $request->has_param( self::FEATURED_ON_HOMEPAGE ) && rest_sanitize_boolean( $request->get_param( self::FEATURED_ON_HOMEPAGE ) ) ) {
-			$args['meta_query'] = array(
-				array(
-					'key'   => self::FEATURED_ON_HOMEPAGE,
-					'value' => '1',
-				),
+			$meta_query = isset( $args['meta_query'] ) && is_array( $args['meta_query'] ) ? $args['meta_query'] : array();
+			$meta_query[] = array(
+				'key'   => self::FEATURED_ON_HOMEPAGE,
+				'value' => '1',
 			);
+			$args['meta_query'] = $meta_query;
 		}
 
 		return $args;
@@ -293,6 +295,7 @@ final class CoursePromotionMeta {
 
 	/** Count other published Homepage-promoted Courses. */
 	private static function featured_count( $exclude_id ): int {
+		$locale = ContentLocale::get_posted_or_stored_locale( $exclude_id );
 		$matches = get_posts(
 			array(
 				'post_type'      => CoursePostType::POST_TYPE,
@@ -300,8 +303,13 @@ final class CoursePromotionMeta {
 				'posts_per_page' => -1,
 				'fields'         => 'ids',
 				'post__not_in'   => $exclude_id ? array( $exclude_id ) : array(),
-				'meta_key'       => self::FEATURED_ON_HOMEPAGE,
-				'meta_value'     => '1',
+				'meta_query'     => array(
+					array(
+						'key'   => self::FEATURED_ON_HOMEPAGE,
+						'value' => '1',
+					),
+					ContentLocale::query_clause( $locale ),
+				),
 				'no_found_rows'  => true,
 			)
 		);

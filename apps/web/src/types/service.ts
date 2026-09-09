@@ -1,3 +1,5 @@
+import type { Locale } from '../i18n/config';
+
 export interface ServiceImage {
 	readonly url: string;
 	readonly alt: string;
@@ -24,5 +26,6 @@ export interface Service {
 export interface ServiceCollection {
 	readonly schemaVersion: 1;
 	readonly collectionKey: 'services';
+	readonly locale: Locale;
 	readonly services: readonly Service[];
 }

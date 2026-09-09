@@ -1,6 +1,18 @@
+---
+import type { Locale } from '../../i18n/config';
+import { getUiTranslations } from '../../i18n/ui';
+
+interface Props {
+	readonly locale: Locale;
+}
+
+const { locale } = Astro.props;
+const ui = getUiTranslations(locale);
+---
+
 <div class="page-scroll-progress" data-scroll-progress>
-	<button class="page-scroll-progress__button" type="button" aria-label="Scroll to top">
-		<span class="page-scroll-progress__text" aria-hidden="true">Scroll</span>
+	<button class="page-scroll-progress__button" type="button" aria-label={ui.scrollToTop}>
+		<span class="page-scroll-progress__text" aria-hidden="true">{ui.scrollLabel}</span>
 		<span class="page-scroll-progress__line" aria-hidden="true">
 			<span class="page-scroll-progress__point"></span>
 		</span>

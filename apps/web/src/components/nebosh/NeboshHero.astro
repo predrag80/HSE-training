@@ -4,10 +4,11 @@ interface Props {
 	title: string;
 	image: string;
 	titleId: string;
+	scrollLabel: string;
 	compact?: boolean;
 }
 
-const { eyebrow, title, image, titleId, compact = false } = Astro.props;
+const { eyebrow, title, image, titleId, scrollLabel, compact = false } = Astro.props;
 ---
 
 <section
@@ -21,5 +22,5 @@ const { eyebrow, title, image, titleId, compact = false } = Astro.props;
 		<p>{eyebrow}</p>
 		<h1 id={titleId}>{title}</h1>
 	</div>
-	<a class="nebosh-hero__scroll" href="#course-content" aria-label="Scroll to course content"><span></span></a>
+	<a class="nebosh-hero__scroll" href="#course-content" aria-label={scrollLabel}><span></span></a>
 </section>

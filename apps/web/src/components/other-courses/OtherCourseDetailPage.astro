@@ -2,6 +2,9 @@
 import './other-courses.css';
 import OtherCoursesHero from './OtherCoursesHero.astro';
 import OtherCoursesMotion from './OtherCoursesMotion.astro';
+import type { Locale } from '../../i18n/config';
+import { getOtherCoursesUiTranslations } from '../../i18n/other-courses-ui';
+import { getAvailablePublicPath } from '../../i18n/routes';
 
 interface Fact {
 	label: string;
@@ -20,13 +23,14 @@ interface Props {
 	featureImage: string;
 	introKicker: string;
 	introTitle: string;
-	intro: string[];
-	facts: Fact[];
+	intro: readonly string[];
+	facts: readonly Fact[];
 	outcomesTitle: string;
 	outcomesIntro: string;
-	outcomes: SectionItem[];
+	outcomes: readonly SectionItem[];
 	audienceTitle: string;
-	audience: string[];
+	audience: readonly string[];
+	locale: Locale;
 }
 
 const {
@@ -43,25 +47,27 @@ const {
 	outcomes,
 	audienceTitle,
 	audience,
+	locale,
 } = Astro.props;
+const common = getOtherCoursesUiTranslations(locale).common;
 ---
 
-<OtherCoursesHero {eyebrow} {title} image={heroImage} titleId="other-course-title" compact />
+<OtherCoursesHero {eyebrow} {title} image={heroImage} titleId="other-course-title" scrollLabel={common.heroScroll} compact />
 
-<section class="other-course-facts" aria-label="Course information">
+<section class="other-course-facts" aria-label={common.courseInfoLabel}>
 	{facts.map((fact) => <div data-other-courses-reveal="up"><span>{fact.label}</span><strong>{fact.value}</strong></div>)}
 </section>
 
 <section class="other-course-intro" id="course-content">
 	<div class="other-courses-container other-course-intro__inner">
 		<div class="other-course-intro__visual" data-other-courses-reveal="left">
-			<img src={featureImage} width="850" height="760" alt="Professional practical training session" loading="lazy" decoding="async" />
+			<img src={featureImage} width="850" height="760" alt={common.featureImageAlt} loading="lazy" decoding="async" />
 		</div>
 		<div class="other-course-intro__copy" data-other-courses-reveal="right">
 			<p class="other-courses-kicker">{introKicker}</p>
 			<h2>{introTitle}</h2>
 			{intro.map((paragraph) => <p>{paragraph}</p>)}
-			<a class="other-courses-button" href="/contact/">Enquire about this course</a>
+			<a class="other-courses-button" href={getAvailablePublicPath('/contact/', locale)}>{common.enquire}</a>
 		</div>
 	</div>
 </section>
@@ -69,7 +75,7 @@ const {
 <section class="other-course-outcomes" aria-labelledby="course-outcomes-title">
 	<div class="other-courses-container other-course-outcomes__inner">
 		<header data-other-courses-reveal="left">
-			<p class="other-courses-kicker">Course content</p>
+			<p class="other-courses-kicker">{common.contentKicker}</p>
 			<h2 id="course-outcomes-title">{outcomesTitle}</h2>
 			<p>{outcomesIntro}</p>
 		</header>
@@ -88,7 +94,7 @@ const {
 <section class="other-course-audience" aria-labelledby="course-audience-title">
 	<div class="other-courses-container other-course-audience__inner">
 		<div data-other-courses-reveal="left">
-			<p class="other-courses-kicker">Who should attend</p>
+			<p class="other-courses-kicker">{common.audienceKicker}</p>
 			<h2 id="course-audience-title">{audienceTitle}</h2>
 		</div>
 		<ul data-other-courses-reveal="right">
@@ -99,9 +105,9 @@ const {
 
 <section class="other-course-cta">
 	<div class="other-courses-container" data-other-courses-reveal="up">
-		<p>Course dates and pricing are available upon enquiry.</p>
-		<h2>Ready to train your team?</h2>
-		<a href="/contact/">Contact HSE Training <span aria-hidden="true">→</span></a>
+		<p>{common.datesText}</p>
+		<h2>{common.readyTitle}</h2>
+		<a href={getAvailablePublicPath('/contact/', locale)}>{common.contactCta} <span aria-hidden="true">→</span></a>
 	</div>
 </section>
 

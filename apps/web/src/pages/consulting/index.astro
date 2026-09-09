@@ -1,16 +1,20 @@
 ---
 import ConsultingPage from '../../components/consulting/ConsultingPage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getConsultingUiTranslations } from '../../i18n/consulting-ui';
 import { getServices } from '../../lib/cms';
 
-const serviceCollection = await getServices();
+const locale = 'en';
+const copy = getConsultingUiTranslations(locale);
+const serviceCollection = await getServices(locale);
 ---
 
 <BaseLayout
-	title="HSE Consulting Services | HSE Training"
-	description="HSEQ personnel and project HSE management support for renewable energy, mining, oil and gas, and construction operations."
+	title={copy.metaTitle}
+	description={copy.metaDescription}
+	locale={locale}
 >
 	<main id="main-content">
-		<ConsultingPage services={serviceCollection.services} />
+		<ConsultingPage services={serviceCollection.services} {locale} />
 	</main>
 </BaseLayout>

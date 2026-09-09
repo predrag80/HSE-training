@@ -10,14 +10,18 @@ Slide collection, a canonical Company profile, and a Service collection shared
 by the Homepage and Consulting Page. Course promotions and client References
 also feed their Homepage sections from WordPress. WordPress theme rendering is
 disabled so the installation remains a CMS rather than a second public site.
+Homepage, Company, Hero Slide, Service, Course, and Reference content supports
+explicit English and Serbian variants without a third-party translation plugin.
 
 ## Responsibilities
 
 - HSE-specific WordPress content models
 - Course metadata validation and admin editing
+- Locale-specific Courses landing and NEBOSH overview page settings
 - Homepage Hero Slide publishing, ordering, and featured images
 - Company Page settings and shared About/Value content
 - Ordered Services with a Homepage-featured subset
+- Allowlisted `en`/`sr` content locales and locale-isolated Homepage responses
 - Explicit Homepage Course promotion fields and ordering
 - Ordered client References with a Homepage-featured subset
 - Small REST API extensions needed by headless consumers
@@ -45,6 +49,7 @@ Published Courses are available at:
 
 ```text
 /wp-json/wp/v2/courses
+/wp-json/wp/v2/courses?lang=sr
 ```
 
 The full contract and lookup behavior are documented in
@@ -57,6 +62,22 @@ wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/int
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/course-promotion-integration.php
 ```
 
+Administrators edit the two Course index pages through **Courses → Course
+pages**, then select **Courses landing** or **NEBOSH overview** and an English
+or Serbian language tab. Astro continues to own their layout, imagery, routes,
+and animation. The public page documents are available at:
+
+```text
+/wp-json/hse/v1/course-pages/courses?lang=en
+/wp-json/hse/v1/course-pages/courses?lang=sr
+/wp-json/hse/v1/course-pages/nebosh?lang=en
+/wp-json/hse/v1/course-pages/nebosh?lang=sr
+```
+
+```sh
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/course-pages-integration.php
+```
+
 ## Homepage API
 
 Editors manage slides through **Homepage → Hero Slides** in WordPress. Each
@@ -67,7 +88,8 @@ cannot change Astro layout, section order, CSS, or animation behavior.
 The public, read-only representation is available at:
 
 ```text
-/wp-json/hse/v1/homepage
+/wp-json/hse/v1/homepage?lang=en
+/wp-json/hse/v1/homepage?lang=sr
 ```
 
 The endpoint returns HTTP 503 until at least one complete Hero Slide is
@@ -87,7 +109,8 @@ shared About profile is included in both the Homepage response and the dedicated
 Company response:
 
 ```text
-/wp-json/hse/v1/company
+/wp-json/hse/v1/company?lang=en
+/wp-json/hse/v1/company?lang=sr
 ```
 
 The contract is documented in
@@ -103,7 +126,8 @@ Editors manage the canonical consulting collection through **Services**. The
 complete collection is available at:
 
 ```text
-/wp-json/hse/v1/services
+/wp-json/hse/v1/services?lang=en
+/wp-json/hse/v1/services?lang=sr
 ```
 
 The Homepage endpoint includes the selected one-to-four featured Services. The
@@ -120,7 +144,8 @@ Editors manage testimonials through **References**. The public collection is
 available at:
 
 ```text
-/wp-json/hse/v1/references
+/wp-json/hse/v1/references?lang=en
+/wp-json/hse/v1/references?lang=sr
 ```
 
 The contract is documented in
@@ -135,7 +160,7 @@ wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/ref
 - Astro frontend
 - Customer accounts
 - Payments
-- Lemon Squeezy
+- Payment-provider integration
 - Course delivery
 - LMS functionality
 

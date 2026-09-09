@@ -1,4 +1,5 @@
 import type { Course } from '../../types/course';
+import { isLocale, type Locale } from '../../i18n/config';
 import { isCanonicalCourseKey } from './course-key';
 import { CmsError } from './errors';
 import type { WordPressCourseDto } from './types';
@@ -11,12 +12,42 @@ function invalidCourse(reason: string): never {
 	throw new CmsError('invalid-response', `CMS returned an invalid Course response: ${reason}.`);
 }
 
-function parseCourse(value: unknown): WordPressCourseDto {
+const NAMED_TITLE_ENTITIES: Readonly<Record<string, string>> = {
+	amp: '&',
+	apos: "'",
+	gt: '>',
+	lt: '<',
+	nbsp: '\u00a0',
+	quot: '"',
+};
+
+/** Convert WordPress rendered-title entities into plain text, including double-encoded values. */
+function decodeTitleEntities(value: string): string {
+	let decoded = value;
+	for (let pass = 0; pass < 2; pass += 1) {
+		decoded = decoded.replace(/&(#x[\da-f]+|#\d+|amp|apos|gt|lt|nbsp|quot);/gi, (entity, token: string) => {
+			if (!token.startsWith('#')) return NAMED_TITLE_ENTITIES[token.toLowerCase()] ?? entity;
+			const hexadecimal = token[1]?.toLowerCase() === 'x';
+			const codePoint = Number.parseInt(token.slice(hexadecimal ? 2 : 1), hexadecimal ? 16 : 10);
+			if (!Number.isInteger(codePoint) || codePoint <= 0 || codePoint > 0x10ffff || (codePoint >= 0xd800 && codePoint <= 0xdfff)) return entity;
+			return String.fromCodePoint(codePoint);
+		});
+	}
+	return decoded;
+}
+
+function parseCourse(value: unknown, expectedLocale: Locale): WordPressCourseDto {
 	if (!isRecord(value) || !isRecord(value.title) || !isRecord(value.content) || !isRecord(value.meta)) {
 		return invalidCourse('expected an object with title, content, and meta fields');
 	}
 
 	const { slug, status, title, content, featured_media: featuredMedia, meta } = value;
+	if (typeof value.locale !== 'string' || !isLocale(value.locale)) {
+		return invalidCourse('locale must be en or sr');
+	}
+	if (value.locale !== expectedLocale) {
+		return invalidCourse(`locale must match the requested ${expectedLocale} language`);
+	}
 	if (typeof slug !== 'string' || slug.length === 0) return invalidCourse('slug is required');
 	if (status !== 'publish') return invalidCourse('status must be publish');
 	if (typeof title.rendered !== 'string' || title.rendered.length === 0) {
@@ -69,13 +100,14 @@ function getFeaturedImageUrl(course: WordPressCourseDto): string | null {
 	return sourceUrl;
 }
 
-export function mapWordPressCourse(value: unknown): Course {
-	const course = parseCourse(value);
+export function mapWordPressCourse(value: unknown, expectedLocale: Locale): Course {
+	const course = parseCourse(value, expectedLocale);
 
 	return {
+		locale: course.locale,
 		slug: course.slug,
 		courseKey: course.meta.course_key,
-		title: course.title.rendered,
+		title: decodeTitleEntities(course.title.rendered),
 		shortDescription: course.meta.short_description,
 		descriptionHtml: course.content.rendered,
 		featuredImageUrl: getFeaturedImageUrl(course),

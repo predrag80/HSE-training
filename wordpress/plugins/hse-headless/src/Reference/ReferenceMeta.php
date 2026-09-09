@@ -7,6 +7,8 @@
 
 namespace HSETraining\Headless\Reference;
 
+use HSETraining\Headless\Content\ContentLocale;
+
 defined( 'ABSPATH' ) || exit;
 
 /** Owns public Reference fields and Homepage selection rules. */
@@ -45,6 +47,8 @@ final class ReferenceMeta {
 
 	/** Register private, sanitized metadata. */
 	public static function register_meta(): void {
+		ContentLocale::register_post_meta( ReferencePostType::POST_TYPE );
+
 		register_post_meta(
 			ReferencePostType::POST_TYPE,
 			self::REFERENCE_KEY,
@@ -144,6 +148,7 @@ final class ReferenceMeta {
 	public static function render_meta_box( $post ): void {
 		$is_locked = '' !== get_post_meta( $post->ID, self::LOCKED_REFERENCE_KEY, true );
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME );
+		ContentLocale::render_editor_field( $post->ID );
 		?>
 		<p>
 			<label for="hse-reference-key"><strong><?php esc_html_e( 'Reference key', 'hse-headless' ); ?></strong></label><br>
@@ -173,6 +178,11 @@ final class ReferenceMeta {
 		if ( ! wp_verify_nonce( $nonce, self::NONCE_ACTION ) || ! current_user_can( 'edit_post', $post_id ) || wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) {
 			return;
 		}
+		$locale = ContentLocale::save_post_locale( $post_id );
+		if ( is_wp_error( $locale ) ) {
+			self::$admin_error_code = $locale->get_error_code();
+			return;
+		}
 
 		$fields = array(
 			self::REFERENCE_KEY => array( self::class, 'sanitize_reference_key' ),
@@ -182,7 +192,7 @@ final class ReferenceMeta {
 		foreach ( $fields as $meta_key => $callback ) {
 			$field = 'hse_' . $meta_key;
 			$value = isset( $_POST[ $field ] ) ? call_user_func( $callback, wp_unslash( $_POST[ $field ] ) ) : '';
-			if ( self::REFERENCE_KEY === $meta_key && is_wp_error( self::validate_reference_key( $value, $post_id ) ) ) {
+			if ( self::REFERENCE_KEY === $meta_key && is_wp_error( self::validate_reference_key( $value, $post_id, $locale ) ) ) {
 				self::$admin_error_code = 'hse_reference_key_invalid';
 				continue;
 			}
@@ -206,6 +216,10 @@ final class ReferenceMeta {
 		}
 		$post_id = isset( $postarr['ID'] ) ? (int) $postarr['ID'] : 0;
 		$key     = self::posted_or_stored( self::REFERENCE_KEY, $post_id );
+		$locale_validation = ContentLocale::validate_for_post( ContentLocale::get_posted_or_stored_locale( $post_id ), $post_id );
+		if ( is_wp_error( $locale_validation ) ) {
+			return self::reject_publish( $data, $locale_validation->get_error_code() );
+		}
 		if ( is_wp_error( self::validate_reference_key( $key, $post_id ) ) || '' === trim( (string) ( $data['post_title'] ?? '' ) ) || '' === self::posted_or_stored( self::QUOTE, $post_id ) || '' === self::posted_or_stored( self::ROLE, $post_id ) ) {
 			return self::reject_publish( $data, 'hse_reference_incomplete' );
 		}
@@ -218,7 +232,7 @@ final class ReferenceMeta {
 	}
 
 	/** Validate stable key presence, immutability, and uniqueness. */
-	public static function validate_reference_key( $value, $post_id = 0 ) {
+	public static function validate_reference_key( $value, $post_id = 0, $locale = null ) {
 		$key = self::sanitize_reference_key( $value );
 		if ( '' === $key ) {
 			return new \WP_Error( 'hse_reference_key_required', __( 'Reference key is required.', 'hse-headless' ) );
@@ -227,7 +241,11 @@ final class ReferenceMeta {
 		if ( '' !== $locked && $locked !== $key ) {
 			return new \WP_Error( 'hse_reference_key_immutable', __( 'Reference key cannot change after publication.', 'hse-headless' ) );
 		}
-		if ( self::reference_key_exists( $key, $post_id ) ) {
+		$locale = null === $locale ? ContentLocale::get_posted_or_stored_locale( $post_id ) : ContentLocale::sanitize( $locale );
+		if ( '' === $locale ) {
+			return new \WP_Error( 'hse_content_locale_invalid', __( 'Choose English or Serbian as the content language.', 'hse-headless' ) );
+		}
+		if ( self::reference_key_exists( $key, $post_id, $locale ) ) {
 			return new \WP_Error( 'hse_reference_key_duplicate', __( 'Another Reference already uses this key.', 'hse-headless' ) );
 		}
 
@@ -287,6 +305,8 @@ final class ReferenceMeta {
 			'hse_reference_incomplete'      => __( 'Reference was saved as a draft. Complete the title, key, quote, and role or organisation.', 'hse-headless' ),
 			'hse_reference_key_invalid'     => __( 'Reference key was not changed because it must be unique and immutable after publication.', 'hse-headless' ),
 			'hse_reference_featured_limit' => sprintf( __( 'Reference was saved as a draft because no more than %d References may appear on the Homepage.', 'hse-headless' ), self::MAX_FEATURED ),
+			'hse_content_locale_invalid'   => __( 'Reference was saved as a draft because its content language is invalid.', 'hse-headless' ),
+			'hse_content_locale_immutable' => __( 'Reference language cannot change after first publication.', 'hse-headless' ),
 		);
 		if ( isset( $messages[ $code ] ) ) {
 			printf( '<div class="notice notice-error is-dismissible"><p>%s</p></div>', esc_html( $messages[ $code ] ) );
@@ -332,7 +352,7 @@ final class ReferenceMeta {
 	}
 
 	/** Determine whether another Reference uses a stable key. */
-	private static function reference_key_exists( $key, $post_id ): bool {
+	private static function reference_key_exists( $key, $post_id, $locale ): bool {
 		$matches = get_posts(
 			array(
 				'post_type'      => ReferencePostType::POST_TYPE,
@@ -340,8 +360,13 @@ final class ReferenceMeta {
 				'posts_per_page' => 1,
 				'fields'         => 'ids',
 				'post__not_in'   => $post_id ? array( $post_id ) : array(),
-				'meta_key'       => self::REFERENCE_KEY,
-				'meta_value'     => $key,
+				'meta_query'     => array(
+					array(
+						'key'   => self::REFERENCE_KEY,
+						'value' => $key,
+					),
+					ContentLocale::query_clause( $locale ),
+				),
 				'no_found_rows'  => true,
 			)
 		);
@@ -351,6 +376,7 @@ final class ReferenceMeta {
 
 	/** Count other published Homepage References. */
 	private static function featured_count( $exclude_id ): int {
+		$locale = ContentLocale::get_posted_or_stored_locale( $exclude_id );
 		$matches = get_posts(
 			array(
 				'post_type'      => ReferencePostType::POST_TYPE,
@@ -358,8 +384,13 @@ final class ReferenceMeta {
 				'posts_per_page' => -1,
 				'fields'         => 'ids',
 				'post__not_in'   => $exclude_id ? array( $exclude_id ) : array(),
-				'meta_key'       => self::FEATURED_ON_HOMEPAGE,
-				'meta_value'     => '1',
+				'meta_query'     => array(
+					array(
+						'key'   => self::FEATURED_ON_HOMEPAGE,
+						'value' => '1',
+					),
+					ContentLocale::query_clause( $locale ),
+				),
 				'no_found_rows'  => true,
 			)
 		);

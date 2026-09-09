@@ -7,6 +7,8 @@
 
 namespace HSETraining\Headless\Course;
 
+use HSETraining\Headless\Content\ContentLocale;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -58,6 +60,23 @@ final class CourseMeta {
 	 * @see https://developer.wordpress.org/reference/functions/register_post_meta/
 	 */
 	public static function register_meta(): void {
+		ContentLocale::register_post_meta( CoursePostType::POST_TYPE );
+		register_rest_field(
+			CoursePostType::POST_TYPE,
+			'locale',
+			array(
+				'get_callback' => static function ( $object ) {
+					return ContentLocale::get_post_locale( (int) ( $object['id'] ?? 0 ) );
+				},
+				'schema'       => array(
+					'description' => __( 'Editorial content language.', 'hse-headless' ),
+					'type'        => 'string',
+					'enum'        => ContentLocale::supported(),
+					'context'     => array( 'view', 'edit' ),
+				),
+			)
+		);
+
 		$common_args = array(
 			'type'              => 'string',
 			'single'            => true,
@@ -205,6 +224,7 @@ final class CourseMeta {
 		$is_locked         = '' !== get_post_meta( $post->ID, self::LOCKED_COURSE_KEY, true );
 
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME );
+		ContentLocale::render_editor_field( $post->ID );
 		?>
 		<p>
 			<label for="hse-course-key"><strong><?php esc_html_e( 'Course key', 'hse-headless' ); ?></strong></label><br>
@@ -226,7 +246,7 @@ final class CourseMeta {
 		<p>
 			<label for="hse-visible-price"><strong><?php esc_html_e( 'Visible price', 'hse-headless' ); ?></strong></label><br>
 			<input class="widefat" id="hse-visible-price" name="hse_visible_price" type="text" maxlength="100" value="<?php echo esc_attr( $visible_price ); ?>">
-			<span class="description"><?php esc_html_e( 'Display text only (for example, €499). Lemon Squeezy will own checkout pricing.', 'hse-headless' ); ?></span>
+			<span class="description"><?php esc_html_e( 'Display text only (for example, €499). The payment provider owns checkout pricing.', 'hse-headless' ); ?></span>
 		</p>
 		<?php
 	}
@@ -254,8 +274,14 @@ final class CourseMeta {
 			return;
 		}
 
+		$locale = ContentLocale::save_post_locale( $post_id );
+		if ( is_wp_error( $locale ) ) {
+			self::$admin_error_code = $locale->get_error_code();
+			return;
+		}
+
 		$raw_course_key = isset( $_POST['hse_course_key'] ) ? wp_unslash( $_POST['hse_course_key'] ) : '';
-		$validation     = self::validate_course_key( $raw_course_key, $post_id );
+		$validation     = self::validate_course_key( $raw_course_key, $post_id, $locale );
 
 		if ( is_wp_error( $validation ) ) {
 			self::$admin_error_code = $validation->get_error_code();
@@ -309,6 +335,14 @@ final class CourseMeta {
 			$candidate = wp_unslash( $_POST['hse_course_key'] );
 		}
 
+		$locale_validation = ContentLocale::validate_for_post( ContentLocale::get_posted_or_stored_locale( $post_id ), $post_id );
+		if ( is_wp_error( $locale_validation ) ) {
+			$data['post_status']    = 'draft';
+			self::$admin_error_code = $locale_validation->get_error_code();
+
+			return $data;
+		}
+
 		$validation = self::validate_course_key( $candidate, $post_id );
 		if ( is_wp_error( $validation ) ) {
 			$data['post_status']        = 'draft';
@@ -325,7 +359,7 @@ final class CourseMeta {
 	 * @param int   $post_id Current Course post ID, or zero for a new Course.
 	 * @return true|\WP_Error
 	 */
-	public static function validate_course_key( $value, $post_id = 0 ) {
+	public static function validate_course_key( $value, $post_id = 0, $locale = null ) {
 		$course_key = self::sanitize_course_key( $value );
 		if ( '' === $course_key ) {
 			return new \WP_Error(
@@ -342,7 +376,15 @@ final class CourseMeta {
 			);
 		}
 
-		if ( self::course_key_exists( $course_key, $post_id ) ) {
+		$locale = null === $locale ? ContentLocale::get_posted_or_stored_locale( $post_id ) : ContentLocale::sanitize( $locale );
+		if ( '' === $locale ) {
+			return new \WP_Error(
+				'hse_content_locale_invalid',
+				__( 'Choose English or Serbian as the content language.', 'hse-headless' )
+			);
+		}
+
+		if ( self::course_key_exists( $course_key, $post_id, $locale ) ) {
 			return new \WP_Error(
 				'hse_course_key_duplicate',
 				__( 'Another Course already uses this course key.', 'hse-headless' )
@@ -448,6 +490,14 @@ final class CourseMeta {
 			'minLength'   => 1,
 			'maxLength'   => self::MAX_KEY_LENGTH,
 		);
+		$params['lang'] = array_merge(
+			ContentLocale::rest_argument(),
+			array(
+				'description' => __( 'Limit results to one content language.', 'hse-headless' ),
+				'type'        => 'string',
+				'enum'        => ContentLocale::supported(),
+			)
+		);
 
 		return $params;
 	}
@@ -461,19 +511,24 @@ final class CourseMeta {
 	 * @see https://developer.wordpress.org/reference/hooks/rest_this-post_type_query/
 	 */
 	public static function filter_rest_course_query( $args, $request ) {
-		if ( ! $request->has_param( self::COURSE_KEY ) ) {
-			return $args;
+		$locale = ContentLocale::sanitize( $request->get_param( 'lang' ) ) ?: ContentLocale::DEFAULT_LOCALE;
+		$meta_query = isset( $args['meta_query'] ) && is_array( $args['meta_query'] ) ? $args['meta_query'] : array();
+		$meta_query[] = ContentLocale::query_clause( $locale );
+
+		if ( $request->has_param( self::COURSE_KEY ) ) {
+			$course_key = self::sanitize_course_key( $request->get_param( self::COURSE_KEY ) );
+			if ( '' === $course_key ) {
+				$args['post__in'] = array( 0 );
+
+				return $args;
+			}
+			$meta_query[] = array(
+				'key'   => self::COURSE_KEY,
+				'value' => $course_key,
+			);
 		}
 
-		$course_key = self::sanitize_course_key( $request->get_param( self::COURSE_KEY ) );
-		if ( '' === $course_key ) {
-			$args['post__in'] = array( 0 );
-
-			return $args;
-		}
-
-		$args['meta_key']   = self::COURSE_KEY;
-		$args['meta_value'] = $course_key;
+		$args['meta_query'] = $meta_query;
 
 		return $args;
 	}
@@ -543,6 +598,8 @@ final class CourseMeta {
 			'hse_course_key_required'  => __( 'Course was saved as a draft because a valid course key is required before publication.', 'hse-headless' ),
 			'hse_course_key_duplicate' => __( 'Course key was not saved because another Course already uses it.', 'hse-headless' ),
 			'hse_course_key_immutable' => __( 'Course key was not changed because it became permanent when this Course was first published.', 'hse-headless' ),
+			'hse_content_locale_invalid' => __( 'Course was saved as a draft because its content language is invalid.', 'hse-headless' ),
+			'hse_content_locale_immutable' => __( 'Course language cannot change after first publication.', 'hse-headless' ),
 		);
 
 		if ( isset( $messages[ $error_code ] ) ) {
@@ -557,7 +614,7 @@ final class CourseMeta {
 	 * @param int    $post_id    Current post ID to exclude.
 	 * @return bool
 	 */
-	private static function course_key_exists( $course_key, $post_id ): bool {
+	private static function course_key_exists( $course_key, $post_id, $locale ): bool {
 		$query_args = array(
 			'post_type'              => CoursePostType::POST_TYPE,
 			'post_status'            => array_values( get_post_stati() ),
@@ -566,8 +623,13 @@ final class CourseMeta {
 			'no_found_rows'          => true,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
-			'meta_key'               => self::COURSE_KEY,
-			'meta_value'             => $course_key,
+			'meta_query'             => array(
+				array(
+					'key'   => self::COURSE_KEY,
+					'value' => $course_key,
+				),
+				ContentLocale::query_clause( $locale ),
+			),
 		);
 
 		if ( $post_id ) {

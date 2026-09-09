@@ -1,21 +1,23 @@
 import type { Course } from '../types/course';
-import { getCourseByKey, isCmsError } from './cms';
+import { defaultLocale, type Locale } from '../i18n/config';
+import { getCourseByKey } from './cms';
+import { CmsError } from './cms/errors';
 
 /**
- * Loads editor-owned Course content for a bespoke NEBOSH page.
- *
- * These pages keep curated fallback copy so the public design remains available
- * during a temporary CMS outage. Contract and configuration errors still fail
- * loudly instead of hiding an invalid integration.
+ * Loads required editor-owned Course content for a bespoke NEBOSH page.
+ * A missing language variant is a build-time content error, never a fallback.
  */
-export async function loadOptionalNeboshCourse(courseKey: string): Promise<Course | null> {
-	try {
-		return await getCourseByKey(courseKey);
-	} catch (error) {
-		if (isCmsError(error) && (error.code === 'unavailable' || error.code === 'http')) {
-			return null;
-		}
-
-		throw error;
+export async function loadRequiredNeboshCourse(
+	courseKey: string,
+	locale: Locale = defaultLocale,
+): Promise<Course> {
+	const course = await getCourseByKey(courseKey, locale);
+	if (!course) {
+		throw new CmsError(
+			'invalid-response',
+			`CMS is missing the ${locale} Course translation for course_key ${courseKey}.`,
+		);
 	}
+
+	return course;
 }

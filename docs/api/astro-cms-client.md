@@ -25,15 +25,17 @@ HTTP or HTTPS scheme. The value is not imported into browser code.
 ## Public interface
 
 ```ts
-getCourses(): Promise<Course[]>
-getCourseBySlug(slug: string): Promise<Course | null>
-getCourseByKey(courseKey: string): Promise<Course | null>
-getHomepageCourses(): Promise<Course[]>
-getHomepage(): Promise<Homepage>
-getCompanyPage(): Promise<CompanyPageContent>
-getServices(): Promise<ServiceCollection>
-getReferences(): Promise<ReferenceCollection>
-getHomepageReferences(): Promise<readonly Reference[]>
+getCourses(locale?: Locale): Promise<Course[]>
+getCourseBySlug(slug: string, locale?: Locale): Promise<Course | null>
+getCourseByKey(courseKey: string, locale?: Locale): Promise<Course | null>
+getHomepageCourses(locale?: Locale): Promise<Course[]>
+getCoursesLandingPage(locale?: Locale): Promise<CoursesLandingPageContent>
+getNeboshOverviewPage(locale?: Locale): Promise<NeboshOverviewPageContent>
+getHomepage(locale?: Locale): Promise<Homepage>
+getCompanyPage(locale?: Locale): Promise<CompanyPageContent>
+getServices(locale?: Locale): Promise<ServiceCollection>
+getReferences(locale?: Locale): Promise<ReferenceCollection>
+getHomepageReferences(locale?: Locale): Promise<readonly Reference[]>
 ```
 
 `getCourses()` returns published Courses in newest-first WordPress date order.
@@ -59,10 +61,15 @@ without being presented as available for enrolment.
 `getHomepage()` consumes the versioned, composed HSE endpoint. The current
 domain shape contains a Hero slide collection, the shared Company profile, and
 the selected Homepage Services. `getCompanyPage()` consumes the same profile
-alongside Company-specific hero and intro action data. `getServices()` returns
-the canonical ordered consulting collection. Layout, component selection,
+alongside Company-specific hero and intro action data. `getServices(locale)`
+returns the canonical ordered consulting collection for the requested language
+and rejects cross-language responses. Layout, component selection,
 section order, and animation remain in Astro rather than entering the CMS
 contract.
+
+`getCoursesLandingPage()` and `getNeboshOverviewPage()` consume the fixed Course
+page documents. Astro uses their editorial copy and metadata while retaining
+complete ownership of component structure, images, routes, and motion.
 
 `getReferences()` returns the canonical testimonial collection.
 `getHomepageReferences()` selects the ordered one-to-four records explicitly
@@ -72,6 +79,7 @@ marked for the Homepage.
 
 ```ts
 interface Course {
+  readonly locale: 'en' | 'sr';
   readonly slug: string;
   readonly courseKey: string;
   readonly title: string;
@@ -104,10 +112,10 @@ request per Course. A Course with `featured_media: 0` maps to
 `featuredImageUrl: null`; a referenced image without valid embedded HTTP(S)
 media data is an invalid CMS response.
 
-Lookups add one of these documented filters:
+Lookups always add `lang=en|sr` and one of these documented filters:
 ```text
-?slug=<encoded-slug>
-?course_key=<canonical-course-key>
+?lang=<locale>&slug=<encoded-slug>
+?lang=<locale>&course_key=<canonical-course-key>
 ```
 
 Homepage content uses:
@@ -120,6 +128,13 @@ Company Page content uses:
 
 ```text
 GET /wp-json/hse/v1/company
+```
+
+Course page content uses:
+
+```text
+GET /wp-json/hse/v1/course-pages/courses?lang=<locale>
+GET /wp-json/hse/v1/course-pages/nebosh?lang=<locale>
 ```
 
 Consulting Service content uses:
@@ -150,8 +165,10 @@ versioned document, content keys, text, links, slides, featured Services, and
 image metadata. Service validation additionally requires canonical keys, a
 boolean Homepage selection, safe CTA data, and complete images.
 
-Reference validation requires a canonical key, complete plain-text attribution,
-and boolean Homepage presentation flags.
+Reference validation requires the requested locale, a canonical key, complete
+plain-text attribution, and boolean Homepage presentation flags. Course,
+Homepage, Company, Service, and Reference mappers reject cross-language
+responses rather than silently falling back.
 
 `CmsError.code` provides these stable categories:
 

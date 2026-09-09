@@ -1,4 +1,5 @@
 import type { Reference, ReferenceCollection } from '../../types/reference';
+import { isLocale, type Locale } from '../../i18n/config';
 import { CmsError } from './errors';
 
 const CONTENT_KEY_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -42,7 +43,7 @@ function mapReference(value: unknown, index: number): Reference {
 	};
 }
 
-export function mapWordPressReferenceCollection(value: unknown): ReferenceCollection {
+export function mapWordPressReferenceCollection(value: unknown, expectedLocale: Locale): ReferenceCollection {
 	if (!isRecord(value) || !Array.isArray(value.references)) {
 		return invalidReferences('expected a collection object with references');
 	}
@@ -50,11 +51,18 @@ export function mapWordPressReferenceCollection(value: unknown): ReferenceCollec
 	if (value.collection_key !== 'references') {
 		return invalidReferences('collection_key must be references');
 	}
+	if (typeof value.locale !== 'string' || !isLocale(value.locale)) {
+		return invalidReferences('locale must be en or sr');
+	}
+	if (value.locale !== expectedLocale) {
+		return invalidReferences(`locale must match the requested ${expectedLocale} language`);
+	}
 	if (value.references.length === 0) return invalidReferences('references must not be empty');
 
 	return {
 		schemaVersion: 1,
 		collectionKey: 'references',
+		locale: value.locale,
 		references: value.references.map(mapReference),
 	};
 }

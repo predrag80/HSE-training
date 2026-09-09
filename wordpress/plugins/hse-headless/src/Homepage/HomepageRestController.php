@@ -8,6 +8,7 @@
 namespace HSETraining\Headless\Homepage;
 
 use HSETraining\Headless\Company\CompanyPageSettings;
+use HSETraining\Headless\Content\ContentLocale;
 use HSETraining\Headless\Service\ServiceRepository;
 
 defined( 'ABSPATH' ) || exit;
@@ -38,6 +39,7 @@ final class HomepageRestController {
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => array( self::class, 'get_homepage' ),
 				'permission_callback' => '__return_true',
+				'args'                => array( 'lang' => ContentLocale::rest_argument() ),
 			)
 		);
 	}
@@ -49,7 +51,10 @@ final class HomepageRestController {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public static function get_homepage( $request ) {
-		unset( $request );
+		$locale = ContentLocale::from_rest_request( $request );
+		if ( is_wp_error( $locale ) ) {
+			return $locale;
+		}
 
 		$posts = get_posts(
 			array(
@@ -60,6 +65,7 @@ final class HomepageRestController {
 					'menu_order' => 'ASC',
 					'date'       => 'ASC',
 				),
+				'meta_query'     => array( ContentLocale::query_clause( $locale ) ),
 				'no_found_rows'  => true,
 			)
 		);
@@ -91,11 +97,11 @@ final class HomepageRestController {
 		}
 
 		$heading = trim( $slides[0]['leading_title'] . ' ' . $slides[0]['emphasized_title'] );
-		$about   = CompanyPageSettings::get_public_profile();
+		$about   = CompanyPageSettings::get_public_profile( $locale );
 		if ( is_wp_error( $about ) ) {
 			return $about;
 		}
-		$featured_services = ServiceRepository::get_published_services( true );
+		$featured_services = ServiceRepository::get_published_services( true, $locale );
 		if ( is_wp_error( $featured_services ) ) {
 			return $featured_services;
 		}
@@ -104,6 +110,7 @@ final class HomepageRestController {
 			array(
 				'schema_version' => self::SCHEMA_VERSION,
 				'page_key'       => HomepageSettings::PAGE_KEY,
+				'locale'         => $locale,
 				'hero'           => array(
 					'aria_label' => $heading,
 					'heading'    => $heading,

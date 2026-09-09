@@ -1,38 +1,38 @@
 ---
 import './nebosh-pages.css';
 import type { Course } from '../../types/course';
+import type { Locale } from '../../i18n/config';
+import { getAvailablePublicPath } from '../../i18n/routes';
+import { getCourseUiTranslations } from '../../i18n/course-ui';
 import NeboshHero from './NeboshHero.astro';
 import NeboshMotion from './NeboshMotion.astro';
 
 interface Props {
 	course?: Course | null;
+	locale: Locale;
 }
 
-const { course = null } = Astro.props;
-const courseTitle = course?.title ?? 'NEBOSH International Oil & Gas Certificate';
+const { course = null, locale } = Astro.props;
+const copy = getCourseUiTranslations(locale).nebosh;
+const iogc = copy.iogc;
+const courseTitle = course?.title ?? iogc.fallbackTitle;
 const heroImage = course?.featuredImageUrl ?? '/images/nebosh-iogc-hero.jpg';
-
-const focusAreas = [
-	{ number: '01', title: 'International standards', text: 'The qualification focused on internationally recognised safety principles.' },
-	{ number: '02', title: 'Management systems', text: 'Learners considered how systems support operational safety onshore and offshore.' },
-	{ number: '03', title: 'Process safety', text: 'The programme highlighted the importance of effective process safety management.' },
-];
 ---
 
-<NeboshHero eyebrow="Legacy qualification information" title={courseTitle} image={heroImage} titleId="iogc-title" compact />
+<NeboshHero eyebrow={iogc.eyebrow} title={courseTitle} image={heroImage} titleId="iogc-title" scrollLabel={copy.heroScroll} compact />
 
 <section class="iogc-status" id="course-content">
 	<div class="nebosh-container iogc-status__inner">
 		<div data-nebosh-reveal="left">
-			<p class="nebosh-kicker">Important qualification update</p>
-			<h2>This qualification is being withdrawn.</h2>
+			<p class="nebosh-kicker">{iogc.statusKicker}</p>
+			<h2>{iogc.statusTitle}</h2>
 		</div>
 		<div data-nebosh-reveal="right">
-			<p>NEBOSH has withdrawn the International Technical Certificate in Oil and Gas Operational Safety. New learners can no longer enrol.</p>
-			<p>The final assessment date for existing learners is <strong>30 September 2026</strong>. Existing learners should contact their Learning Partner without delay.</p>
+			{iogc.statusParagraphs.map((paragraph) => <p>{paragraph}</p>)}
+			<p>{iogc.deadlinePrefix} <strong>{iogc.deadline}</strong>. {iogc.deadlineSuffix}</p>
 			<div class="iogc-status__links">
-				<a class="nebosh-text-link" href="/contact/">Contact HSE Training <span aria-hidden="true">→</span></a>
-				<a class="nebosh-text-link" href="https://www.nebosh.org.uk/qualifications/international-oil-and-gas-certificate/" target="_blank" rel="noreferrer">Official NEBOSH notice <span aria-hidden="true">↗</span></a>
+				<a class="nebosh-text-link" href={getAvailablePublicPath('/contact/', locale)}>{iogc.contactCta} <span aria-hidden="true">→</span></a>
+				<a class="nebosh-text-link" href="https://www.nebosh.org.uk/qualifications/international-oil-and-gas-certificate/" target="_blank" rel="noreferrer">{iogc.officialCta} <span aria-hidden="true">↗</span></a>
 			</div>
 		</div>
 	</div>
@@ -42,8 +42,8 @@ const focusAreas = [
 	course?.descriptionHtml && (
 		<section class="nebosh-cms-content nebosh-cms-content--muted" aria-labelledby="iogc-cms-content-title">
 			<div class="nebosh-container nebosh-cms-content__inner" data-nebosh-reveal="up">
-				<p class="nebosh-kicker">Qualification archive</p>
-				<h2 id="iogc-cms-content-title">Details from HSE Training</h2>
+				<p class="nebosh-kicker">{iogc.cmsKicker}</p>
+				<h2 id="iogc-cms-content-title">{iogc.cmsTitle}</h2>
 				{/* This HTML is trusted editor-authored content validated at the CMS boundary. */}
 				<div class="nebosh-cms-content__body">
 					<Fragment set:html={course.descriptionHtml} />
@@ -56,12 +56,12 @@ const focusAreas = [
 <section class="iogc-focus" aria-labelledby="iogc-focus-title">
 	<div class="nebosh-container">
 		<div class="iogc-focus__header" data-nebosh-reveal="up">
-			<h2 id="iogc-focus-title">What the qualification focused on.</h2>
-			<strong>For existing learners</strong>
+			<h2 id="iogc-focus-title">{iogc.focusTitle}</h2>
+			<strong>{iogc.focusLabel}</strong>
 		</div>
 		<div class="iogc-focus__steps">
-			{focusAreas.map((area) => (
-				<article data-nebosh-reveal="up"><span>{area.number}</span><h3>{area.title}</h3><p>{area.text}</p></article>
+			{iogc.focusAreas.map((area, index) => (
+				<article data-nebosh-reveal="up"><span>0{index + 1}</span><h3>{area.title}</h3><p>{area.text}</p></article>
 			))}
 		</div>
 	</div>
@@ -71,21 +71,18 @@ const focusAreas = [
 	<div class="iogc-band__overlay" aria-hidden="true"></div>
 	<div class="iogc-band__content" data-nebosh-reveal="up">
 		<span aria-hidden="true">✓</span>
-		<p>Operational safety for high-hazard industries</p>
-		<h2>Designed for oil and gas safety responsibilities.</h2>
+		<p>{iogc.bandLabel}</p>
+		<h2>{iogc.bandTitle}</h2>
 	</div>
 </section>
 
 <section class="iogc-audience" aria-labelledby="iogc-audience-title">
 	<div class="nebosh-container">
-		<header class="nebosh-section-heading" data-nebosh-reveal="up"><p>Original target audience</p><h2 id="iogc-audience-title">Who was the course designed for?</h2></header>
+		<header class="nebosh-section-heading" data-nebosh-reveal="up"><p>{iogc.audienceKicker}</p><h2 id="iogc-audience-title">{iogc.audienceTitle}</h2></header>
 		<div class="iogc-audience__grid">
-			<article data-nebosh-reveal="up"><span>01</span><h3>Managers</h3><p>People accountable for operational safety and performance.</p></article>
-			<article data-nebosh-reveal="up"><span>02</span><h3>Supervisors</h3><p>Those coordinating safe work as part of their daily duties.</p></article>
-			<article data-nebosh-reveal="up"><span>03</span><h3>Employee representatives</h3><p>People representing workforce health and safety interests.</p></article>
-			<article data-nebosh-reveal="up"><span>04</span><h3>HSE advisers</h3><p>Newly appointed and experienced health and safety professionals.</p></article>
+			{iogc.audiences.map((audience, index) => <article data-nebosh-reveal="up"><span>0{index + 1}</span><h3>{audience.title}</h3><p>{audience.text}</p></article>)}
 		</div>
-		<p class="nebosh-inline-cta">Looking for a current process safety qualification? <a href="/contact/">Ask us about available options</a></p>
+		<p class="nebosh-inline-cta">{iogc.inlineCta} <a href={getAvailablePublicPath('/contact/', locale)}>{iogc.inlineLink}</a></p>
 	</div>
 </section>
 

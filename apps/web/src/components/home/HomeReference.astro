@@ -1,21 +1,25 @@
 ---
 import type { Reference } from '../../types/reference';
+import type { Locale } from '../../i18n/config';
+import { getUiTranslations } from '../../i18n/ui';
 
 interface Props {
 	readonly references: readonly Reference[];
+	readonly locale: Locale;
 }
 
-const { references } = Astro.props;
+const { references, locale } = Astro.props;
+const copy = getUiTranslations(locale).homepage.references;
 ---
 
 <section class="home-reference" id="reference" aria-labelledby="home-reference-title" data-home-reference>
 	<div class="home-reference__container">
 		<header class="home-reference__heading" data-reference-reveal="left">
 			<div>
-				<p>Participant and client feedback</p>
-				<h2 id="home-reference-title">Professional training people remember.</h2>
+				<p>{copy.eyebrow}</p>
+				<h2 id="home-reference-title">{copy.title}</h2>
 			</div>
-			<span>Our references highlight clear communication, practical examples and training that connects directly with real work.</span>
+			<span>{copy.description}</span>
 		</header>
 
 		<div class="home-reference__grid">

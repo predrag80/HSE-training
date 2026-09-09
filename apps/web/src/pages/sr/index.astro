@@ -1,0 +1,35 @@
+---
+import HomeAboutValue from '../../components/home/HomeAboutValue.astro';
+import HomeClients from '../../components/home/HomeClients.astro';
+import HomeExperts from '../../components/home/HomeExperts.astro';
+import HomeFinalCta from '../../components/home/HomeFinalCta.astro';
+import HomeHero from '../../components/home/HomeHero.astro';
+import HomePricing from '../../components/home/HomePricing.astro';
+import HomeReference from '../../components/home/HomeReference.astro';
+import HomeServices from '../../components/home/HomeServices.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getHomepage, getHomepageCourses, getHomepageReferences } from '../../lib/cms';
+
+const [homepage, homepageCourses, homepageReferences] = await Promise.all([
+	getHomepage('sr'),
+	getHomepageCourses('sr'),
+	getHomepageReferences('sr'),
+]);
+---
+
+<BaseLayout
+	locale="sr"
+	title="HSE Training | Obuke iz bezbednosti i zdravlja na radu"
+	description="Profesionalne obuke i konsalting iz oblasti bezbednosti, zdravlja na radu i zaštite životne sredine iz Beograda."
+>
+	<main id="main-content">
+		<HomeHero content={homepage.hero} locale="sr" />
+		<HomeAboutValue content={homepage.about} locale="sr" />
+		<HomeServices services={homepage.featuredServices} locale="sr" />
+		<HomePricing courses={homepageCourses} locale="sr" />
+		<HomeClients locale="sr" />
+		<HomeReference references={homepageReferences} locale="sr" />
+		<HomeExperts locale="sr" />
+		<HomeFinalCta locale="sr" />
+	</main>
+</BaseLayout>

@@ -1,18 +1,22 @@
 ---
 import NeboshOverviewPage from '../../components/nebosh/NeboshOverviewPage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getNeboshOverviewPage } from '../../lib/cms';
 import { NEBOSH_COURSE_KEYS } from '../../lib/course-routes';
-import { loadOptionalNeboshCourse } from '../../lib/nebosh-course-content';
+import { loadRequiredNeboshCourse } from '../../lib/nebosh-course-content';
 
-const [igcCourse, iogcCourse] = await Promise.all([
-	loadOptionalNeboshCourse(NEBOSH_COURSE_KEYS.igc),
-	loadOptionalNeboshCourse(NEBOSH_COURSE_KEYS.iogc),
+const locale = 'en';
+const [igcCourse, iogcCourse, content] = await Promise.all([
+	loadRequiredNeboshCourse(NEBOSH_COURSE_KEYS.igc, locale),
+	loadRequiredNeboshCourse(NEBOSH_COURSE_KEYS.iogc, locale),
+	getNeboshOverviewPage(locale),
 ]);
 ---
 
 <BaseLayout
-	title="NEBOSH Qualifications | HSE Training"
-	description="Explore NEBOSH health and safety qualifications and course information from HSE Training in Belgrade, Serbia."
+	title={content.meta.title}
+	description={content.meta.description}
+	locale={locale}
 >
-	<main id="main-content"><NeboshOverviewPage {igcCourse} {iogcCourse} /></main>
+	<main id="main-content"><NeboshOverviewPage {igcCourse} {iogcCourse} {locale} {content} /></main>
 </BaseLayout>

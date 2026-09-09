@@ -1,0 +1,161 @@
+---
+import type { Course } from '../../types/course';
+import type { Locale } from '../../i18n/config';
+import { getLocalizedPath } from '../../i18n/routes';
+import { getCourseUiTranslations } from '../../i18n/course-ui';
+import Button from '../ui/Button.astro';
+import Container from '../ui/Container.astro';
+import Eyebrow from '../ui/Eyebrow.astro';
+import Section from '../ui/Section.astro';
+
+interface Props {
+	course: Course;
+	locale: Locale;
+}
+
+const { course, locale } = Astro.props;
+const copy = getCourseUiTranslations(locale).generic;
+const heroClass = course.featuredImageUrl ? 'course-hero course-hero--with-image' : 'course-hero';
+---
+
+<main id="main-content">
+	<article>
+		<Section tone="brand" spacing="compact">
+			<Container>
+				<a class="course-back-link" href={getLocalizedPath('/courses/', locale)}><span aria-hidden="true">←</span> {copy.back}</a>
+
+				<header class={heroClass}>
+					<div class="course-hero__content flow">
+						<Eyebrow>{copy.eyebrow}</Eyebrow>
+						<h1>{course.title}</h1>
+						<p class="course-hero__summary">{course.shortDescription}</p>
+						{course.visiblePrice && <p class="course-hero__price">{course.visiblePrice}</p>}
+						<div class="course-hero__actions"><Button href="#enrollment-information">{copy.enroll}</Button></div>
+					</div>
+
+					{
+						course.featuredImageUrl && (
+							<img
+								class="course-hero__image"
+								src={course.featuredImageUrl}
+								alt={`${copy.imageAltPrefix} ${course.title}`}
+								width="800"
+								height="450"
+								decoding="async"
+								fetchpriority="high"
+							/>
+						)
+					}
+				</header>
+			</Container>
+		</Section>
+
+		<Section>
+			<Container size="content">
+				<section class="course-overview" aria-labelledby="course-content-title">
+					<h2 id="course-content-title">{copy.overview}</h2>
+					{/* This HTML is trusted editor-authored content validated at the CMS boundary. */}
+					<div class="course-content"><Fragment set:html={course.descriptionHtml} /></div>
+				</section>
+
+				<section id="enrollment-information" class="enrollment surface-card flow" aria-labelledby="enrollment-title">
+					<h2 id="enrollment-title">{copy.enrollment}</h2>
+					<p>{copy.enrollmentText}</p>
+				</section>
+			</Container>
+		</Section>
+	</article>
+</main>
+
+<style>
+	.course-back-link {
+		display: inline-flex;
+		gap: var(--space-2);
+		align-items: center;
+		margin-bottom: var(--space-6);
+		color: var(--color-text-on-strong);
+		font-size: var(--font-size-label);
+		font-weight: var(--font-weight-medium);
+		letter-spacing: 0.04em;
+		text-decoration: none;
+		text-transform: uppercase;
+	}
+
+	.course-back-link:hover { color: var(--color-accent-soft); }
+
+	.course-hero {
+		display: grid;
+		gap: var(--space-8);
+		align-items: center;
+	}
+
+	.course-hero__content {
+		--flow-space: var(--space-4);
+
+		max-width: 48rem;
+	}
+
+	.course-hero h1 {
+		max-width: 14ch;
+		color: var(--color-text-on-strong);
+	}
+
+	.course-hero .eyebrow { color: var(--color-accent-on-strong); }
+
+	.course-hero__summary {
+		max-width: 42rem;
+		color: var(--color-text-on-strong-muted);
+		font-size: var(--font-size-body-large);
+		line-height: 1.6;
+	}
+
+	.course-hero__price {
+		color: var(--color-accent-on-strong);
+		font-size: var(--font-size-h2);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: -0.035em;
+		line-height: var(--line-height-heading);
+	}
+
+	.course-hero__actions { padding-top: var(--space-2); }
+
+	.course-hero__image {
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		object-fit: cover;
+		border: 1px solid var(--color-border-on-strong);
+		border-radius: var(--radius-card);
+		box-shadow: var(--shadow-image-on-strong);
+	}
+
+	.course-overview > h2 { margin-bottom: var(--space-5); }
+	.course-content { color: var(--color-text); }
+
+	.course-content :global(h2),
+	.course-content :global(h3),
+	.course-content :global(h4) { margin-block: var(--space-7) var(--space-4); }
+
+	.course-content :global(p),
+	.course-content :global(ul),
+	.course-content :global(ol) { margin-block: 0 var(--space-4); }
+
+	.course-content :global(img) {
+		height: auto;
+		margin-block: var(--space-6);
+		border-radius: var(--radius-medium);
+	}
+
+	.enrollment {
+		--flow-space: var(--space-3);
+
+		margin-top: var(--space-8);
+		padding: clamp(var(--space-6), 5vw, var(--space-8));
+	}
+
+	.enrollment h2 { font-size: var(--font-size-h3); }
+	.enrollment p { color: var(--color-text-muted); }
+
+	@media (min-width: 48rem) {
+		.course-hero--with-image { grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.8fr); }
+	}
+</style>

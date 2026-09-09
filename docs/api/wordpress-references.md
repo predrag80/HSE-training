@@ -14,17 +14,19 @@ details** box contains the stable key, quote, role or organisation, Homepage
 selection, and optional accent-card selection. Page Attributes → Order controls
 the public sequence.
 
-At most four published References may be selected for the Homepage. Other
+At most four published References per language may be selected for the Homepage. Other
 published References remain available in the API for a future dedicated page.
 
 ## Endpoint
 
 ```text
-GET /wp-json/hse/v1/references
+GET /wp-json/hse/v1/references?lang=en
+GET /wp-json/hse/v1/references?lang=sr
 ```
 
-The endpoint is public and read-only. It returns HTTP 503 until at least one
-complete Reference is published.
+The endpoint is public and read-only. `lang` is allowlisted to `en` or `sr` and
+defaults to English. It returns HTTP 503 until at least one complete Reference
+exists in the requested language; there is no cross-language fallback.
 
 ## Response contract
 
@@ -32,6 +34,7 @@ complete Reference is published.
 {
   "schema_version": 1,
   "collection_key": "references",
+  "locale": "en",
   "references": [
     {
       "reference_key": "saule-kuza",
@@ -45,14 +48,16 @@ complete Reference is published.
 }
 ```
 
-`reference_key` is unique and locks after first publication. WordPress post IDs
-are deliberately absent. Quote, author, and role values are sanitized plain
-text; editors cannot inject markup, layout, CSS, or animation through this
-contract.
+`reference_key` is unique within one language, while an English/Serbian pair
+shares the same stable key. Both key and locale lock after first publication.
+WordPress post IDs are deliberately absent. Quote, author, and role values are
+sanitized plain text; editors cannot inject markup, layout, CSS, or animation
+through this contract.
 
 ## Local verification
 
 ```sh
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/reference-integration.php
-curl http://cms.hsetraining.test/wp-json/hse/v1/references
+curl 'http://cms.hsetraining.local/wp-json/hse/v1/references?lang=en'
+curl 'http://cms.hsetraining.local/wp-json/hse/v1/references?lang=sr'
 ```

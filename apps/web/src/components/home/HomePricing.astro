@@ -1,22 +1,27 @@
 ---
 import type { Course } from '../../types/course';
+import type { Locale } from '../../i18n/config';
+import { getUiTranslations } from '../../i18n/ui';
+import { getAvailablePublicPath } from '../../i18n/routes';
 import { getCoursePublicPath } from '../../lib/course-routes';
 import './home-pricing.css';
 
 interface Props {
 	readonly courses: readonly Course[];
+	readonly locale: Locale;
 }
 
-const { courses } = Astro.props;
+const { courses, locale } = Astro.props;
+const copy = getUiTranslations(locale).homepage.pricing;
 ---
 
 <section class="home-pricing" aria-labelledby="home-pricing-title" data-home-pricing>
 	<div class="home-pricing__inner">
 		<div class="home-pricing__intro">
 			<div class="home-pricing__copy" data-pricing-reveal="left">
-				<h2 id="home-pricing-title">Professional courses built around safer work.</h2>
-				<p>Explore recognised health and safety qualifications with practical guidance from experienced HSE professionals.</p>
-				<a class="home-pricing__all" href="/courses/">All courses</a>
+				<h2 id="home-pricing-title">{copy.title}</h2>
+				<p>{copy.description}</p>
+				<a class="home-pricing__all" href={getAvailablePublicPath('/courses/', locale)}>{copy.allCourses}</a>
 			</div>
 
 			<div class="pricing-accordion" data-pricing-reveal="right">
@@ -40,7 +45,7 @@ const { courses } = Astro.props;
 						<p class="pricing-plan__users">{course.homepageLabel}</p>
 						<div class="pricing-plan__price-row">
 							<p class="pricing-plan__price pricing-plan__price--text">{course.visiblePrice}</p>
-							<p class="pricing-plan__period">Current course fee and availability</p>
+							<p class="pricing-plan__period">{copy.feeAvailability}</p>
 						</div>
 						<ul>
 							<li>
@@ -48,7 +53,7 @@ const { courses } = Astro.props;
 								<span>{course.shortDescription}</span>
 							</li>
 						</ul>
-						<a class="pricing-plan__button" href={getCoursePublicPath(course)}>{course.homepageCtaLabel}</a>
+						<a class="pricing-plan__button" href={getCoursePublicPath(course, locale)}>{course.homepageCtaLabel}</a>
 					</article>
 				))
 			}
@@ -57,15 +62,15 @@ const { courses } = Astro.props;
 		<ul class="pricing-promises" data-pricing-reveal="promises">
 			<li>
 				<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 2v3M17 2v3M3 9h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2Z" /><path d="m8 14 2.5 2.5L16 11" /></svg>
-				<span>Recognised qualifications</span>
+				<span>{copy.promises[0]}</span>
 			</li>
 			<li>
 				<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 7h18v13H3zM3 10h18M16 15h2" /><path d="M5 7V5h14v2" /></svg>
-				<span>Practical HSE knowledge</span>
+				<span>{copy.promises[1]}</span>
 			</li>
 			<li>
 				<svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
-				<span>Flexible delivery options</span>
+				<span>{copy.promises[2]}</span>
 			</li>
 		</ul>
 	</div>

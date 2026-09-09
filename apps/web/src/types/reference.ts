@@ -1,3 +1,5 @@
+import type { Locale } from '../i18n/config';
+
 export interface Reference {
 	readonly referenceKey: string;
 	readonly quote: string;
@@ -10,5 +12,6 @@ export interface Reference {
 export interface ReferenceCollection {
 	readonly schemaVersion: 1;
 	readonly collectionKey: 'references';
+	readonly locale: Locale;
 	readonly references: readonly Reference[];
 }

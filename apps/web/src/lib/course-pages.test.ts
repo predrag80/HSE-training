@@ -4,10 +4,12 @@ import type { Course } from '../types/course';
 import {
 	createCourseStaticPaths,
 	createGenericCourseStaticPaths,
+	createLocalizedGenericCourseStaticPaths,
 	getCoursePageMetadata,
 } from './course-pages';
 
 const firstCourse: Course = {
+	locale: 'en',
 	slug: 'nebosh-international-general-certificate',
 	courseKey: 'nebosh-igc',
 	title: 'NEBOSH International General Certificate',
@@ -75,5 +77,35 @@ describe('createGenericCourseStaticPaths', () => {
 				props: { course: secondCourse },
 			},
 		]);
+	});
+});
+
+describe('createLocalizedGenericCourseStaticPaths', () => {
+	const serbianGenericCourse: Course = {
+		...secondCourse,
+		locale: 'sr',
+		slug: 'iosh-bezbedno-upravljanje',
+		title: 'IOSH Bezbedno upravljanje',
+	};
+
+	it('pairs different translated slugs through the stable course_key', () => {
+		expect(createLocalizedGenericCourseStaticPaths([secondCourse], [serbianGenericCourse])).toEqual([
+			{
+				params: { slug: secondCourse.slug },
+				props: {
+					course: secondCourse,
+					languageAlternates: {
+						en: '/courses/iosh-managing-safely/',
+						sr: '/sr/courses/iosh-bezbedno-upravljanje/',
+					},
+				},
+			},
+		]);
+	});
+
+	it('fails when a required translation is missing', () => {
+		expect(() => createLocalizedGenericCourseStaticPaths([secondCourse], [])).toThrow(
+			'Missing Course translation for course_key: iosh-managing-safely',
+		);
 	});
 });

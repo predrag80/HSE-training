@@ -1,52 +1,20 @@
 ---
 import OtherCourseDetailPage from '../../components/other-courses/OtherCourseDetailPage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getOtherCoursesUiTranslations } from '../../i18n/other-courses-ui';
 
-const facts = [
-	{ label: 'Duration', value: '3 days' },
-	{ label: 'Price', value: 'Upon enquiry' },
-	{ label: 'Language', value: 'Serbian' },
-	{ label: 'Group size', value: 'Maximum 6' },
-	{ label: 'Format', value: 'Theory + practice' },
-];
-
-const outcomes = [
-	{ title: 'Plan effective sessions', text: 'Set clear learning objectives and structure training around the needs of the group.' },
-	{ title: 'Deliver with confidence', text: 'Practise the communication and presentation skills needed to engage participants.' },
-	{ title: 'Use practical methods', text: 'Select delivery techniques and activities that help learners understand and retain information.' },
-	{ title: 'Manage group learning', text: 'Facilitate participation, respond to different experience levels and maintain focus.' },
-	{ title: 'Review performance', text: 'Use feedback and self-review to strengthen future training sessions.' },
-	{ title: 'Demonstrate capability', text: 'Apply the complete training process during the final-day practical assessment.' },
-];
+const locale = 'en';
+const course = getOtherCoursesUiTranslations(locale).trainer;
 ---
 
-<BaseLayout
-	title="Train the Trainer Course | HSE Training"
-	description="Three-day Train the Trainer programme with hands-on practice for new and experienced workplace trainers."
->
+<BaseLayout title={course.metaTitle} description={course.metaDescription} locale={locale}>
 	<main id="main-content">
 		<OtherCourseDetailPage
-			title="Train the trainer"
-			eyebrow="Develop confident workplace trainers"
-			heroImage="/images/consulting-hero-02.webp"
-			featureImage="/images/consulting-about-01.webp"
-			introKicker="Process, practice and feedback"
-			introTitle="Learn how to deliver training that people can use."
-			intro={[
-				'The Train the Trainer Certificate gives both new and experienced trainers hands-on practice in the skills needed to deliver effective training sessions to groups.',
-				'The programme focuses on the training process rather than a single subject. Trainer input and participant practice run throughout the course, with much of the final day dedicated to assessment.',
-			]}
-			{facts}
-			outcomesTitle="A practical foundation for effective training."
-			outcomesIntro="Participants work through the complete delivery process and practise techniques that can be adapted to different workplace topics."
-			{outcomes}
-			audienceTitle="New and experienced workplace trainers."
-			audience={[
-				'People preparing to deliver training sessions for the first time.',
-				'Experienced trainers who want to refresh and practise their delivery skills.',
-				'Subject-matter experts moving into a teaching or facilitation role.',
-				'Internal trainers who need methods they can adapt across different course topics.',
-			]}
+			title={course.title} eyebrow={course.eyebrow}
+			heroImage="/images/consulting-hero-02.webp" featureImage="/images/consulting-about-01.webp"
+			introKicker={course.introKicker} introTitle={course.introTitle} intro={course.intro} facts={course.facts}
+			outcomesTitle={course.outcomesTitle} outcomesIntro={course.outcomesIntro} outcomes={course.outcomes}
+			audienceTitle={course.audienceTitle} audience={course.audience} {locale}
 		/>
 	</main>
 </BaseLayout>

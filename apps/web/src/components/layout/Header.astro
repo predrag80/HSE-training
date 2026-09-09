@@ -2,23 +2,36 @@
 import './header.css';
 import ConsultWordmark from './ConsultWordmark.astro';
 import HeaderMenu from './HeaderMenu.astro';
+import LanguageSwitcher from './LanguageSwitcher.astro';
 import Navigation from './Navigation.astro';
 import SiteSearch from './SiteSearch.astro';
 import { contactDetails } from '../../lib/contact';
+import type { Locale } from '../../i18n/config';
+import { getAvailablePublicPath, getDefaultLocalePath } from '../../i18n/routes';
+import { getUiTranslations } from '../../i18n/ui';
 
+interface Props {
+	locale: Locale;
+	languageAlternates?: Readonly<Record<Locale, string>>;
+}
+
+const { locale, languageAlternates } = Astro.props;
 const pathname = Astro.url.pathname;
-const isHome = pathname === '/';
-const isNebosh = pathname.startsWith('/nebosh');
-const isOtherCourses = pathname.startsWith('/other-courses') || pathname.startsWith('/banksman-slinger') || pathname.startsWith('/train-the-trainer');
-const isOverlay = isHome || pathname.startsWith('/company') || pathname.startsWith('/consulting') || pathname.startsWith('/contact') || pathname.startsWith('/gallery') || isNebosh || isOtherCourses;
+const routePath = getDefaultLocalePath(pathname);
+const isHome = routePath === '/';
+const isNebosh = routePath.startsWith('/nebosh');
+const isOtherCourses = routePath.startsWith('/other-courses') || routePath.startsWith('/banksman-slinger') || routePath.startsWith('/train-the-trainer');
+const isOverlay = isHome || routePath.startsWith('/company') || routePath.startsWith('/consulting') || routePath.startsWith('/contact') || routePath.startsWith('/gallery') || isNebosh || isOtherCourses;
+const ui = getUiTranslations(locale);
 ---
 
 <header class:list={['site-header', { 'site-header--overlay': isOverlay }]} data-site-header>
 	<div class="site-header__utility">
 		<div class="site-header__utility-inner">
-			<p class="site-header__utility-message">Professional HSE training and consultancy. <a href="/contact/">Contact now</a></p>
+			<p class="site-header__utility-message">{ui.utilityMessage} <a href={getAvailablePublicPath('/contact/', locale)}>{ui.utilityCta}</a></p>
 			<div class="site-header__utility-contact">
-				<a href={contactDetails.phoneHref} aria-label={`Call HSE Training at ${contactDetails.phone}`}>
+				<LanguageSwitcher locale={locale} pathname={pathname} alternates={languageAlternates} variant="utility" />
+				<a href={contactDetails.phoneHref} aria-label={`${ui.callAriaLabel} ${contactDetails.phone}`}>
 					<svg viewBox="0 0 20 20" aria-hidden="true">
 						<path d="M17.8 13.6v2.5a1.7 1.7 0 0 1-1.8 1.7 16.8 16.8 0 0 1-7.3-2.6 16.5 16.5 0 0 1-5.1-5.1A16.8 16.8 0 0 1 1 2.8 1.7 1.7 0 0 1 2.7 1h2.5a1.7 1.7 0 0 1 1.7 1.4c.1.8.3 1.6.6 2.3a1.7 1.7 0 0 1-.4 1.8L6 7.6a13.4 13.4 0 0 0 5.1 5.1l1.1-1.1a1.7 1.7 0 0 1 1.8-.4c.8.3 1.5.5 2.3.6a1.7 1.7 0 0 1 1.5 1.8Z"></path>
 					</svg>
@@ -34,15 +47,16 @@ const isOverlay = isHome || pathname.startsWith('/company') || pathname.startsWi
 
 	<div class="site-header__main">
 		<div class="site-header__inner">
-			<a class="site-header__brand" href="/" aria-label="HSE Training home">
+			<a class="site-header__brand" href={getAvailablePublicPath('/', locale)} aria-label={ui.homeAriaLabel}>
 				<ConsultWordmark />
 			</a>
 
-			<Navigation pathname={pathname} />
+			<Navigation pathname={pathname} locale={locale} />
 
 			<div class="site-header__actions">
-				<SiteSearch />
-				<HeaderMenu />
+				<LanguageSwitcher locale={locale} pathname={pathname} alternates={languageAlternates} />
+				<SiteSearch locale={locale} />
+				<HeaderMenu locale={locale} />
 			</div>
 		</div>
 	</div>

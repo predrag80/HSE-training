@@ -7,18 +7,26 @@
 
 namespace HSETraining\Headless\Reference;
 
+use HSETraining\Headless\Content\ContentLocale;
+
 defined( 'ABSPATH' ) || exit;
 
 /** Builds portable public Reference values. */
 final class ReferenceRepository {
 	/** Return all ordered published References. */
-	public static function get_published_references() {
+	public static function get_published_references( $locale = ContentLocale::DEFAULT_LOCALE ) {
+		$locale = ContentLocale::sanitize( $locale );
+		if ( '' === $locale ) {
+			return new \WP_Error( 'hse_invalid_content_locale', __( 'The content language must be en or sr.', 'hse-headless' ), array( 'status' => 400 ) );
+		}
+
 		$posts = get_posts(
 			array(
 				'post_type'      => ReferencePostType::POST_TYPE,
 				'post_status'    => 'publish',
 				'posts_per_page' => -1,
 				'orderby'        => array( 'menu_order' => 'ASC', 'date' => 'ASC' ),
+				'meta_query'     => array( ContentLocale::query_clause( $locale ) ),
 				'no_found_rows'  => true,
 			)
 		);

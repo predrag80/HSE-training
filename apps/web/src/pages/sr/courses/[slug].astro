@@ -1,0 +1,29 @@
+---
+import CourseDetailPage from '../../../components/course/CourseDetailPage.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getCourses, type Course } from '../../../lib/cms';
+import {
+	createLocalizedGenericCourseStaticPaths,
+	getCoursePageMetadata,
+	type CourseLanguageAlternates,
+} from '../../../lib/course-pages';
+
+interface Props {
+	course: Course;
+	languageAlternates: CourseLanguageAlternates;
+}
+
+export async function getStaticPaths() {
+	const [serbianCourses, englishCourses] = await Promise.all([getCourses('sr'), getCourses('en')]);
+
+	return createLocalizedGenericCourseStaticPaths(serbianCourses, englishCourses);
+}
+
+const locale = 'sr';
+const { course, languageAlternates } = Astro.props;
+const metadata = getCoursePageMetadata(course);
+---
+
+<BaseLayout title={`${metadata.title} | HSE Training`} description={metadata.description} {locale} {languageAlternates}>
+	<CourseDetailPage {course} {locale} />
+</BaseLayout>

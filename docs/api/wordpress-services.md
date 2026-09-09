@@ -18,7 +18,9 @@ numeric Order field under Page Attributes for display sequence.
 
 Every published Service requires:
 
-- a unique `service_key`, which locks after first publication;
+- an English or Serbian content language, which locks after first publication;
+- a `service_key` shared by translations and unique within that language, which
+  locks after first publication;
 - public title;
 - Homepage card label;
 - short card description;
@@ -28,9 +30,9 @@ Every published Service requires:
 - an explicit Order value.
 
 The **Show this service on the Homepage** checkbox selects the Homepage subset.
-At least one and at most four published Services may be selected. Additional
-published Services remain available to `/consulting/` without changing the
-four-card Homepage layout.
+At least one and at most four published Services per language may be selected.
+Additional published Services remain available to `/consulting/` without
+changing the four-card Homepage layout.
 
 CTA values accept a same-site absolute path, page anchor, or absolute HTTP(S)
 URL. Other schemes are discarded. All editorial text is plain, sanitized, and
@@ -39,11 +41,16 @@ length-bounded.
 ## Endpoint
 
 ```text
-GET /wp-json/hse/v1/services
+GET /wp-json/hse/v1/services?lang=en
+GET /wp-json/hse/v1/services?lang=sr
 ```
 
 The route is public and read-only. It returns HTTP 503 until at least one
 complete Service is published.
+
+`lang` defaults to `en` and accepts only `en` or `sr`. The response contains
+only records assigned to the requested language and includes the resolved
+`locale`; it never falls back to the other language.
 
 ## Response contract
 
@@ -51,6 +58,7 @@ complete Service is published.
 {
   "schema_version": 1,
   "collection_key": "services",
+  "locale": "en",
   "services": [
     {
       "service_key": "hse-leadership",
@@ -87,5 +95,6 @@ cross-page content identifier; it is not a payment or business-state key.
 
 ```sh
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/service-integration.php
-curl http://cms.hsetraining.test/wp-json/hse/v1/services
+curl 'http://cms.hsetraining.test/wp-json/hse/v1/services?lang=en'
+curl 'http://cms.hsetraining.test/wp-json/hse/v1/services?lang=sr'
 ```

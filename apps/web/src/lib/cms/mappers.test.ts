@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { mapWordPressCourse } from './mappers';
 
 const publishedCourse = {
+	locale: 'en',
 	slug: 'nebosh-international-general-certificate',
 	status: 'publish',
 	title: {
@@ -33,7 +34,8 @@ const publishedCourse = {
 
 describe('mapWordPressCourse', () => {
 	it('maps an approved WordPress response into the internal Course shape', () => {
-		expect(mapWordPressCourse(publishedCourse)).toEqual({
+		expect(mapWordPressCourse(publishedCourse, 'en')).toEqual({
+			locale: 'en',
 			slug: 'nebosh-international-general-certificate',
 			courseKey: 'nebosh-igc',
 			title: 'NEBOSH International General Certificate',
@@ -50,45 +52,69 @@ describe('mapWordPressCourse', () => {
 
 	it('maps a Course without a featured image or visible price to null values', () => {
 		expect(
-			mapWordPressCourse({
-				...publishedCourse,
-				featured_media: 0,
-				meta: {
-					...publishedCourse.meta,
-					visible_price: '',
+			mapWordPressCourse(
+				{
+					...publishedCourse,
+					featured_media: 0,
+					meta: {
+						...publishedCourse.meta,
+						visible_price: '',
+					},
+					_embedded: undefined,
 				},
-				_embedded: undefined,
-			}),
+				'en',
+			),
 		).toMatchObject({
 			featuredImageUrl: null,
 			visiblePrice: null,
 		});
 	});
 
+	it('decodes WordPress title entities into plain text', () => {
+		expect(
+			mapWordPressCourse(
+				{ ...publishedCourse, title: { rendered: 'Oil &amp;#038; Gas &#8211; Safety' } },
+				'en',
+			).title,
+		).toBe('Oil & Gas – Safety');
+	});
+
 	it('rejects a response missing a required course_key', () => {
 		expect(() =>
-			mapWordPressCourse({
-				...publishedCourse,
-				meta: {
-					short_description: publishedCourse.meta.short_description,
-					visible_price: publishedCourse.meta.visible_price,
-					homepage_label: publishedCourse.meta.homepage_label,
-					homepage_cta_label: publishedCourse.meta.homepage_cta_label,
-					featured_on_homepage: publishedCourse.meta.featured_on_homepage,
+			mapWordPressCourse(
+				{
+					...publishedCourse,
+					meta: {
+						short_description: publishedCourse.meta.short_description,
+						visible_price: publishedCourse.meta.visible_price,
+						homepage_label: publishedCourse.meta.homepage_label,
+						homepage_cta_label: publishedCourse.meta.homepage_cta_label,
+						featured_on_homepage: publishedCourse.meta.featured_on_homepage,
+					},
 				},
-			}),
+				'en',
+			),
 		).toThrow('invalid Course response');
 	});
 
 	it('rejects protected WordPress content from the public Course model', () => {
 		expect(() =>
-			mapWordPressCourse({
-				...publishedCourse,
-				content: {
-					...publishedCourse.content,
-					protected: true,
+			mapWordPressCourse(
+				{
+					...publishedCourse,
+					content: {
+						...publishedCourse.content,
+						protected: true,
+					},
 				},
-			}),
+				'en',
+			),
 		).toThrow('invalid Course response');
+	});
+
+	it('rejects content returned in a language other than the requested one', () => {
+		expect(() => mapWordPressCourse({ ...publishedCourse, locale: 'sr' }, 'en')).toThrow(
+			'locale must match the requested en language',
+		);
 	});
 });

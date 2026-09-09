@@ -1,6 +1,40 @@
 ---
 import HeaderSocialLinks from './HeaderSocialLinks.astro';
 import { contactDetails } from '../../lib/contact';
+import type { Locale } from '../../i18n/config';
+import { getAvailablePublicPath } from '../../i18n/routes';
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const path = (value: string) => getAvailablePublicPath(value, locale);
+const copy = locale === 'sr'
+	? {
+		openMenu: 'Otvori glavni meni',
+		closeMenu: 'Zatvori glavni meni',
+		openPanel: 'Otvori informativni panel',
+		closePanel: 'Zatvori informativni panel',
+		titleLeading: 'Profesionalne HSE',
+		titleEmphasis: 'obuke',
+		panelNavigation: 'Navigacija informativnog panela',
+		courses: 'Pogledajte kurseve',
+		about: 'O HSE Training',
+		contact: 'Kontaktirajte nas',
+	}
+	: {
+		openMenu: 'Open main menu',
+		closeMenu: 'Close main menu',
+		openPanel: 'Open information panel',
+		closePanel: 'Close information panel',
+		titleLeading: 'Professional HSE',
+		titleEmphasis: 'training',
+		panelNavigation: 'Information panel navigation',
+		courses: 'View courses',
+		about: 'About HSE Training',
+		contact: 'Contact us',
+	};
 ---
 
 <button
@@ -8,7 +42,11 @@ import { contactDetails } from '../../lib/contact';
 	type="button"
 	aria-controls="site-navigation"
 	aria-expanded="false"
-	aria-label="Open main menu"
+	aria-label={copy.openMenu}
+	data-open-menu-label={copy.openMenu}
+	data-close-menu-label={copy.closeMenu}
+	data-open-panel-label={copy.openPanel}
+	data-close-panel-label={copy.closePanel}
 	data-menu-button
 >
 	<span class="site-menu-button__icon" aria-hidden="true">
@@ -27,19 +65,19 @@ import { contactDetails } from '../../lib/contact';
 	data-site-drawer
 >
 	<div class="site-drawer__panel">
-		<button class="site-drawer__close" type="button" aria-label="Close information panel" data-drawer-close>
+		<button class="site-drawer__close" type="button" aria-label={copy.closePanel} data-drawer-close>
 			<svg viewBox="0 0 384 512" aria-hidden="true">
 				<path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"></path>
 			</svg>
 		</button>
 
 		<div class="site-drawer__content">
-			<h2 id="site-drawer-title">Professional HSE <span>training</span></h2>
+			<h2 id="site-drawer-title">{copy.titleLeading} <span>{copy.titleEmphasis}</span></h2>
 
-			<nav aria-label="Information panel navigation">
-				<a href="/courses">View courses</a>
-				<a href="/#about">About HSE Training</a>
-				<a href="/contact/">Contact us</a>
+			<nav aria-label={copy.panelNavigation}>
+				<a href={path('/courses/')}>{copy.courses}</a>
+				<a href={`${path('/')}#about`}>{copy.about}</a>
+				<a href={path('/contact/')}>{copy.contact}</a>
 			</nav>
 
 			<div class="site-drawer__footer">
@@ -47,7 +85,7 @@ import { contactDetails } from '../../lib/contact';
 					<a href={contactDetails.phoneHref}>{contactDetails.phone}</a>
 					<a href={contactDetails.emailHref}>{contactDetails.email}</a>
 				</address>
-				<HeaderSocialLinks variant="drawer" />
+				<HeaderSocialLinks variant="drawer" {locale} />
 			</div>
 		</div>
 	</div>
@@ -65,6 +103,10 @@ import { contactDetails } from '../../lib/contact';
 		const closeButton = drawer.querySelector<HTMLButtonElement>('[data-drawer-close]');
 		const panel = drawer.querySelector<HTMLElement>('.site-drawer__panel');
 		if (!header || !button || !navigation || !closeButton || !panel) return;
+		const openMenuLabel = button.dataset.openMenuLabel ?? 'Open main menu';
+		const closeMenuLabel = button.dataset.closeMenuLabel ?? 'Close main menu';
+		const openPanelLabel = button.dataset.openPanelLabel ?? 'Open information panel';
+		const closePanelLabel = button.dataset.closePanelLabel ?? 'Close information panel';
 
 		drawer.dataset.menuReady = 'true';
 		let closeFallback: number | undefined;
@@ -79,17 +121,17 @@ import { contactDetails } from '../../lib/contact';
 		const openMobileMenu = () => {
 			navigation.dataset.open = '';
 			button.setAttribute('aria-expanded', 'true');
-			button.setAttribute('aria-label', 'Close main menu');
+			button.setAttribute('aria-label', closeMenuLabel);
 			navigation.querySelector<HTMLAnchorElement>('a')?.focus();
 		};
 
 		const syncButton = () => {
 			if (desktopNavigation.matches) {
 				button.setAttribute('aria-controls', 'site-menu-drawer');
-				button.setAttribute('aria-label', drawer.open ? 'Close information panel' : 'Open information panel');
+				button.setAttribute('aria-label', drawer.open ? closePanelLabel : openPanelLabel);
 			} else {
 				button.setAttribute('aria-controls', 'site-navigation');
-				button.setAttribute('aria-label', navigation.dataset.open !== undefined ? 'Close main menu' : 'Open main menu');
+				button.setAttribute('aria-label', navigation.dataset.open !== undefined ? closeMenuLabel : openMenuLabel);
 			}
 		};
 

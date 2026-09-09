@@ -21,6 +21,7 @@ content:
 | description | `content.rendered` | Marketing description, not course lessons |
 | featured image | `featured_media` | Media ID; request `_embed=wp:featuredmedia` when image data is needed |
 | status | `status` | Public responses contain published records by default |
+| locale | `locale` | Explicit `en` or `sr` editorial language |
 
 HSE-specific fields are registered as single strings and appear as predictable
 scalar values under `meta`:
@@ -35,7 +36,7 @@ scalar values under `meta`:
 | `meta.featured_on_homepage` | boolean | Explicit Homepage selection |
 
 `visible_price` is a UTF-8 display string such as `€499`. Consumers must not
-parse it into authoritative currency or amount values. Lemon Squeezy will own
+parse it into authoritative currency or amount values. The selected payment provider will own
 checkout pricing; any future machine-readable price mapping belongs to the
 payment integration, not this CMS field.
 
@@ -67,6 +68,16 @@ The canonical collection endpoint is:
 GET /wp-json/wp/v2/courses
 ```
 
+Every collection lookup accepts `lang=en|sr` and defaults to English:
+
+```text
+GET /wp-json/wp/v2/courses?lang=sr
+```
+
+The response includes `locale` on each record. Consumers must reject a record
+whose locale differs from the requested language; the API never silently falls
+back from Serbian to English.
+
 Use the core `slug` filter for an Astro `getCourseBySlug(slug)` operation:
 
 ```text
@@ -76,7 +87,7 @@ GET /wp-json/wp/v2/courses?slug=nebosh-international-general-certificate
 The plugin adds one allowlisted collection parameter for stable identity:
 
 ```text
-GET /wp-json/wp/v2/courses?course_key=nebosh-igc
+GET /wp-json/wp/v2/courses?course_key=nebosh-igc&lang=sr
 ```
 
 It also provides an explicit Homepage promotion filter and supports
@@ -86,7 +97,7 @@ It also provides an explicit Homepage promotion filter and supports
 GET /wp-json/wp/v2/courses?featured_on_homepage=true&orderby=menu_order&order=asc
 ```
 
-Between one and three complete published Courses may be selected for the
+Between one and three complete published Courses per language may be selected for the
 Homepage. A promoted Course requires its card label, CTA label, short
 description, visible price, and Featured image. The CTA destination is derived
 by Astro from `course_key` and route configuration rather than stored as an
@@ -101,8 +112,28 @@ Consumers can reduce the WordPress response surface with `_fields` and request
 featured-media data only when needed. For example:
 
 ```text
-GET /wp-json/wp/v2/courses?course_key=nebosh-igc&_fields=id,slug,status,title,content,featured_media,meta
+GET /wp-json/wp/v2/courses?course_key=nebosh-igc&lang=en&_fields=locale,slug,status,title,content,featured_media,meta
 ```
+
+## Course page documents
+
+The Course records above remain separate from the two editorial index pages.
+Administrators edit those documents at **Courses → Course pages**, with a page
+tab and an independent EN/SR language tab.
+
+```text
+GET /wp-json/hse/v1/course-pages/courses?lang=en
+GET /wp-json/hse/v1/course-pages/courses?lang=sr
+GET /wp-json/hse/v1/course-pages/nebosh?lang=en
+GET /wp-json/hse/v1/course-pages/nebosh?lang=sr
+```
+
+The `courses` document owns its metadata, heading, introduction, and empty
+state. The `nebosh` document owns its metadata, hero copy, four fixed benefits,
+introduction, course-selection copy, and testimonial. The number and order of
+sections, image assets, routes, CSS, and animation remain in Astro. Both
+documents return HTTP 503 when any required field is incomplete, and never
+fall back between languages.
 
 ## `course_key` rules
 
@@ -112,10 +143,12 @@ GET /wp-json/wp/v2/courses?course_key=nebosh-igc&_fields=id,slug,status,title,co
 - Leading and trailing hyphens are removed.
 - The maximum stored length is 80 characters.
 - The resulting value must contain at least one ASCII letter or number.
-- A key must be unique across Courses in every WordPress status, including the
-  trash. The current Course is excluded during its own validation.
+- A key must be unique per language across Courses in every WordPress status,
+  including the trash. English and Serbian translations deliberately share the
+  same key; the current Course is excluded during its own validation.
 - The first publication stores a private lock value. The key remains immutable
   even if the Course later returns to draft or trash.
+- The editorial language also locks after first publication.
 
 Representative normalization:
 
@@ -151,6 +184,7 @@ is CMS-local and must not be propagated as the business identifier.
 [
   {
     "id": 9,
+    "locale": "en",
     "slug": "nebosh-international-general-certificate",
     "status": "publish",
     "title": {
@@ -174,6 +208,6 @@ is CMS-local and must not be propagated as the business identifier.
 ```
 
 Astro should validate this external response and map it at one CMS adapter
-boundary. Within Astro and every other business integration, the stable
-identity is `course_key`; the slug is only routing content and the WordPress ID
-is only a CMS implementation detail.
+boundary. The Course business identity remains `course_key`; the compound
+`(course_key, locale)` pair selects one editorial translation. The slug is only
+routing content and the WordPress ID is only a CMS implementation detail.

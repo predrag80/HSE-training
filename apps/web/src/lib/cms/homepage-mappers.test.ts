@@ -46,6 +46,7 @@ const companyProfile = {
 const publishedHomepage = {
 	schema_version: 1,
 	page_key: 'home',
+	locale: 'en',
 	hero: {
 		aria_label: 'Professional consulting',
 		heading: 'Professional consulting',
@@ -90,9 +91,10 @@ const publishedHomepage = {
 
 describe('mapWordPressHomepage', () => {
 	it('maps the versioned WordPress response into the internal Homepage shape', () => {
-		expect(mapWordPressHomepage(publishedHomepage)).toEqual({
+		expect(mapWordPressHomepage(publishedHomepage, 'en')).toEqual({
 			schemaVersion: 1,
 			pageKey: 'home',
+			locale: 'en',
 			hero: {
 				ariaLabel: 'Professional consulting',
 				heading: 'Professional consulting',
@@ -177,68 +179,89 @@ describe('mapWordPressHomepage', () => {
 
 	it('rejects an unknown contract version', () => {
 		expect(() =>
-			mapWordPressHomepage({
-				...publishedHomepage,
-				schema_version: 2,
-			}),
+			mapWordPressHomepage(
+				{
+					...publishedHomepage,
+					schema_version: 2,
+				},
+				'en',
+			),
 		).toThrow('schema_version must be 1');
 	});
 
 	it('rejects an empty hero slide collection', () => {
 		expect(() =>
-			mapWordPressHomepage({
-				...publishedHomepage,
-				hero: { ...publishedHomepage.hero, slides: [] },
-			}),
+			mapWordPressHomepage(
+				{
+					...publishedHomepage,
+					hero: { ...publishedHomepage.hero, slides: [] },
+				},
+				'en',
+			),
 		).toThrow('hero.slides must contain between 1 and 5 items');
 	});
 
 	it('rejects more than five hero slides', () => {
 		expect(() =>
-			mapWordPressHomepage({
-				...publishedHomepage,
-				hero: {
-					...publishedHomepage.hero,
-					slides: Array.from({ length: 6 }, (_, index) => ({
-						...publishedHomepage.hero.slides[0],
-						slide_key: `slide-${index + 1}`,
-					})),
+			mapWordPressHomepage(
+				{
+					...publishedHomepage,
+					hero: {
+						...publishedHomepage.hero,
+						slides: Array.from({ length: 6 }, (_, index) => ({
+							...publishedHomepage.hero.slides[0],
+							slide_key: `slide-${index + 1}`,
+						})),
+					},
 				},
-			}),
+				'en',
+			),
 		).toThrow('hero.slides must contain between 1 and 5 items');
 	});
 
 	it('rejects unsafe links from the CMS', () => {
 		expect(() =>
-			mapWordPressHomepage({
-				...publishedHomepage,
-				hero: {
-					...publishedHomepage.hero,
-					slides: [
-						{
-							...publishedHomepage.hero.slides[0],
-							primary_cta_url: 'javascript:alert(1)',
-						},
-					],
+			mapWordPressHomepage(
+				{
+					...publishedHomepage,
+					hero: {
+						...publishedHomepage.hero,
+						slides: [
+							{
+								...publishedHomepage.hero.slides[0],
+								primary_cta_url: 'javascript:alert(1)',
+							},
+						],
+					},
 				},
-			}),
+				'en',
+			),
 		).toThrow('must be an internal path, anchor, or HTTP(S) URL');
 	});
 
 	it('rejects incomplete image metadata', () => {
 		expect(() =>
-			mapWordPressHomepage({
-				...publishedHomepage,
-				hero: {
-					...publishedHomepage.hero,
-					slides: [
-						{
-							...publishedHomepage.hero.slides[0],
-							image: { ...publishedHomepage.hero.slides[0].image, width: 0 },
-						},
-					],
+			mapWordPressHomepage(
+				{
+					...publishedHomepage,
+					hero: {
+						...publishedHomepage.hero,
+						slides: [
+							{
+								...publishedHomepage.hero.slides[0],
+								image: { ...publishedHomepage.hero.slides[0].image, width: 0 },
+							},
+						],
+					},
 				},
-			}),
+				'en',
+			),
 		).toThrow('image.width must be a positive integer');
+	});
+
+	it('rejects a response for a different locale than requested', () => {
+		expect(() => mapWordPressHomepage(publishedHomepage, 'sr')).toThrow(
+			'locale must match the requested sr language',
+		);
 	});
 });

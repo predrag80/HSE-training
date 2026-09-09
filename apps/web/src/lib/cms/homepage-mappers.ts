@@ -1,4 +1,5 @@
 import type { Homepage, HomepageHeroSlide } from '../../types/homepage';
+import { isLocale, type Locale } from '../../i18n/config';
 import { mapWordPressCompanyProfile } from './company-mappers';
 import { CmsError } from './errors';
 import { mapWordPressFeaturedServices } from './service-mappers';
@@ -105,7 +106,7 @@ function parseSlide(value: unknown, index: number): HomepageHeroSlide {
 	};
 }
 
-export function mapWordPressHomepage(value: unknown): Homepage {
+export function mapWordPressHomepage(value: unknown, expectedLocale: Locale): Homepage {
 	if (
 		!isRecord(value) ||
 		!isRecord(value.hero) ||
@@ -117,6 +118,12 @@ export function mapWordPressHomepage(value: unknown): Homepage {
 	}
 	if (value.schema_version !== 1) return invalidHomepage('schema_version must be 1');
 	if (value.page_key !== 'home') return invalidHomepage('page_key must be home');
+	if (typeof value.locale !== 'string' || !isLocale(value.locale)) {
+		return invalidHomepage('locale must be en or sr');
+	}
+	if (value.locale !== expectedLocale) {
+		return invalidHomepage(`locale must match the requested ${expectedLocale} language`);
+	}
 	if (value.hero.slides.length === 0 || value.hero.slides.length > MAX_SLIDES) {
 		return invalidHomepage(`hero.slides must contain between 1 and ${MAX_SLIDES} items`);
 	}
@@ -126,6 +133,7 @@ export function mapWordPressHomepage(value: unknown): Homepage {
 	return {
 		schemaVersion: homepage.schema_version,
 		pageKey: homepage.page_key,
+		locale: homepage.locale,
 		hero: {
 			ariaLabel: requireString(homepage.hero.aria_label, 'hero.aria_label'),
 			heading: requireString(homepage.hero.heading, 'hero.heading'),

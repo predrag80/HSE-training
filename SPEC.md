@@ -1,7 +1,7 @@
 # HSE Training Project Specification
 
 Status: Draft baseline for review
-Last reviewed: 2026-09-01
+Last reviewed: 2026-09-08
 
 ## Objective
 
@@ -22,14 +22,25 @@ WordPress or Astro into an LMS.
 
 ## Confirmed Assumptions
 
-- The production public application is `https://hsetraining.rs` on Hetzner.
-- The production CMS is `https://cms.hsetraining.rs` on the existing Serbia
-  Broadband hosting.
+- The production public application is `https://hsetraining.rs` on an
+  Unlimited.rs Optimum+ shared-hosting account.
+- The production CMS is `https://cms.hsetraining.rs` on the same Unlimited.rs
+  Optimum+ account after a provider-managed migration from Serbia Broadband.
+- Production email hosting will move from Serbia Broadband to Unlimited.rs as
+  part of the same provider-managed migration.
+- Unlimited.rs technical support has confirmed that the Optimum+ account can
+  run the Astro/Node.js application, WordPress, the required server endpoints,
+  PostgreSQL, and email delivery for this architecture.
+- `https://staging.hsetraining.rs` remains the Astro staging environment on
+  Hetzner and is operationally separate from production.
 - Astro with TypeScript is the public application.
 - WordPress is a headless CMS only.
 - PostgreSQL is the system of record for payment and business state.
-- Lemon Squeezy is the expected payment provider, subject to final account,
-  product, tax, and webhook validation before implementation.
+- Online payment will use a Serbian acquiring bank's hosted e-commerce gateway.
+  Banca Intesa and Raiffeisen Bank are the current candidates; the provider is
+  selected only after merchant approval, contract, technical documentation,
+  supported currency, test-environment, settlement, refund, and authenticated
+  server-notification requirements are confirmed.
 - Initial course access is provisioned manually by the owner in an external LMS
   after a verified purchase.
 - No local customer authentication is required.
@@ -44,7 +55,7 @@ WordPress or Astro into an LMS.
 |---|---|---|
 | `content-cms` | Editorial course and site content; published content API | — |
 | `commerce-state` | Purchases, payment events, and fulfillment state | — |
-| `payment-integration` | Checkout creation and verified webhook ingestion | `commerce-state` |
+| `payment-integration` | Bank checkout creation and verified server notification ingestion | `commerce-state` |
 | `public-web` | Public pages and course discovery | `content-cms` |
 | `contact-delivery` | Server-side contact-form validation and delivery | `public-web` |
 | `course-fulfillment` | Owner workflow for granting external LMS access | `commerce-state`, `payment-integration` |
@@ -66,12 +77,13 @@ inside a module but must not silently change ownership or dependency direction.
 Visitors
    |
    v
-Astro + TypeScript on Hetzner
+Astro + TypeScript on Unlimited.rs Optimum+
    |              |                 |
-   | content      | business state  | checkout/webhooks
+   | content      | business state  | checkout/callbacks
    v              v                 v
-WordPress      PostgreSQL       Lemon Squeezy
-on SBB hosting                       |
+WordPress      PostgreSQL       Domestic bank
+on Unlimited.rs                 e-commerce gateway
+                                     |
                                      v
                             verified purchase
                                      |
@@ -87,14 +99,20 @@ on SBB hosting                       |
 - Owns all public presentation at `hsetraining.rs`.
 - Prefers static output for pages that do not require request-time work.
 - Uses server endpoints only for operations such as contact submission,
-  checkout creation, and payment webhooks.
+  checkout creation, and authenticated payment notifications.
+- Runs in the confirmed Unlimited.rs Optimum+ Node.js environment when a server
+  endpoint is required. The selected Astro adapter, cPanel application command,
+  environment variables, document roots, and restart procedure are deployment
+  configuration, not unresolved hosting capabilities.
 - May render public course descriptions obtained from WordPress, but must not
   store or serve instructional course materials.
 - Must not require React unless a later feature demonstrates a clear need.
 
 ### WordPress content CMS
 
-- Remains on the current Serbia Broadband hosting.
+- Runs on the Unlimited.rs Optimum+ account after Unlimited.rs technical
+  support completes the WordPress, database, and email migration from Serbia
+  Broadband.
 - Is available to editors at `cms.hsetraining.rs` in production.
 - Owns editorial site content and public course marketing content.
 - Does not own customers, purchases, payment state, or course access.
@@ -102,20 +120,57 @@ on SBB hosting                       |
 - Exposes only the published fields needed by Astro through an explicit API
   boundary.
 
+### Bilingual content
+
+- English and Serbian are the supported public content languages.
+- English is the default locale and keeps the existing unprefixed public URLs;
+  Serbian uses the `/sr/` URL prefix and Serbian Latin (`sr-Latn`) document
+  language metadata.
+- Each language has a real, indexable Astro route. Runtime machine translation
+  and same-URL language replacement are not part of the architecture.
+- Navigation and other application-interface copy live in reviewed Astro locale
+  dictionaries. Editorial marketing content lives in WordPress in both
+  languages and is returned through the repository-owned `hse-headless` plugin.
+- The project will not install Polylang, WPML, GTranslate, or another WordPress
+  translation plugin for this content model.
+- Translated CMS records share their stable content key and differ by locale.
+  WordPress post IDs and localized slugs are not translation identifiers.
+- Language switching links equivalent routes by stable route or content key;
+  course translations are paired by `course_key`.
+- Static builds validate each localized CMS response and must not silently mix
+  English editorial content into a published Serbian page.
+- Both locale variants expose appropriate document language, canonical URL,
+  alternate `hreflang`, metadata, and sitemap entries.
+
 ### PostgreSQL business store
 
+- Runs on the Unlimited.rs Optimum+ account as a logically separate business
+  data store from the WordPress database.
 - Owns purchase, payment-event, and fulfillment state.
 - Stores the provider identifiers needed for reconciliation and idempotency.
 - Is not queried directly by WordPress or browser code.
 - Uses explicit migrations for every schema change.
 
-### Lemon Squeezy payment integration
+### Domestic bank payment integration
 
-- Creates or links checkout sessions for a stable `course_key`.
-- Treats browser success redirects as informational only.
-- Confirms payment only after verifying the webhook signature and event.
-- Processes duplicate webhook deliveries without duplicate purchases or
+- Creates a bank checkout request for a stable `course_key`, internal order ID,
+  exact amount, and currency.
+- Redirects the customer to the bank or its processor for card entry,
+  authentication, and authorization; HSE Training browser code never collects
+  or stores card details.
+- Treats browser success, failure, and cancellation redirects as informational
+  only.
+- Confirms payment only from an authenticated server-to-server payment
+  notification—the bank's callback/webhook—defined by the provider's signed
+  technical protocol.
+- Validates the provider signature or message authentication data, merchant
+  identity, order ID, amount, currency, transaction status, and unique provider
+  event or transaction identifier before changing business state.
+- Processes repeated notifications idempotently without duplicate purchases or
   fulfillment actions.
+- Keeps provider-specific request and response mapping behind an integration
+  boundary so selecting Banca Intesa or Raiffeisen does not change the course,
+  purchase, or fulfillment domain model.
 
 ### External course delivery
 
@@ -212,8 +267,8 @@ scripts must not be copied.
 
 This visual requirement does not change the system architecture: Astro remains
 the public application, WordPress remains the headless CMS, PostgreSQL remains
-the future business-state store, and Lemon Squeezy remains the expected payment
-provider.
+the future business-state store, and the selected domestic bank remains an
+external payment provider.
 
 ## Stable Course Identity
 
@@ -246,11 +301,13 @@ format when the PostgreSQL and payment mappings are introduced.
 ### Checkout and payment confirmation
 
 1. A visitor chooses a course identified by `course_key`.
-2. An Astro server operation creates or resolves the provider checkout.
-3. The browser is redirected to Lemon Squeezy.
+2. An Astro server operation creates or resolves the bank checkout for an
+   internal order ID, amount, and currency.
+3. The browser is redirected to the selected bank's hosted processor page.
 4. A return redirect may show a pending message but grants no access.
-5. A webhook endpoint verifies the provider signature before parsing trusted
-   payment state.
+5. A server endpoint authenticates the bank's webhook/callback and verifies the
+   order ID, amount, currency, status, and provider transaction identifier
+   before parsing trusted payment state.
 6. PostgreSQL records the provider event using a unique event identifier.
 7. The purchase state is updated transactionally and duplicate deliveries
    become no-ops with an auditable outcome.
@@ -268,9 +325,60 @@ format when the PostgreSQL and payment mappings are introduced.
 
 1. The browser submits to an Astro server endpoint.
 2. The endpoint validates and normalizes accepted fields.
-3. Server-side abuse protection is applied.
-4. The message is delivered through a provider selected before implementation.
-5. Secrets, provider credentials, and internal errors never reach browser code.
+3. Server-side abuse protection, request-size limits, rate controls, and spam
+   mitigation are applied before delivery.
+4. The message is delivered to an approved HSE Training mailbox through the
+   Unlimited.rs email service using server-only SMTP credentials or another
+   provider-supported authenticated delivery mechanism.
+5. A sender-supplied address is used as reply-to data, never as the trusted
+   envelope sender.
+6. Contact-message bodies are not persisted in the application or PostgreSQL by
+   default; any later retention requires an explicit privacy decision.
+7. Secrets, provider credentials, personal data, and internal errors never
+   reach browser code or public logs.
+
+## Hosting and Deployment
+
+### Production
+
+- Unlimited.rs Optimum+ hosts the public Astro application at
+  `hsetraining.rs`, the headless WordPress CMS at `cms.hsetraining.rs`, and the
+  domain's email service.
+- WordPress and Astro remain separate applications and document roots even
+  when they share one hosting account.
+- Optimum+ support for Astro/Node.js, PHP/WordPress, PostgreSQL, Git, SSH, and
+  email has been confirmed for the project. Exact account paths, process
+  commands, ports, credentials, and resource limits are recorded during
+  deployment setup without reopening the hosting decision.
+- Static Astro pages are built in CI and deployed as generated assets. Server
+  operations for contact and payments use only the minimal supported Astro
+  Node.js runtime required by those endpoints.
+- The production workflow uses `https://cms.hsetraining.rs` as the WordPress API
+  origin, deploys only reviewed build output and required server artifacts, and
+  performs public-site, CMS API, contact-endpoint, and payment-endpoint health
+  checks appropriate to the implemented slice.
+- Deployment credentials, bank credentials, SMTP credentials, and database
+  credentials remain in protected server or CI secret storage.
+
+### Staging
+
+- Hetzner continues to host `staging.hsetraining.rs`.
+- Staging uses non-production payment credentials and bank test endpoints.
+- Staging must not send test contact messages to unintended production
+  recipients or mutate production payment/business state.
+- Production deployment remains a distinct controlled workflow; a staging
+  deployment does not implicitly publish to production.
+
+### Provider-managed migration
+
+- Unlimited.rs technical support owns the transfer of the existing WordPress
+  runtime, database, and email service from Serbia Broadband.
+- Before DNS cutover, HSE Training verifies WordPress admin access, the hidden
+  login route, pretty permalinks, `/wp-json/`, the HSE REST endpoints, media,
+  TLS, inbound and outbound email, and the required MX, SPF, DKIM, and DMARC
+  records.
+- The existing SBB service is retained until post-cutover verification and a
+  documented rollback window are complete.
 
 ## Project Structure
 
@@ -342,7 +450,8 @@ export interface CourseSummary {
 - Unit tests cover content mapping, input validation, payment state transitions,
   and idempotency decisions.
 - Integration tests cover WordPress API contracts, PostgreSQL transactions, and
-  verified webhook processing using provider fixtures or test mode.
+  verified bank notification processing using provider fixtures and the bank's
+  test environment.
 - Endpoint tests cover contact validation, abuse controls, error handling, and
   the rule that a checkout redirect cannot confirm payment.
 - Browser tests cover public course discovery, contact submission, checkout
@@ -395,9 +504,13 @@ must accompany application functionality as it is introduced.
 
 ## Success Criteria
 
-- `hsetraining.rs` is served by the Astro application on Hetzner.
-- `cms.hsetraining.rs` remains an editor-only headless WordPress installation on
-  the current Serbia Broadband hosting.
+- `hsetraining.rs` is served by the Astro application on Unlimited.rs
+  Optimum+.
+- `cms.hsetraining.rs` is an editor-only headless WordPress installation on the
+  same Unlimited.rs Optimum+ account with an independent application root.
+- `staging.hsetraining.rs` remains the Astro staging environment on Hetzner.
+- Domain email is delivered through Unlimited.rs with validated MX, SPF, DKIM,
+  and DMARC configuration after migration.
 - Adding a second course requires content/data entries, not a structural rewrite.
 - Public course data is exchanged using stable `course_key` values.
 - Customers can browse, contact the owner, and purchase without local accounts.
@@ -422,15 +535,18 @@ must accompany application functionality as it is introduced.
    current URLs require redirects?
 2. Which third-party LMS will be used, and what exact manual fulfillment steps
    and evidence are required?
-3. Has Lemon Squeezy been approved for the required products, currencies, tax,
-   invoices, refunds, and Serbian business context?
-4. Where will PostgreSQL run in production, and what backup, recovery, and
-   operator-access model will it use?
-5. Which provider will deliver contact messages, what anti-spam mechanism is
-   acceptable, and how long may submissions/logs be retained?
+3. Will Banca Intesa or Raiffeisen be the acquiring bank, and what merchant
+   contract, supported currencies/cards, fees, settlement rules, refund and
+   cancellation operations, 3D Secure flow, test credentials, signed
+   notification protocol, and production approval does it require?
+4. What database name/user, backup retention, restore-test procedure, and
+   operator-access model will be used for PostgreSQL on Unlimited.rs?
+5. Which Unlimited.rs SMTP or authenticated mail-delivery configuration will
+   the contact endpoint use, what anti-spam mechanism is acceptable, and is the
+   default no-storage policy sufficient for submissions and logs?
 6. How should WordPress publishing trigger Astro content refresh or deployment?
-7. What languages, accessibility target, analytics, cookie-consent, and SEO
-   requirements apply to the public launch?
+7. What accessibility target, analytics, cookie-consent, and additional SEO
+   requirements apply to the bilingual public launch?
 8. Which Crafto sections lack a valid mapping to approved HSE Training content,
    and should each be omitted, deferred, or populated after owner-supplied
    content becomes available?

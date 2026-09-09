@@ -1,3 +1,5 @@
+import type { Locale } from '../i18n/config';
+
 export type CompanyValueIcon = 'training' | 'management' | 'consultancy';
 
 export interface CompanyImage {
@@ -34,6 +36,7 @@ export interface CompanyProfile {
 export interface CompanyPageContent {
 	readonly schemaVersion: 1;
 	readonly pageKey: 'company';
+	readonly locale: Locale;
 	readonly hero: {
 		readonly eyebrow: string;
 		readonly title: string;

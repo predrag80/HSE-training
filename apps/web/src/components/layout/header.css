@@ -1,7 +1,7 @@
 .site-header {
 	--header-gutter: 0.9375rem;
 	--header-foreground: var(--color-ink);
-	--header-logo-width: 10.5rem;
+	--header-logo-width: clamp(7.5rem, 36vw, 10.5rem);
 	--wordmark-mark-color: var(--color-accent);
 
 	position: relative;
@@ -26,7 +26,7 @@
 	min-height: 2.8125rem;
 	align-items: center;
 	justify-content: space-between;
-	gap: var(--space-5);
+	gap: clamp(0.625rem, 3vw, var(--space-5));
 }
 
 .site-header__utility p {

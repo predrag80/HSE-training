@@ -1,5 +1,11 @@
 ---
 import './gallery-page.css';
+import type { Locale } from '../../i18n/config';
+import { getGalleryUiTranslations } from '../../i18n/gallery-ui';
+
+interface Props { readonly locale: Locale; }
+const { locale } = Astro.props;
+const copy = getGalleryUiTranslations(locale);
 
 const images = [
 	'IMG_3052',
@@ -28,7 +34,7 @@ const images = [
 	'4-3-1',
 ].map((name, index) => ({
 	src: `/images/gallery/${name}.webp`,
-	alt: `HSE Training course session and participants — photograph ${index + 1}`,
+	alt: `${copy.photoAlt} ${index + 1}`,
 	featured: index % 7 === 0,
 }));
 ---
@@ -36,20 +42,20 @@ const images = [
 <section class="gallery-hero" aria-labelledby="gallery-title" data-gallery-parallax>
 	<div class="gallery-hero__overlay" aria-hidden="true"></div>
 	<div class="gallery-hero__content" data-gallery-reveal="hero">
-		<p>Learning in practice</p>
-		<h1 id="gallery-title">Gallery</h1>
+		<p>{copy.heroEyebrow}</p>
+		<h1 id="gallery-title">{copy.heroTitle}</h1>
 	</div>
-	<a class="gallery-hero__scroll" href="#training-gallery" aria-label="Scroll to training gallery"><span></span></a>
+	<a class="gallery-hero__scroll" href="#training-gallery" aria-label={copy.heroScroll}><span></span></a>
 </section>
 
 <section class="training-gallery" id="training-gallery" aria-labelledby="training-gallery-title">
 	<div class="gallery-container">
 		<header class="training-gallery__heading" data-gallery-reveal="up">
 			<div>
-				<p>HSE Training in action</p>
-				<h2 id="training-gallery-title">People, knowledge and practical experience.</h2>
+				<p>{copy.headingEyebrow}</p>
+				<h2 id="training-gallery-title">{copy.headingTitle}</h2>
 			</div>
-			<span>A selection of moments from our professional training sessions and participant groups.</span>
+			<span>{copy.headingText}</span>
 		</header>
 
 		<div class="training-gallery__grid">
@@ -61,7 +67,7 @@ const images = [
 					data-gallery-src={image.src}
 					data-gallery-alt={image.alt}
 					data-gallery-index={index}
-					aria-label={`Open photograph ${index + 1} of ${images.length}`}
+					aria-label={`${copy.openPhoto} ${index + 1} ${copy.of} ${images.length}`}
 					data-gallery-reveal="up"
 				>
 					<img src={image.src} width="1600" height="1067" alt={image.alt} loading={index < 4 ? 'eager' : 'lazy'} decoding="async" />
@@ -72,17 +78,17 @@ const images = [
 	</div>
 </section>
 
-<dialog class="gallery-lightbox" data-gallery-lightbox aria-label="Expanded gallery photograph">
+<dialog class="gallery-lightbox" data-gallery-lightbox aria-label={copy.lightboxLabel}>
 	<div class="gallery-lightbox__stage">
-		<button class="gallery-lightbox__close" type="button" aria-label="Close gallery" data-gallery-close>
+		<button class="gallery-lightbox__close" type="button" aria-label={copy.close} data-gallery-close>
 			<span></span><span></span>
 		</button>
-		<button class="gallery-lightbox__arrow gallery-lightbox__arrow--previous" type="button" aria-label="Previous photograph" data-gallery-previous>←</button>
+		<button class="gallery-lightbox__arrow gallery-lightbox__arrow--previous" type="button" aria-label={copy.previous} data-gallery-previous>←</button>
 		<figure>
 			<img src="/images/gallery/IMG_3052.webp" alt="" width="1600" height="1067" data-gallery-lightbox-image />
 			<figcaption data-gallery-caption>1 / {images.length}</figcaption>
 		</figure>
-		<button class="gallery-lightbox__arrow gallery-lightbox__arrow--next" type="button" aria-label="Next photograph" data-gallery-next>→</button>
+		<button class="gallery-lightbox__arrow gallery-lightbox__arrow--next" type="button" aria-label={copy.next} data-gallery-next>→</button>
 	</div>
 </dialog>
 

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: HSE Training Headless
  * Description: Custom headless CMS functionality for the HSE Training platform.
- * Version: 0.8.0
+ * Version: 0.11.0
  * Text Domain: hse-headless
  *
  * @package HSETraining\Headless
@@ -12,9 +12,13 @@ namespace HSETraining\Headless;
 
 defined( 'ABSPATH' ) || exit;
 
+require_once __DIR__ . '/src/Content/ContentLocale.php';
+require_once __DIR__ . '/src/Content/ContentLocaleMigration.php';
 require_once __DIR__ . '/src/Course/CoursePostType.php';
 require_once __DIR__ . '/src/Course/CourseMeta.php';
 require_once __DIR__ . '/src/Course/CoursePromotionMeta.php';
+require_once __DIR__ . '/src/Course/CoursePageSettings.php';
+require_once __DIR__ . '/src/Course/CoursePageRestController.php';
 require_once __DIR__ . '/src/Company/CompanyPageSettings.php';
 require_once __DIR__ . '/src/Company/CompanyPageRestController.php';
 require_once __DIR__ . '/src/Service/ServicePostType.php';
@@ -35,6 +39,8 @@ require_once __DIR__ . '/src/Infrastructure/HeadlessMode.php';
 Course\CoursePostType::register_hooks();
 Course\CourseMeta::register_hooks();
 Course\CoursePromotionMeta::register_hooks();
+Course\CoursePageSettings::register_hooks();
+Course\CoursePageRestController::register_hooks();
 Company\CompanyPageSettings::register_hooks();
 Company\CompanyPageRestController::register_hooks();
 Service\ServicePostType::register_hooks();
@@ -48,4 +54,6 @@ Homepage\HeroSlideMeta::register_hooks();
 Homepage\HomepageSettings::register_hooks();
 Homepage\HomepageRestController::register_hooks();
 Homepage\HomepageMigration::register_hooks();
+Content\ContentLocale::register_hooks();
+Content\ContentLocaleMigration::register_hooks();
 Infrastructure\HeadlessMode::register_hooks();

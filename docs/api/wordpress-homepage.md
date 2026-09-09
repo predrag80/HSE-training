@@ -1,6 +1,6 @@
 # WordPress Homepage API
 
-Status: Multiple Hero Slides implemented
+Status: Locale-aware Homepage CMS implemented
 
 ## Purpose
 
@@ -22,18 +22,22 @@ To add a slide:
 
 1. Open **Homepage → Hero Slides → Add New**.
 2. Enter an internal WordPress title used only to recognize the record.
-3. Complete every field in **Hero slide details**.
-4. Set a unique `slide_key`; it becomes immutable after first publication.
-5. Choose a Featured image and set the Order value.
-6. Publish the slide and rebuild Astro.
+3. Select English or Serbian before the first publication.
+4. Complete every field in **Hero slide details**.
+5. Set a `slide_key` shared by the English and Serbian translations; the key
+   and language become immutable after first publication.
+6. Choose a Featured image and set the Order value.
+7. Publish the slide and rebuild Astro.
 
-A sixth slide cannot be published until another published slide is changed to
-Draft. Draft slides never enter the public response.
+A sixth slide in the same language cannot be published until another published
+slide in that language is changed to Draft. Draft slides never enter the public
+response.
 
 ## Endpoint
 
 ```text
-GET /wp-json/hse/v1/homepage
+GET /wp-json/hse/v1/homepage?lang=en
+GET /wp-json/hse/v1/homepage?lang=sr
 ```
 
 The route is public and read-only. It requires no browser credential and returns
@@ -41,12 +45,18 @@ only presentation content. Missing or incomplete Hero, Company profile, or
 featured Service content returns HTTP 503 instead of publishing a partial
 document.
 
+`lang` is optional and defaults to `en`. Only `en` and `sr` are accepted;
+another value returns HTTP 400. A locale without a complete Hero collection,
+Company profile, and featured Service collection returns HTTP 503 rather than
+falling back to another language.
+
 ## Response contract
 
 ```json
 {
   "schema_version": 1,
   "page_key": "home",
+  "locale": "en",
   "hero": {
     "aria_label": "Professional consulting",
     "heading": "Professional consulting",
@@ -130,8 +140,9 @@ document.
 ```
 
 `schema_version` changes only for an incompatible API contract change.
-`page_key` and `slide_key` are stable content identifiers. WordPress attachment
-and post IDs are deliberately absent. The plugin resolves an internal Media
+`page_key` and `slide_key` are stable content identifiers. A translation pair
+shares one `slide_key`; uniqueness is enforced for `(slide_key, locale)`.
+WordPress attachment and post IDs are deliberately absent. The plugin resolves an internal Media
 Library attachment into its public URL, alt text, and intrinsic dimensions.
 The Service representation is identical to the dedicated Services endpoint and
 is documented in [`wordpress-services.md`](wordpress-services.md).
@@ -145,14 +156,22 @@ The original single-slide `hse_homepage` option is migrated idempotently into a
 `primary` Hero Slide. The old option is intentionally retained as rollback data
 and is no longer used by the public endpoint.
 
+Existing Hero Slides and Services are migrated idempotently to English. The
+existing Company settings option is copied to the English locale option and
+retained as rollback data. Editors manage English and Serbian Company content
+independently through the language tabs in WordPress admin.
+
 ## Astro consumption
 
-`getHomepage()` requests this endpoint during static generation. Its mapper
-rejects unknown schema versions, malformed content identifiers, missing text,
-unsafe links, non-HTTP image URLs, slide collections outside the one-to-five
-limit, featured Service collections outside the one-to-four limit, and invalid
-image dimensions. WordPress DTO field names remain private to the
-CMS module; Astro components receive a camelCase domain model.
+`getHomepage(locale)` requests the selected locale explicitly during static
+generation. Its mapper also rejects a response whose `locale` differs from the
+requested language, preventing a Serbian build from silently accepting English
+editorial content. It rejects unknown schema versions, malformed content
+identifiers, missing text, unsafe links, non-HTTP image URLs, slide collections
+outside the one-to-five limit, featured Service collections outside the
+one-to-four limit, and invalid image dimensions. WordPress DTO field names
+remain private to the CMS module; Astro components receive a camelCase domain
+model.
 
 The browser does not request WordPress directly. Production builds must be able
 to reach `https://cms.hsetraining.rs`, and a later deployment task will define
@@ -164,5 +183,6 @@ From the WordPress runtime:
 
 ```sh
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/homepage-integration.php
-curl http://cms.hsetraining.test/wp-json/hse/v1/homepage
+curl 'http://cms.hsetraining.test/wp-json/hse/v1/homepage?lang=en'
+curl 'http://cms.hsetraining.test/wp-json/hse/v1/homepage?lang=sr'
 ```

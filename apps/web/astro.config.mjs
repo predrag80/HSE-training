@@ -3,6 +3,13 @@ import { defineConfig, envField } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
+	i18n: {
+		locales: ['en', 'sr'],
+		defaultLocale: 'en',
+		routing: {
+			prefixDefaultLocale: false,
+		},
+	},
 	devToolbar: {
 		enabled: false,
 	},

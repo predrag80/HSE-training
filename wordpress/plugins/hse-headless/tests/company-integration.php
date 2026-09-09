@@ -9,6 +9,7 @@ defined( 'ABSPATH' ) || exit;
 
 use HSETraining\Headless\Company\CompanyPageRestController;
 use HSETraining\Headless\Company\CompanyPageSettings;
+use HSETraining\Headless\Content\ContentLocale;
 
 if ( ! class_exists( CompanyPageSettings::class ) || ! class_exists( CompanyPageRestController::class ) ) {
 	WP_CLI::error( 'Company Page implementation is not loaded.' );
@@ -16,8 +17,9 @@ if ( ! class_exists( CompanyPageSettings::class ) || ! class_exists( CompanyPage
 
 $failures       = array();
 $attachment_id  = 0;
-$option_existed = false !== get_option( CompanyPageSettings::OPTION_NAME, false );
-$original_value = get_option( CompanyPageSettings::OPTION_NAME, array() );
+$option_name    = CompanyPageSettings::option_name( ContentLocale::DEFAULT_LOCALE );
+$option_existed = false !== get_option( $option_name, false );
+$original_value = get_option( $option_name, array() );
 
 /** Record a failed assertion without stopping cleanup. */
 function hse_company_test_assert( $condition, $message ) {
@@ -41,7 +43,7 @@ try {
 	hse_company_test_assert( '' === $invalid['company_intro_cta_url'], 'Unsafe Company Page links are rejected.' );
 	hse_company_test_assert( ! isset( $invalid['unknown'] ), 'Unknown Company Page settings are discarded.' );
 
-	update_option( CompanyPageSettings::OPTION_NAME, array() );
+	update_option( $option_name, array() );
 	$unconfigured = CompanyPageRestController::get_company_page();
 	hse_company_test_assert( is_wp_error( $unconfigured ), 'An incomplete Company Page is not published.' );
 	hse_company_test_assert( 503 === ( $unconfigured->get_error_data()['status'] ?? 0 ), 'An incomplete Company Page returns HTTP 503.' );
@@ -71,7 +73,7 @@ try {
 	update_post_meta( $attachment_id, '_wp_attachment_image_alt', 'Company integration image' );
 
 	update_option(
-		CompanyPageSettings::OPTION_NAME,
+		$option_name,
 		CompanyPageSettings::sanitize_settings(
 			array(
 				'hero_eyebrow' => 'Business profile', 'hero_title' => 'About company',
@@ -93,14 +95,15 @@ try {
 	hse_company_test_assert( ! is_wp_error( $response ), 'A configured Company Page returns a public document.' );
 	$data = is_wp_error( $response ) ? array() : $response->get_data();
 	hse_company_test_assert( 'company' === ( $data['page_key'] ?? null ), 'Company Page uses a stable page key.' );
+	hse_company_test_assert( 'en' === ( $data['locale'] ?? null ), 'Company Page defaults to English.' );
 	hse_company_test_assert( 'Safety starts with people.' === ( $data['profile']['headline'] ?? null ), 'Company endpoint contains the shared profile.' );
 	hse_company_test_assert( 3 === count( $data['profile']['values'] ?? array() ), 'Company endpoint contains three value highlights.' );
 	hse_company_test_assert( ! isset( $data['profile']['primary_image']['id'] ), 'WordPress attachment IDs do not cross the Company API boundary.' );
 } finally {
 	if ( $option_existed ) {
-		update_option( CompanyPageSettings::OPTION_NAME, $original_value );
+		update_option( $option_name, $original_value );
 	} else {
-		delete_option( CompanyPageSettings::OPTION_NAME );
+		delete_option( $option_name );
 	}
 
 	if ( $attachment_id && ! is_wp_error( $attachment_id ) ) {

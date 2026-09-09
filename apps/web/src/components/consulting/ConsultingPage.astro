@@ -1,97 +1,58 @@
 ---
 import type { Service } from '../../types/service';
+import type { Locale } from '../../i18n/config';
+import { getConsultingUiTranslations } from '../../i18n/consulting-ui';
+import { getAvailablePublicPath, getLocalizedCmsHref } from '../../i18n/routes';
 import './consulting-page.css';
 
 interface Props {
 	readonly services: readonly Service[];
+	readonly locale: Locale;
 }
 
-const { services } = Astro.props;
+const { services, locale } = Astro.props;
+const copy = getConsultingUiTranslations(locale);
 
-const industries = [
-	{
-		title: 'Renewable energy',
-		text: 'HSE support for renewable-energy development, construction and operations.',
-		image: '/images/consulting-service-01.webp',
-	},
-	{
-		title: 'Mining',
-		text: 'Practical personnel and project support for mineral exploration and mining activities.',
-		image: '/images/consulting-service-02.webp',
-	},
-	{
-		title: 'Oil and gas',
-		text: 'Operational safety experience across seismic, drilling, pipeline and plant environments.',
-		image: '/images/consulting-service-03.webp',
-	},
-	{
-		title: 'Construction',
-		text: 'Site-focused HSE guidance for construction teams, contractors and project leadership.',
-		image: '/images/consulting-service-04.webp',
-	},
+const industryImages = [
+	'/images/consulting-service-01.webp',
+	'/images/consulting-service-02.webp',
+	'/images/consulting-service-03.webp',
+	'/images/consulting-service-04.webp',
 ];
 
-const experienceAreas = [
-	'Seismic operations',
-	'Drilling',
-	'Pipeline construction',
-	'Plant construction',
-	'Plant operations',
-	'Maintenance',
-];
-
-const languages = [
-	'Serbian',
-	'Croatian',
-	'English',
-	'Albanian',
-	'Romanian',
-	'Polish',
-	'Spanish',
-	'Slovenian',
-	'Bosnian',
-	'Italian',
-	'Turkish',
-	'Russian',
-	'Arabic',
-];
 ---
 
 <section class="consulting-hero" aria-labelledby="consulting-page-title" data-consulting-parallax>
 	<div class="consulting-hero__overlay" aria-hidden="true"></div>
 	<div class="consulting-hero__content" data-consulting-reveal="hero">
-		<p>Professional HSEQ expertise</p>
-		<h1 id="consulting-page-title">Consulting</h1>
+		<p>{copy.heroEyebrow}</p>
+		<h1 id="consulting-page-title">{copy.heroTitle}</h1>
 	</div>
-	<a class="consulting-hero__scroll" href="#consulting-intro" aria-label="Scroll to consulting services"><span></span></a>
+	<a class="consulting-hero__scroll" href="#consulting-intro" aria-label={copy.heroScroll}><span></span></a>
 </section>
 
 <section class="consulting-intro" id="consulting-intro">
 	<div class="consulting-container consulting-intro__inner">
 		<div class="consulting-intro__heading" data-consulting-reveal="left">
-			<p class="consulting-kicker">Local capability. International experience.</p>
-			<h2>HSEQ personnel and project support where you need it.</h2>
+			<p class="consulting-kicker">{copy.introKicker}</p>
+			<h2>{copy.introTitle}</h2>
 		</div>
 		<div class="consulting-intro__copy" data-consulting-reveal="right">
-			<p>HSE Training can provide local HSEQ personnel and project HSE management services for operations and projects across Eastern Europe and international locations.</p>
-			<p>Our personnel database combines international experience, tertiary qualifications and professionals who bring practical knowledge from operational and technical roles.</p>
-			<a class="consulting-text-link" href="/contact/">Discuss your requirements <span aria-hidden="true">→</span></a>
+			{copy.introParagraphs.map((paragraph) => <p>{paragraph}</p>)}
+			<a class="consulting-text-link" href={getAvailablePublicPath('/contact/', locale)}>{copy.introCta} <span aria-hidden="true">→</span></a>
 		</div>
 	</div>
 </section>
 
-<section class="consulting-facts" aria-label="Consulting capabilities">
-	<div class="consulting-facts__item" data-consulting-reveal="up"><strong>HSEQ</strong><span>Specialist personnel</span></div>
-	<div class="consulting-facts__item" data-consulting-reveal="up"><strong>13</strong><span>Working languages</span></div>
-	<div class="consulting-facts__item" data-consulting-reveal="up"><strong>4</strong><span>Core industries</span></div>
-	<div class="consulting-facts__item" data-consulting-reveal="up"><strong>On-site</strong><span>Project support</span></div>
+<section class="consulting-facts" aria-label={copy.capabilitiesLabel}>
+	{copy.facts.map((fact) => <div class="consulting-facts__item" data-consulting-reveal="up"><strong>{fact.value}</strong><span>{fact.label}</span></div>)}
 </section>
 
 <section class="consulting-services" aria-labelledby="consulting-services-title">
 	<div class="consulting-container">
 		<header class="consulting-section-heading" data-consulting-reveal="up">
-			<p>Consulting services</p>
-			<h2 id="consulting-services-title">The right expertise for demanding environments.</h2>
+			<p>{copy.servicesEyebrow}</p>
+			<h2 id="consulting-services-title">{copy.servicesTitle}</h2>
 		</header>
 		<div class="consulting-services__grid">
 			{services.map((service, index) => (
@@ -99,7 +60,7 @@ const languages = [
 					<span>{String(index + 1).padStart(2, '0')}</span>
 					<h3>{service.title}</h3>
 					<p>{service.detailedDescription}</p>
-					<a href={service.cta.url} aria-label={`${service.cta.label}: ${service.title}`}>{service.cta.label} <i aria-hidden="true">→</i></a>
+					<a href={getLocalizedCmsHref(service.cta.url, locale)} aria-label={`${service.cta.label}: ${service.title}`}>{service.cta.label} <i aria-hidden="true">→</i></a>
 				</article>
 			))}
 		</div>
@@ -108,17 +69,14 @@ const languages = [
 
 <section class="consulting-people" aria-labelledby="consulting-people-title">
 	<div class="consulting-people__visual" data-consulting-reveal="left">
-		<img src="/images/consulting-about-01.webp" width="950" height="800" alt="HSE professionals planning operational support" loading="lazy" decoding="async" />
+		<img src="/images/consulting-about-01.webp" width="950" height="800" alt={copy.peopleImageAlt} loading="lazy" decoding="async" />
 	</div>
 	<div class="consulting-people__content" data-consulting-reveal="right">
-		<p class="consulting-kicker">People with practical perspective</p>
-		<h2 id="consulting-people-title">Experience beyond the classroom.</h2>
-		<p>Our network includes professionals with international project experience and people who developed their HSE expertise after working directly on the shop floor or with the tools.</p>
+		<p class="consulting-kicker">{copy.peopleKicker}</p>
+		<h2 id="consulting-people-title">{copy.peopleTitle}</h2>
+		<p>{copy.peopleText}</p>
 		<ul>
-			<li><span aria-hidden="true">✓</span> International and regional project experience</li>
-			<li><span aria-hidden="true">✓</span> Tertiary and professional HSE qualifications</li>
-			<li><span aria-hidden="true">✓</span> Operational and technical backgrounds</li>
-			<li><span aria-hidden="true">✓</span> Multilingual communication</li>
+			{copy.peoplePoints.map((point) => <li><span aria-hidden="true">✓</span> {point}</li>)}
 		</ul>
 	</div>
 </section>
@@ -126,13 +84,13 @@ const languages = [
 <section class="consulting-industries" aria-labelledby="consulting-industries-title">
 	<div class="consulting-container">
 		<header class="consulting-section-heading consulting-section-heading--split" data-consulting-reveal="up">
-			<div><p>Industry experience</p><h2 id="consulting-industries-title">Support shaped around your operation.</h2></div>
-			<span>Our consultants bring experience from field operations, complex projects and high-risk working environments.</span>
+			<div><p>{copy.industriesEyebrow}</p><h2 id="consulting-industries-title">{copy.industriesTitle}</h2></div>
+			<span>{copy.industriesIntro}</span>
 		</header>
 		<div class="consulting-industries__grid">
-			{industries.map((industry) => (
+			{copy.industries.map((industry, index) => (
 				<article class="consulting-industry-card" data-consulting-reveal="up">
-					<img src={industry.image} width="600" height="815" alt="" loading="lazy" decoding="async" />
+					<img src={industryImages[index]} width="600" height="815" alt="" loading="lazy" decoding="async" />
 					<div class="consulting-industry-card__shade" aria-hidden="true"></div>
 					<div class="consulting-industry-card__content"><h3>{industry.title}</h3><p>{industry.text}</p></div>
 				</article>
@@ -144,12 +102,12 @@ const languages = [
 <section class="consulting-experience" aria-labelledby="consulting-experience-title">
 	<div class="consulting-container consulting-experience__inner">
 		<div class="consulting-experience__copy" data-consulting-reveal="left">
-			<p class="consulting-kicker">Operational knowledge</p>
-			<h2 id="consulting-experience-title">Ready for every stage of the project lifecycle.</h2>
-			<p>Personnel in our network have supported specialist operations from exploration and drilling through construction, commissioning, ongoing operations and maintenance.</p>
+			<p class="consulting-kicker">{copy.experienceKicker}</p>
+			<h2 id="consulting-experience-title">{copy.experienceTitle}</h2>
+			<p>{copy.experienceText}</p>
 		</div>
 		<ol class="consulting-experience__list" data-consulting-reveal="right">
-			{experienceAreas.map((area, index) => <li><span>{String(index + 1).padStart(2, '0')}</span><strong>{area}</strong></li>)}
+			{copy.experienceAreas.map((area, index) => <li><span>{String(index + 1).padStart(2, '0')}</span><strong>{area}</strong></li>)}
 		</ol>
 	</div>
 </section>
@@ -157,11 +115,11 @@ const languages = [
 <section class="consulting-languages" aria-labelledby="consulting-languages-title">
 	<div class="consulting-container consulting-languages__inner">
 		<div data-consulting-reveal="left">
-			<p class="consulting-kicker">International communication</p>
-			<h2 id="consulting-languages-title">Multilingual teams for regional and global work.</h2>
+			<p class="consulting-kicker">{copy.languagesKicker}</p>
+			<h2 id="consulting-languages-title">{copy.languagesTitle}</h2>
 		</div>
 		<ul data-consulting-reveal="right">
-			{languages.map((language) => <li>{language}</li>)}
+			{copy.languages.map((language) => <li>{language}</li>)}
 		</ul>
 	</div>
 </section>
@@ -169,20 +127,18 @@ const languages = [
 <section class="consulting-qualifications" aria-labelledby="consulting-qualifications-title">
 	<div class="consulting-qualifications__overlay" aria-hidden="true"></div>
 	<div class="consulting-container consulting-qualifications__inner" data-consulting-reveal="up">
-		<p>Qualified leadership</p>
-		<h2 id="consulting-qualifications-title">Professional knowledge backed by recognised HSEQ education.</h2>
-		<ul aria-label="Lead consultant qualification profile">
-			<li>Master’s — HSEQ</li>
-			<li>Bachelor — Occupational Health and Safety</li>
-			<li>Diploma — Occupational Health and Safety</li>
+		<p>{copy.qualificationsEyebrow}</p>
+		<h2 id="consulting-qualifications-title">{copy.qualificationsTitle}</h2>
+		<ul aria-label={copy.qualificationsLabel}>
+			{copy.qualifications.map((qualification) => <li>{qualification}</li>)}
 		</ul>
 	</div>
 </section>
 
 <section class="consulting-cta">
 	<div class="consulting-container consulting-cta__inner" data-consulting-reveal="up">
-		<div><p>Planning a project or strengthening your HSE team?</p><h2>Let’s discuss the expertise you need.</h2></div>
-		<a href="/contact/">Contact HSE Training <span aria-hidden="true">→</span></a>
+		<div><p>{copy.ctaEyebrow}</p><h2>{copy.ctaTitle}</h2></div>
+		<a href={getAvailablePublicPath('/contact/', locale)}>{copy.ctaLabel} <span aria-hidden="true">→</span></a>
 	</div>
 </section>
 

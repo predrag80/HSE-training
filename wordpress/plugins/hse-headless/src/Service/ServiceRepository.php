@@ -7,6 +7,8 @@
 
 namespace HSETraining\Headless\Service;
 
+use HSETraining\Headless\Content\ContentLocale;
+
 defined( 'ABSPATH' ) || exit;
 
 /** Builds the stable public Service values shared by REST documents. */
@@ -14,10 +16,16 @@ final class ServiceRepository {
 	/**
 	 * Return ordered published Services.
 	 *
-	 * @param bool $featured_only Limit the collection to Homepage-featured Services.
+	 * @param bool   $featured_only Limit the collection to Homepage-featured Services.
+	 * @param string $locale        Allowlisted content locale.
 	 * @return array<int, array<string, mixed>>|\WP_Error
 	 */
-	public static function get_published_services( $featured_only = false ) {
+	public static function get_published_services( $featured_only = false, $locale = ContentLocale::DEFAULT_LOCALE ) {
+		$locale = ContentLocale::sanitize( $locale );
+		if ( '' === $locale ) {
+			return new \WP_Error( 'hse_invalid_content_locale', __( 'Content language is invalid.', 'hse-headless' ), array( 'status' => 400 ) );
+		}
+
 		$query = array(
 			'post_type'      => ServicePostType::POST_TYPE,
 			'post_status'    => 'publish',
@@ -26,16 +34,19 @@ final class ServiceRepository {
 				'menu_order' => 'ASC',
 				'date'       => 'ASC',
 			),
+			'meta_query'     => array( ContentLocale::query_clause( $locale ) ),
 			'no_found_rows'  => true,
 		);
 
 		if ( $featured_only ) {
 			$query['posts_per_page'] = ServiceMeta::MAX_HOMEPAGE_SERVICES + 1;
 			$query['meta_query']     = array(
+				'relation' => 'AND',
 				array(
 					'key'   => ServiceMeta::FEATURED_ON_HOMEPAGE,
 					'value' => '1',
 				),
+				ContentLocale::query_clause( $locale ),
 			);
 		}
 

@@ -1,30 +1,32 @@
 ---
 import './nebosh-pages.css';
 import type { Course } from '../../types/course';
+import type { NeboshOverviewPageContent } from '../../types/course-page';
+import type { Locale } from '../../i18n/config';
+import { getAvailablePublicPath } from '../../i18n/routes';
+import { getCourseUiTranslations } from '../../i18n/course-ui';
+import { getCoursePublicPath } from '../../lib/course-routes';
 import NeboshHero from './NeboshHero.astro';
 import NeboshMotion from './NeboshMotion.astro';
 
 interface Props {
 	igcCourse?: Course | null;
 	iogcCourse?: Course | null;
+	locale: Locale;
+	content: NeboshOverviewPageContent;
 }
 
-const { igcCourse = null, iogcCourse = null } = Astro.props;
-
-const strengths = [
-	{ number: '01', title: 'International recognition', text: 'Qualifications respected by employers around the world.' },
-	{ number: '02', title: 'Practical knowledge', text: 'Skills designed to improve health and safety at work.' },
-	{ number: '03', title: 'Experienced guidance', text: 'Clear teaching for professionals working in international environments.' },
-	{ number: '04', title: 'Career development', text: 'A strong foundation for greater HSE responsibility.' },
-];
+const { igcCourse = null, iogcCourse = null, locale, content } = Astro.props;
+const copy = getCourseUiTranslations(locale).nebosh;
+const { hero, strengths, intro, courseSelection, testimonial } = content;
 ---
 
-<NeboshHero eyebrow="International health and safety" title="NEBOSH qualifications" image="/images/nebosh-overview-hero.jpg" titleId="nebosh-title" />
+<NeboshHero eyebrow={hero.eyebrow} title={hero.title} image="/images/nebosh-overview-hero.jpg" titleId="nebosh-title" scrollLabel={copy.heroScroll} />
 
-<section class="nebosh-overview-strip" aria-label="NEBOSH course benefits">
-	{strengths.map((item) => (
+<section class="nebosh-overview-strip" aria-label={copy.benefitsLabel}>
+	{strengths.map((item, index) => (
 		<article data-nebosh-reveal="up">
-			<span>{item.number}</span>
+			<span>0{index + 1}</span>
 			<h2>{item.title}</h2>
 			<p>{item.text}</p>
 		</article>
@@ -34,15 +36,14 @@ const strengths = [
 <section class="nebosh-overview-intro" id="course-content">
 	<div class="nebosh-container nebosh-overview-intro__inner">
 		<div class="nebosh-overview-intro__copy" data-nebosh-reveal="left">
-			<p class="nebosh-kicker">Globally respected qualifications</p>
-			<h2>Build the knowledge to make work safer.</h2>
-			<p>NEBOSH is the National Examination Board in Occupational Safety and Health. Its qualifications are designed for people with responsibilities for health, safety and the environment.</p>
-			<p>HSE Training supports professionals and organisations seeking internationally recognised health and safety knowledge.</p>
-			<a class="nebosh-button" href="/contact/">Talk to our team</a>
+			<p class="nebosh-kicker">{intro.kicker}</p>
+			<h2>{intro.title}</h2>
+			{intro.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+			<a class="nebosh-button" href={getAvailablePublicPath('/contact/', locale)}>{intro.ctaLabel}</a>
 		</div>
 		<div class="nebosh-overview-intro__visual" data-nebosh-reveal="right">
-			<img src="/images/nebosh-overview-feature.webp" width="570" height="561" alt="Consultant discussing a professional development plan" />
-			<div><strong>Safer work</strong><span>Practical learning for real responsibilities.</span></div>
+			<img src="/images/nebosh-overview-feature.webp" width="570" height="561" alt={intro.imageAlt} />
+			<div><strong>{intro.visualTitle}</strong><span>{intro.visualText}</span></div>
 		</div>
 	</div>
 </section>
@@ -50,28 +51,28 @@ const strengths = [
 <section class="nebosh-courses" aria-labelledby="nebosh-courses-title">
 	<div class="nebosh-container">
 		<header class="nebosh-section-heading" data-nebosh-reveal="up">
-			<p>Choose your qualification</p>
-			<h2 id="nebosh-courses-title">NEBOSH courses</h2>
+			<p>{courseSelection.kicker}</p>
+			<h2 id="nebosh-courses-title">{courseSelection.title}</h2>
 		</header>
 		<div class="nebosh-courses__grid">
-			<a class="nebosh-course-card nebosh-course-card--igc" href="/nebosh-international-general-certificate-in-occupational-health-and-safety/" data-nebosh-reveal="up">
+			<a class="nebosh-course-card nebosh-course-card--igc" href={igcCourse ? getCoursePublicPath(igcCourse, locale) : getAvailablePublicPath('/nebosh-international-general-certificate-in-occupational-health-and-safety/', locale)} data-nebosh-reveal="up">
 				{igcCourse?.featuredImageUrl && <img class="nebosh-course-card__image" src={igcCourse.featuredImageUrl} alt="" loading="lazy" decoding="async" />}
 				<div class="nebosh-course-card__shade"></div>
 				<div class="nebosh-course-card__content">
-					<span>Current qualification</span>
+					<span>{courseSelection.currentLabel}</span>
 					<h3>{igcCourse?.title ?? 'NEBOSH International General Certificate'}</h3>
-					<p>{igcCourse?.shortDescription ?? 'For managers, supervisors, safety professionals and people beginning a health and safety career.'}</p>
-					<strong>Explore the course <i aria-hidden="true">→</i></strong>
+					<p>{igcCourse?.shortDescription ?? courseSelection.igcFallback}</p>
+					<strong>{courseSelection.igcCtaLabel} <i aria-hidden="true">→</i></strong>
 				</div>
 			</a>
-			<a class="nebosh-course-card nebosh-course-card--iogc" href="/nebosh-international-oilgas-certificate/" data-nebosh-reveal="up">
+			<a class="nebosh-course-card nebosh-course-card--iogc" href={iogcCourse ? getCoursePublicPath(iogcCourse, locale) : getAvailablePublicPath('/nebosh-international-oilgas-certificate/', locale)} data-nebosh-reveal="up">
 				{iogcCourse?.featuredImageUrl && <img class="nebosh-course-card__image" src={iogcCourse.featuredImageUrl} alt="" loading="lazy" decoding="async" />}
 				<div class="nebosh-course-card__shade"></div>
 				<div class="nebosh-course-card__content">
-					<span>Legacy qualification</span>
+					<span>{courseSelection.legacyLabel}</span>
 					<h3>{iogcCourse?.title ?? 'NEBOSH International Oil & Gas Certificate'}</h3>
-					<p>{iogcCourse?.shortDescription ?? 'Important information for existing learners about this withdrawn qualification.'}</p>
-					<strong>View qualification status <i aria-hidden="true">→</i></strong>
+					<p>{iogcCourse?.shortDescription ?? courseSelection.iogcFallback}</p>
+					<strong>{courseSelection.iogcCtaLabel} <i aria-hidden="true">→</i></strong>
 				</div>
 			</a>
 		</div>
@@ -82,8 +83,8 @@ const strengths = [
 	<div class="nebosh-container nebosh-quote__inner" data-nebosh-reveal="up">
 		<span aria-hidden="true">“</span>
 		<blockquote>
-			<p>I witnessed the NEBOSH IGC being presented in Kazakhstan and found the trainer professional, capable and especially effective with participants whose first language was not English.</p>
-			<footer><strong>Saule Kuza</strong><small>Technical translator at KPO</small></footer>
+			<p>{testimonial.quote}</p>
+			<footer><strong>{testimonial.author}</strong><small>{testimonial.role}</small></footer>
 		</blockquote>
 	</div>
 </section>

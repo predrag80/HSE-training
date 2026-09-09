@@ -7,6 +7,8 @@
 
 namespace HSETraining\Headless\Homepage;
 
+use HSETraining\Headless\Content\ContentLocale;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -51,12 +53,20 @@ final class HomepageSettings {
 			return;
 		}
 
-		$list_url = admin_url( 'edit.php?post_type=' . HeroSlidePostType::POST_TYPE );
-		$new_url  = admin_url( 'post-new.php?post_type=' . HeroSlidePostType::POST_TYPE );
+		$locale   = isset( $_GET['lang'] ) ? ContentLocale::sanitize( wp_unslash( $_GET['lang'] ) ) : ContentLocale::DEFAULT_LOCALE;
+		$locale   = $locale ?: ContentLocale::DEFAULT_LOCALE;
+		$list_url = add_query_arg( array( 'post_type' => HeroSlidePostType::POST_TYPE, 'lang' => $locale ), admin_url( 'edit.php' ) );
+		$new_url  = add_query_arg( array( 'post_type' => HeroSlidePostType::POST_TYPE, 'lang' => $locale ), admin_url( 'post-new.php' ) );
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Homepage', 'hse-headless' ); ?></h1>
 			<p><?php esc_html_e( 'WordPress owns published Homepage content. Astro continues to own layout, section order, styling, and animation.', 'hse-headless' ); ?></p>
+			<nav class="nav-tab-wrapper" aria-label="<?php esc_attr_e( 'Content language', 'hse-headless' ); ?>">
+				<?php foreach ( ContentLocale::supported() as $supported_locale ) : ?>
+					<a class="nav-tab <?php echo $locale === $supported_locale ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( add_query_arg( array( 'page' => self::PAGE_SLUG, 'lang' => $supported_locale ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( ContentLocale::label( $supported_locale ) ); ?></a>
+				<?php endforeach; ?>
+			</nav>
+			<p><strong><?php esc_html_e( 'Managing language:', 'hse-headless' ); ?></strong> <?php echo esc_html( ContentLocale::label( $locale ) ); ?></p>
 			<h2><?php esc_html_e( 'Hero slides', 'hse-headless' ); ?></h2>
 			<p><?php esc_html_e( 'Create up to five published slides and use the Order field to control their display sequence.', 'hse-headless' ); ?></p>
 			<p>

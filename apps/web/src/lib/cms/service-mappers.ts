@@ -1,4 +1,5 @@
 import type { Service, ServiceCollection, ServiceImage, ServiceLink } from '../../types/service';
+import type { Locale } from '../../i18n/config';
 import { CmsError } from './errors';
 import type { WordPressServiceCollectionDto, WordPressServiceDto } from './types';
 
@@ -102,7 +103,7 @@ export function mapWordPressService(value: unknown, index: number): Service {
 	};
 }
 
-export function mapWordPressServiceCollection(value: unknown): ServiceCollection {
+export function mapWordPressServiceCollection(value: unknown, locale: Locale = 'en'): ServiceCollection {
 	if (!isRecord(value) || !Array.isArray(value.services)) {
 		return invalidServices('expected a collection object with services');
 	}
@@ -110,12 +111,14 @@ export function mapWordPressServiceCollection(value: unknown): ServiceCollection
 	if (value.collection_key !== 'services') {
 		return invalidServices('collection_key must be services');
 	}
+	if (value.locale !== locale) return invalidServices(`locale must be ${locale}`);
 	if (value.services.length === 0) return invalidServices('services must not be empty');
 
 	const collection = value as unknown as WordPressServiceCollectionDto;
 	return {
 		schemaVersion: collection.schema_version,
 		collectionKey: collection.collection_key,
+		locale,
 		services: collection.services.map(mapWordPressService),
 	};
 }

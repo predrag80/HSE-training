@@ -1,0 +1,16 @@
+---
+import CompanyPage from '../../../components/company/CompanyPage.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getCompanyUiTranslations } from '../../../i18n/company-ui';
+import { getCompanyPage } from '../../../lib/cms';
+
+const locale = 'sr';
+const copy = getCompanyUiTranslations(locale);
+const companyPage = await getCompanyPage(locale);
+---
+
+<BaseLayout title={copy.metaTitle} description={copy.metaDescription} locale={locale}>
+	<main id="main-content">
+		<CompanyPage content={companyPage} />
+	</main>
+</BaseLayout>

@@ -11,9 +11,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { getHomepage, getHomepageCourses, getHomepageReferences } from '../lib/cms';
 
 const [homepage, homepageCourses, homepageReferences] = await Promise.all([
-	getHomepage(),
-	getHomepageCourses(),
-	getHomepageReferences(),
+	getHomepage('en'),
+	getHomepageCourses('en'),
+	getHomepageReferences('en'),
 ]);
 ---
 
@@ -22,13 +22,13 @@ const [homepage, homepageCourses, homepageReferences] = await Promise.all([
 	description="Professional health, safety and environmental training and consultancy from Belgrade, Serbia."
 >
 	<main id="main-content">
-		<HomeHero content={homepage.hero} />
-		<HomeAboutValue content={homepage.about} />
-		<HomeServices services={homepage.featuredServices} />
-		<HomePricing courses={homepageCourses} />
-		<HomeClients />
-		<HomeReference references={homepageReferences} />
-		<HomeExperts />
-		<HomeFinalCta />
+		<HomeHero content={homepage.hero} locale="en" />
+		<HomeAboutValue content={homepage.about} locale="en" />
+		<HomeServices services={homepage.featuredServices} locale="en" />
+		<HomePricing courses={homepageCourses} locale="en" />
+		<HomeClients locale="en" />
+		<HomeReference references={homepageReferences} locale="en" />
+		<HomeExperts locale="en" />
+		<HomeFinalCta locale="en" />
 	</main>
 </BaseLayout>

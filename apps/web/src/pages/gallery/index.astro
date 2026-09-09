@@ -1,13 +1,18 @@
 ---
 import GalleryPage from '../../components/gallery/GalleryPage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getGalleryUiTranslations } from '../../i18n/gallery-ui';
+
+const locale = 'en';
+const copy = getGalleryUiTranslations(locale);
 ---
 
 <BaseLayout
-	title="Training Gallery | HSE Training"
-	description="Photographs from HSE Training professional health and safety courses and practical training sessions."
+	title={copy.metaTitle}
+	description={copy.metaDescription}
+	locale={locale}
 >
 	<main id="main-content">
-		<GalleryPage />
+		<GalleryPage {locale} />
 	</main>
 </BaseLayout>

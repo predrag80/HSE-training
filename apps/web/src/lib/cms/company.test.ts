@@ -5,6 +5,7 @@ import { getCompanyPage } from './company';
 const rawCompanyPage = {
 	schema_version: 1,
 	page_key: 'company',
+	locale: 'en',
 	hero: { eyebrow: 'Business profile', title: 'About company' },
 	profile: {
 		eyebrow: "Company's vision",
@@ -40,6 +41,7 @@ describe('getCompanyPage', () => {
 			profile: { headline: 'Safety culture starts with people.' },
 		});
 		expect(new URL(String(fetchMock.mock.calls[0]?.[0])).pathname).toBe('/wp-json/hse/v1/company');
+		expect(new URL(String(fetchMock.mock.calls[0]?.[0])).searchParams.get('lang')).toBe('en');
 	});
 
 	it('keeps an unconfigured Company response as a typed HTTP error', async () => {

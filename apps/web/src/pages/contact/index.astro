@@ -1,13 +1,18 @@
 ---
 import ContactPage from '../../components/contact/ContactPage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getContactUiTranslations } from '../../i18n/contact-ui';
+
+const locale = 'en';
+const copy = getContactUiTranslations(locale);
 ---
 
 <BaseLayout
-	title="Contact us | HSE Training"
-	description="Contact HSE Training DOO in Belgrade for professional HSE training and consultancy support."
+	title={copy.metaTitle}
+	description={copy.metaDescription}
+	locale={locale}
 >
 	<main id="main-content">
-		<ContactPage />
+		<ContactPage {locale} />
 	</main>
 </BaseLayout>

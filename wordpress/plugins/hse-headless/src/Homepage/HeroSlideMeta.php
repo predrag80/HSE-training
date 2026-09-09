@@ -7,6 +7,8 @@
 
 namespace HSETraining\Headless\Homepage;
 
+use HSETraining\Headless\Content\ContentLocale;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -56,6 +58,8 @@ final class HeroSlideMeta {
 	 * Register private metadata with sanitization and revision support.
 	 */
 	public static function register_meta(): void {
+		ContentLocale::register_post_meta( HeroSlidePostType::POST_TYPE );
+
 		$fields = array(
 			self::SLIDE_KEY          => array( self::class, 'sanitize_slide_key' ),
 			self::LEADING_TITLE      => array( self::class, 'sanitize_title_text' ),
@@ -180,6 +184,7 @@ final class HeroSlideMeta {
 		$is_locked = '' !== get_post_meta( $post->ID, self::LOCKED_SLIDE_KEY, true );
 
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME );
+		ContentLocale::render_editor_field( $post->ID );
 		self::render_text_field( self::SLIDE_KEY, __( 'Slide key', 'hse-headless' ), $post->ID, self::MAX_KEY_LENGTH, $is_locked, __( 'Stable identifier using lowercase letters, numbers, and hyphens. It locks after first publication.', 'hse-headless' ) );
 		self::render_text_field( self::LEADING_TITLE, __( 'Leading title', 'hse-headless' ), $post->ID, self::MAX_TITLE_LENGTH );
 		self::render_text_field( self::EMPHASIZED_TITLE, __( 'Emphasized title', 'hse-headless' ), $post->ID, self::MAX_TITLE_LENGTH );
@@ -238,6 +243,13 @@ final class HeroSlideMeta {
 			return;
 		}
 
+		$locale = ContentLocale::save_post_locale( $post_id );
+		if ( is_wp_error( $locale ) ) {
+			self::$admin_error_code = $locale->get_error_code();
+
+			return;
+		}
+
 		foreach ( self::field_sanitizers() as $meta_key => $sanitize_callback ) {
 			$field_name = 'hse_' . $meta_key;
 			$raw_value  = isset( $_POST[ $field_name ] ) ? wp_unslash( $_POST[ $field_name ] ) : '';
@@ -277,6 +289,15 @@ final class HeroSlideMeta {
 		}
 
 		$post_id = isset( $postarr['ID'] ) ? (int) $postarr['ID'] : 0;
+		$locale  = ContentLocale::get_posted_or_stored_locale( $post_id );
+		$locale_validation = ContentLocale::validate_for_post( $locale, $post_id );
+		if ( is_wp_error( $locale_validation ) ) {
+			$data['post_status']     = 'draft';
+			self::$admin_error_code = $locale_validation->get_error_code();
+
+			return $data;
+		}
+
 		$key     = self::posted_or_stored_value( self::SLIDE_KEY, $post_id );
 		$key_validation = self::validate_slide_key( $key, $post_id );
 
@@ -305,7 +326,7 @@ final class HeroSlideMeta {
 		}
 
 		$current_status = $post_id ? get_post_status( $post_id ) : false;
-		if ( 'publish' !== $current_status && self::MAX_PUBLISHED <= self::published_count() ) {
+		if ( 'publish' !== $current_status && self::MAX_PUBLISHED <= self::published_count( $locale ) ) {
 			$data['post_status']     = 'draft';
 			self::$admin_error_code = 'hse_hero_slide_limit';
 		}
@@ -331,7 +352,8 @@ final class HeroSlideMeta {
 			return new \WP_Error( 'hse_slide_key_immutable', __( 'Slide key cannot change after publication.', 'hse-headless' ) );
 		}
 
-		if ( self::slide_key_exists( $slide_key, $post_id ) ) {
+		$locale = ContentLocale::get_posted_or_stored_locale( $post_id );
+		if ( self::slide_key_exists( $slide_key, $post_id, $locale ) ) {
 			return new \WP_Error( 'hse_slide_key_duplicate', __( 'Another Hero Slide already uses this slide key.', 'hse-headless' ) );
 		}
 
@@ -414,6 +436,9 @@ final class HeroSlideMeta {
 			'hse_slide_key_required'    => __( 'Hero Slide was saved as a draft because a slide key is required.', 'hse-headless' ),
 			'hse_slide_key_immutable'   => __( 'The published Hero Slide key is locked and was not changed.', 'hse-headless' ),
 			'hse_slide_key_duplicate'   => __( 'Hero Slide was saved as a draft because its slide key must be unique.', 'hse-headless' ),
+			'hse_content_locale_invalid' => __( 'Hero Slide was saved as a draft because its content language is invalid.', 'hse-headless' ),
+			'hse_content_locale_immutable' => __( 'Hero Slide language cannot change after publication.', 'hse-headless' ),
+			'hse_content_locale_not_saved' => __( 'Hero Slide was saved as a draft because its content language could not be saved.', 'hse-headless' ),
 			'hse_hero_slide_incomplete' => __( 'Hero Slide was saved as a draft. Complete every field and select a featured image before publishing.', 'hse-headless' ),
 			'hse_hero_slide_limit'      => sprintf( __( 'Hero Slide was saved as a draft because no more than %d slides may be published.', 'hse-headless' ), self::MAX_PUBLISHED ),
 		);
@@ -498,7 +523,7 @@ final class HeroSlideMeta {
 	/**
 	 * Determine whether another Hero Slide uses the key.
 	 */
-	private static function slide_key_exists( $slide_key, $post_id ): bool {
+	private static function slide_key_exists( $slide_key, $post_id, $locale ): bool {
 		$matches = get_posts(
 			array(
 				'post_type'      => HeroSlidePostType::POST_TYPE,
@@ -506,8 +531,14 @@ final class HeroSlideMeta {
 				'posts_per_page' => 1,
 				'fields'         => 'ids',
 				'post__not_in'   => $post_id ? array( $post_id ) : array(),
-				'meta_key'       => self::SLIDE_KEY,
-				'meta_value'     => $slide_key,
+				'meta_query'     => array(
+					'relation' => 'AND',
+					array(
+						'key'   => self::SLIDE_KEY,
+						'value' => $slide_key,
+					),
+					ContentLocale::query_clause( $locale ),
+				),
 				'no_found_rows'  => true,
 			)
 		);
@@ -518,10 +549,19 @@ final class HeroSlideMeta {
 	/**
 	 * Count currently published Hero Slides.
 	 */
-	private static function published_count(): int {
-		$counts = wp_count_posts( HeroSlidePostType::POST_TYPE );
+	private static function published_count( $locale ): int {
+		$posts = get_posts(
+			array(
+				'post_type'      => HeroSlidePostType::POST_TYPE,
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'meta_query'     => array( ContentLocale::query_clause( $locale ) ),
+				'no_found_rows'  => true,
+			)
+		);
 
-		return isset( $counts->publish ) ? (int) $counts->publish : 0;
+		return count( $posts );
 	}
 
 	/**

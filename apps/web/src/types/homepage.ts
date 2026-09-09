@@ -1,3 +1,7 @@
+import type { Locale } from '../i18n/config';
+import type { CompanyProfile } from './company';
+import type { Service } from './service';
+
 export interface HomepageHeroImage {
 	readonly url: string;
 	readonly alt: string;
@@ -26,9 +30,8 @@ export interface HomepageHero {
 export interface Homepage {
 	readonly schemaVersion: 1;
 	readonly pageKey: 'home';
+	readonly locale: Locale;
 	readonly hero: HomepageHero;
 	readonly about: CompanyProfile;
 	readonly featuredServices: readonly Service[];
 }
-import type { CompanyProfile } from './company';
-import type { Service } from './service';

@@ -1,7 +1,18 @@
 ---
 import './site-footer.css';
+import type { Locale } from '../../i18n/config';
+import { getAvailablePublicPath } from '../../i18n/routes';
+import { getUiTranslations } from '../../i18n/ui';
 import { contactDetails } from '../../lib/contact';
 
+interface Props {
+	readonly locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = getUiTranslations(locale).footer;
+const path = (value: string) => getAvailablePublicPath(value, locale);
+const referencePath = `${path('/')}#reference`;
 const currentYear = new Date().getFullYear();
 ---
 
@@ -12,11 +23,11 @@ const currentYear = new Date().getFullYear();
 
 	<div class="site-footer__main">
 		<div class="site-footer__column site-footer__about">
-			<a class="site-footer__logo" href="/" aria-label="HSE Training home">
+			<a class="site-footer__logo" href={path('/')} aria-label={copy.homeLabel}>
 				<img src="/images/hse-training-logo.png" width="410" height="136" alt={`${contactDetails.companyName} Belgrade`} />
 			</a>
-			<p>Health, safety and environmental training and consultancy from Belgrade, Serbia.</p>
-			<ul class="site-footer__socials" aria-label="Social media">
+			<p>{copy.description}</p>
+			<ul class="site-footer__socials" aria-label={copy.socialLabel}>
 				<li><a href="https://www.facebook.com/NeboshEastEurope/" target="_blank" rel="noreferrer" aria-label="Facebook"><svg aria-hidden="true" viewBox="0 0 320 512"><path d="M80 299.3V512h116V299.3h86.5l18-97.8H196v-34.6c0-51.7 20.3-71.5 72.7-71.5 16.3 0 29.4.4 37 1.2V7.9C291.4 4 256.4 0 236.2 0 129.3 0 80 50.5 80 159.4v42.1H14v97.8h66Z" /></svg></a></li>
 				<li><a href="https://twitter.com/NEBOSHSE" target="_blank" rel="noreferrer" aria-label="X"><svg aria-hidden="true" viewBox="0 0 512 512"><path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8l164.9-188.5L26.8 48h145.6l100.5 132.9L389.2 48Zm-24.8 373.8h39.1L151.1 88h-42l255.3 333.8Z" /></svg></a></li>
 				<li><a href="https://www.linkedin.com/in/nebosh-hse-training-b93b1b18" target="_blank" rel="noreferrer" aria-label="LinkedIn"><svg aria-hidden="true" viewBox="0 0 448 512"><path d="M100.3 448H7.4V148.9h92.9V448ZM53.8 108.1C24.1 108.1 0 83.5 0 53.8A53.8 53.8 0 0 1 107.6 53.8c0 29.7-24.1 54.3-53.8 54.3ZM447.9 448h-92.7V302.4c0-34.7-.7-79.2-48.3-79.2-48.3 0-55.7 37.7-55.7 76.7V448h-92.8V148.9h89.1v40.8h1.3c12.4-23.5 42.7-48.3 87.9-48.3 94 0 111.3 61.9 111.3 142.3V448Z" /></svg></a></li>
@@ -24,21 +35,21 @@ const currentYear = new Date().getFullYear();
 			</ul>
 		</div>
 
-		<nav class="site-footer__column site-footer__company" aria-label="Footer navigation">
-			<h2>Explore</h2>
+		<nav class="site-footer__column site-footer__company" aria-label={copy.navigationLabel}>
+			<h2>{copy.explore}</h2>
 			<ul>
-				<li><a href="/company/">Company</a></li>
-				<li><a href="/nebosh/">NEBOSH</a></li>
-				<li><a href="/other-courses/">Other courses</a></li>
-				<li><a href="/consulting/">Consulting</a></li>
-				<li><a href="/gallery/">Gallery</a></li>
-				<li><a href="/#reference">Reference</a></li>
-				<li><a href="/contact/">Contact</a></li>
+				<li><a href={path('/company/')}>{copy.company}</a></li>
+				<li><a href={path('/nebosh/')}>NEBOSH</a></li>
+				<li><a href={path('/other-courses/')}>{copy.otherCourses}</a></li>
+				<li><a href={path('/consulting/')}>{copy.consulting}</a></li>
+				<li><a href={path('/gallery/')}>{copy.gallery}</a></li>
+				<li><a href={referencePath}>{copy.reference}</a></li>
+				<li><a href={path('/contact/')}>{copy.contact}</a></li>
 			</ul>
 		</nav>
 
 		<div class="site-footer__column site-footer__contact">
-			<h2>Get in touch</h2>
+			<h2>{copy.getInTouch}</h2>
 			<address>
 				<p>{contactDetails.streetAddress}, {contactDetails.locality}</p>
 				<a href={contactDetails.phoneHref}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7.1 1h-3a3 3 0 0 0-3 3.27 23 23 0 0 0 3.22 9.12 23 23 0 0 0 6.3 6.3 23 23 0 0 0 9.11 3.22 3 3 0 0 0 3.27-3v-3a3 3 0 0 0-2.31-2.92l-3.57-.84a3 3 0 0 0-2.84.79l-1.26 1.26a18 18 0 0 1-4.23-4.23l1.27-1.27a3 3 0 0 0 .78-2.83L10 3.31A3 3 0 0 0 7.1 1Z" /></svg><span>{contactDetails.phone}</span></a>
@@ -47,21 +58,21 @@ const currentYear = new Date().getFullYear();
 		</div>
 
 		<div class="site-footer__column site-footer__newsletter">
-			<h2>Course enquiries</h2>
-			<p>Talk to our team about current courses, delivery options and availability.</p>
-			<a class="site-footer__enquiry" href="/contact/">Contact us <span aria-hidden="true">→</span></a>
+			<h2>{copy.courseEnquiries}</h2>
+			<p>{copy.enquiryDescription}</p>
+			<a class="site-footer__enquiry" href={path('/contact/')}>{copy.contactUs} <span aria-hidden="true">→</span></a>
 		</div>
 	</div>
 
 	<div class="site-footer__separator"><span></span></div>
 
 	<div class="site-footer__bottom">
-		<p>© {currentYear} <a href="/">{contactDetails.companyName}</a></p>
-		<nav aria-label="Legal navigation">
+		<p>© {currentYear} <a href={path('/')}>{contactDetails.companyName}</a></p>
+		<nav aria-label={copy.legalNavigation}>
 			<ul>
-				<li><a href="#">Privacy policy</a></li>
-				<li><a href="#">Terms and conditions</a></li>
-				<li><a href="#">Copyright</a></li>
+				<li><a href="#">{copy.privacyPolicy}</a></li>
+				<li><a href="#">{copy.terms}</a></li>
+				<li><a href="#">{copy.copyright}</a></li>
 			</ul>
 		</nav>
 	</div>

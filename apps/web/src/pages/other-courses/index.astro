@@ -1,13 +1,18 @@
 ---
 import OtherCoursesOverviewPage from '../../components/other-courses/OtherCoursesOverviewPage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getOtherCoursesUiTranslations } from '../../i18n/other-courses-ui';
+
+const locale = 'en';
+const copy = getOtherCoursesUiTranslations(locale).overview;
 ---
 
 <BaseLayout
-	title="Other Professional Courses | HSE Training"
-	description="Explore practical Banksman and Slinger and Train the Trainer courses from HSE Training in Belgrade, Serbia."
+	title={copy.metaTitle}
+	description={copy.metaDescription}
+	locale={locale}
 >
 	<main id="main-content">
-		<OtherCoursesOverviewPage />
+		<OtherCoursesOverviewPage {locale} />
 	</main>
 </BaseLayout>

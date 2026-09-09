@@ -6,6 +6,7 @@ defined( 'ABSPATH' ) || exit;
 use HSETraining\Headless\Course\CourseMeta;
 use HSETraining\Headless\Course\CoursePostType;
 use HSETraining\Headless\Course\CoursePromotionMeta;
+use HSETraining\Headless\Content\ContentLocale;
 
 if ( ! class_exists( CoursePromotionMeta::class ) ) {
 	WP_CLI::error( 'Course promotion implementation is not loaded.' );
@@ -35,7 +36,7 @@ function hse_course_promotion_test_assert( $condition, $message ) {
 }
 
 /** Create a complete temporary promoted Course. */
-function hse_course_promotion_test_create( $key, $order, $attachment_id ) {
+function hse_course_promotion_test_create( $key, $order, $attachment_id, $locale = 'en' ) {
 	$post_id = wp_insert_post(
 		array(
 			'post_type'    => CoursePostType::POST_TYPE,
@@ -49,6 +50,7 @@ function hse_course_promotion_test_create( $key, $order, $attachment_id ) {
 	if ( is_wp_error( $post_id ) ) {
 		throw new RuntimeException( 'Could not create a temporary promoted Course.' );
 	}
+	update_post_meta( $post_id, ContentLocale::META_KEY, $locale );
 	update_post_meta( $post_id, CourseMeta::COURSE_KEY, $key );
 	update_post_meta( $post_id, CourseMeta::SHORT_DESCRIPTION, 'Course promotion summary.' );
 	update_post_meta( $post_id, CourseMeta::VISIBLE_PRICE, 'Price on request' );
@@ -98,16 +100,30 @@ try {
 	wp_update_post( array( 'ID' => $overflow_id, 'post_status' => 'publish' ) );
 	hse_course_promotion_test_assert( 'draft' === get_post_status( $overflow_id ), 'A fourth promoted Course cannot be published.' );
 
+	$serbian_id    = hse_course_promotion_test_create( $key_prefix . '-1', 5, $attachment_id, 'sr' );
+	$created_ids[] = $serbian_id;
+	wp_update_post( array( 'ID' => $serbian_id, 'post_status' => 'publish' ) );
+	hse_course_promotion_test_assert( 'publish' === get_post_status( $serbian_id ), 'The Homepage promotion limit is independent for Serbian content.' );
+
 	$request = new WP_REST_Request( 'GET', '/wp/v2/' . CoursePostType::REST_BASE );
 	$request->set_param( CoursePromotionMeta::FEATURED_ON_HOMEPAGE, true );
 	$request->set_param( 'orderby', 'menu_order' );
 	$request->set_param( 'order', 'asc' );
+	$request->set_param( 'lang', 'en' );
 	$response = rest_do_request( $request );
 	$data     = $response->get_data();
 	hse_course_promotion_test_assert( 200 === $response->get_status(), 'The promoted Course collection responds with HTTP 200.' );
 	hse_course_promotion_test_assert( 3 === count( $data ), 'The promoted Course filter returns exactly the selected Courses.' );
 	hse_course_promotion_test_assert( $key_prefix . '-2' === ( $data[0]['meta'][ CourseMeta::COURSE_KEY ] ?? null ), 'Promoted Courses use WordPress Order.' );
 	hse_course_promotion_test_assert( true === ( $data[0]['meta'][ CoursePromotionMeta::FEATURED_ON_HOMEPAGE ] ?? null ), 'The public response exposes the Homepage selection.' );
+
+	$serbian_request = new WP_REST_Request( 'GET', '/wp/v2/' . CoursePostType::REST_BASE );
+	$serbian_request->set_param( CoursePromotionMeta::FEATURED_ON_HOMEPAGE, true );
+	$serbian_request->set_param( 'lang', 'sr' );
+	$serbian_response = rest_do_request( $serbian_request );
+	$serbian_data     = $serbian_response->get_data();
+	hse_course_promotion_test_assert( 1 === count( $serbian_data ), 'The Serbian promoted Course query does not leak English records.' );
+	hse_course_promotion_test_assert( 'sr' === ( $serbian_data[0]['locale'] ?? null ), 'The Serbian promoted Course carries the requested locale.' );
 } finally {
 	foreach ( $created_ids as $created_id ) {
 		wp_delete_post( $created_id, true );

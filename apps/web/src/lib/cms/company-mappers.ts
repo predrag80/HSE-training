@@ -6,6 +6,7 @@ import type {
 	CompanyValue,
 	CompanyValueIcon,
 } from '../../types/company';
+import type { Locale } from '../../i18n/config';
 import { CmsError } from './errors';
 import type { WordPressCompanyPageDto, WordPressCompanyProfileDto } from './types';
 
@@ -119,18 +120,20 @@ export function mapWordPressCompanyProfile(value: unknown): CompanyProfile {
 	};
 }
 
-export function mapWordPressCompanyPage(value: unknown): CompanyPageContent {
+export function mapWordPressCompanyPage(value: unknown, locale: Locale = 'en'): CompanyPageContent {
 	if (!isRecord(value) || !isRecord(value.hero) || !isRecord(value.profile)) {
 		return invalidCompany('expected a page object with hero and profile');
 	}
 	if (value.schema_version !== 1) return invalidCompany('schema_version must be 1');
 	if (value.page_key !== 'company') return invalidCompany('page_key must be company');
+	if (value.locale !== locale) return invalidCompany(`locale must be ${locale}`);
 
 	const page = value as unknown as WordPressCompanyPageDto;
 
 	return {
 		schemaVersion: page.schema_version,
 		pageKey: page.page_key,
+		locale,
 		hero: {
 			eyebrow: requireString(page.hero.eyebrow, 'hero.eyebrow'),
 			title: requireString(page.hero.title, 'hero.title'),

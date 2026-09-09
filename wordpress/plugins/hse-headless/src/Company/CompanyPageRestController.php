@@ -7,6 +7,8 @@
 
 namespace HSETraining\Headless\Company;
 
+use HSETraining\Headless\Content\ContentLocale;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -30,18 +32,24 @@ final class CompanyPageRestController {
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => array( self::class, 'get_company_page' ),
 				'permission_callback' => '__return_true',
+				'args'                => array( 'lang' => ContentLocale::rest_argument() ),
 			)
 		);
 	}
 
 	/** Return the Company Page document. */
-	public static function get_company_page() {
-		$profile = CompanyPageSettings::get_public_profile();
+	public static function get_company_page( $request = null ) {
+		$locale = ContentLocale::from_rest_request( $request );
+		if ( is_wp_error( $locale ) ) {
+			return $locale;
+		}
+
+		$profile = CompanyPageSettings::get_public_profile( $locale );
 		if ( is_wp_error( $profile ) ) {
 			return $profile;
 		}
 
-		$fields = CompanyPageSettings::get_public_page_fields();
+		$fields = CompanyPageSettings::get_public_page_fields( $locale );
 		if ( '' === $fields['hero']['eyebrow'] || '' === $fields['hero']['title'] || '' === $fields['intro_cta']['label'] || '' === $fields['intro_cta']['url'] ) {
 			return new \WP_Error( 'hse_company_page_not_configured', __( 'Company Page content is not configured.', 'hse-headless' ), array( 'status' => 503 ) );
 		}
@@ -50,6 +58,7 @@ final class CompanyPageRestController {
 			array(
 				'schema_version' => 1,
 				'page_key'       => CompanyPageSettings::PAGE_KEY,
+				'locale'         => $locale,
 				'hero'           => $fields['hero'],
 				'profile'        => $profile,
 				'intro_cta'      => $fields['intro_cta'],

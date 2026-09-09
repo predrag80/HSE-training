@@ -2,12 +2,17 @@
 import ValueIcon from './ValueIcon.astro';
 import './home-about-value.css';
 import type { CompanyProfile } from '../../types/company';
+import type { Locale } from '../../i18n/config';
+import { getLocalizedCmsHref } from '../../i18n/routes';
+import { getUiTranslations } from '../../i18n/ui';
 
 interface Props {
 	content: CompanyProfile;
+	locale: Locale;
 }
 
-const { content } = Astro.props;
+const { content, locale } = Astro.props;
+const copy = getUiTranslations(locale).homepage.about;
 ---
 
 <section class="about-value" id="about" aria-labelledby="about-value-title" data-about-value>
@@ -36,7 +41,7 @@ const { content } = Astro.props;
 				<div class="about-value__image about-value__image--primary">
 					<img
 						src={content.primaryImage.url}
-						alt={content.primaryImage.alt}
+						alt={copy.imageAlt}
 						width={content.primaryImage.width}
 						height={content.primaryImage.height}
 						loading="lazy"
@@ -50,7 +55,7 @@ const { content } = Astro.props;
 				>
 					<img
 						src={content.secondaryImage.url}
-						alt={content.secondaryImage.alt}
+						alt=""
 						width={content.secondaryImage.width}
 						height={content.secondaryImage.height}
 						loading="lazy"
@@ -65,8 +70,8 @@ const { content } = Astro.props;
 				<p class="about-value__description">{content.description}</p>
 
 				<div class="about-value__actions">
-					<a class="about-value__button" href={content.primaryCta.url}>{content.primaryCta.label}</a>
-					<a class="about-value__text-link" href={content.secondaryCta.url}>{content.secondaryCta.label}</a>
+					<a class="about-value__button" href={getLocalizedCmsHref(content.primaryCta.url, locale)}>{content.primaryCta.label}</a>
+					<a class="about-value__text-link" href={getLocalizedCmsHref(content.secondaryCta.url, locale)}>{content.secondaryCta.label}</a>
 				</div>
 
 				<div

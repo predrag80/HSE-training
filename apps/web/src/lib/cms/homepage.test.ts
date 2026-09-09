@@ -5,6 +5,7 @@ import { getHomepage } from './homepage';
 const rawHomepage = {
 	schema_version: 1,
 	page_key: 'home',
+	locale: 'en',
 	hero: {
 		aria_label: 'Professional consulting',
 		heading: 'Professional consulting',
@@ -105,6 +106,7 @@ describe('getHomepage', () => {
 		await expect(getHomepage()).resolves.toMatchObject({
 			schemaVersion: 1,
 			pageKey: 'home',
+			locale: 'en',
 			hero: {
 				slides: [expect.objectContaining({ slideKey: 'primary' })],
 			},
@@ -112,7 +114,25 @@ describe('getHomepage', () => {
 
 		const requestedUrl = new URL(String(fetchMock.mock.calls[0]?.[0]));
 		expect(requestedUrl.pathname).toBe('/wp-json/hse/v1/homepage');
-		expect(requestedUrl.search).toBe('');
+		expect(requestedUrl.searchParams.get('lang')).toBe('en');
+	});
+
+	it('requests Serbian content explicitly', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(
+			jsonResponse({ ...rawHomepage, locale: 'sr' }),
+		);
+		vi.stubGlobal('fetch', fetchMock);
+
+		await expect(getHomepage('sr')).resolves.toMatchObject({ locale: 'sr' });
+
+		const requestedUrl = new URL(String(fetchMock.mock.calls[0]?.[0]));
+		expect(requestedUrl.searchParams.get('lang')).toBe('sr');
+	});
+
+	it('rejects a CMS response whose locale differs from the request', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(rawHomepage)));
+
+		await expect(getHomepage('sr')).rejects.toMatchObject({ code: 'invalid-response' });
 	});
 
 	it('throws a typed HTTP error when Homepage content is not configured', async () => {

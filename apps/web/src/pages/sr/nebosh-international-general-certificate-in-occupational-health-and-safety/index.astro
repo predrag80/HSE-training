@@ -1,0 +1,17 @@
+---
+import NeboshIgcPage from '../../../components/nebosh/NeboshIgcPage.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getCourseUiTranslations } from '../../../i18n/course-ui';
+import { NEBOSH_COURSE_KEYS } from '../../../lib/course-routes';
+import { loadRequiredNeboshCourse } from '../../../lib/nebosh-course-content';
+
+const locale = 'sr';
+const copy = getCourseUiTranslations(locale).nebosh.igc;
+const course = await loadRequiredNeboshCourse(NEBOSH_COURSE_KEYS.igc, locale);
+const title = `${course?.title ?? copy.fallbackTitle} | HSE Training`;
+const description = course?.shortDescription ?? copy.fallbackDescription;
+---
+
+<BaseLayout {title} {description} locale={locale}>
+	<main id="main-content"><NeboshIgcPage course={course} {locale} /></main>
+</BaseLayout>

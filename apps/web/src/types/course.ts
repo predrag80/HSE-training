@@ -1,4 +1,7 @@
+import type { Locale } from '../i18n/config';
+
 export interface Course {
+	readonly locale: Locale;
 	readonly slug: string;
 	readonly courseKey: string;
 	readonly title: string;

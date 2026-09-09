@@ -14,14 +14,19 @@ const reference = {
 describe('mapWordPressReferenceCollection', () => {
 	it('maps the versioned WordPress collection', () => {
 		expect(
-			mapWordPressReferenceCollection({
-				schema_version: 1,
-				collection_key: 'references',
-				references: [reference],
-			}),
+			mapWordPressReferenceCollection(
+				{
+					schema_version: 1,
+					collection_key: 'references',
+					locale: 'en',
+					references: [reference],
+				},
+				'en',
+			),
 		).toEqual({
 			schemaVersion: 1,
 			collectionKey: 'references',
+			locale: 'en',
 			references: [
 				{
 					referenceKey: 'saule-kuza',
@@ -37,21 +42,43 @@ describe('mapWordPressReferenceCollection', () => {
 
 	it('rejects a non-canonical Reference key', () => {
 		expect(() =>
-			mapWordPressReferenceCollection({
-				schema_version: 1,
-				collection_key: 'references',
-				references: [{ ...reference, reference_key: 'Saule Kuza' }],
-			}),
+			mapWordPressReferenceCollection(
+				{
+					schema_version: 1,
+					collection_key: 'references',
+					locale: 'en',
+					references: [{ ...reference, reference_key: 'Saule Kuza' }],
+				},
+				'en',
+			),
 		).toThrow('must be canonical');
 	});
 
 	it('rejects an invalid Homepage flag', () => {
 		expect(() =>
-			mapWordPressReferenceCollection({
-				schema_version: 1,
-				collection_key: 'references',
-				references: [{ ...reference, featured_on_homepage: 'yes' }],
-			}),
+			mapWordPressReferenceCollection(
+				{
+					schema_version: 1,
+					collection_key: 'references',
+					locale: 'en',
+					references: [{ ...reference, featured_on_homepage: 'yes' }],
+				},
+				'en',
+			),
 		).toThrow('must be boolean');
+	});
+
+	it('rejects a collection returned in the wrong language', () => {
+		expect(() =>
+			mapWordPressReferenceCollection(
+				{
+					schema_version: 1,
+					collection_key: 'references',
+					locale: 'en',
+					references: [reference],
+				},
+				'sr',
+			),
+		).toThrow('locale must match the requested sr language');
 	});
 });

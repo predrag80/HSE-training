@@ -1,31 +1,21 @@
 ---
 import './company-page.css';
 import type { CompanyPageContent } from '../../types/company';
+import { getCompanyUiTranslations } from '../../i18n/company-ui';
+import { getAvailablePublicPath, getLocalizedCmsHref } from '../../i18n/routes';
 
 interface Props {
 	content: CompanyPageContent;
 }
 
 const { content } = Astro.props;
+const copy = getCompanyUiTranslations(content.locale);
 
-const milestones = [
-	{ year: 2010, title: 'Crafto founded', text: 'Founded a company' },
-	{ year: 2014, title: 'Expand team', text: 'Opportunity to expand' },
-	{ year: 2019, title: 'Build new office', text: 'Building a new office' },
-	{ year: 2021, title: 'Winning award', text: 'The power of winning' },
-];
-
-const expertise = [
-	{ value: 96, title: 'Strategy consulting' },
-	{ value: 88, title: 'Modeling analytics' },
-	{ value: 90, title: 'Operations careers' },
-];
-
-const reasons = [
-	{ title: 'Honorable', icon: 'like', glyph: '\uea44' },
-	{ title: 'Analytics', icon: 'analytics', glyph: '\uea0b' },
-	{ title: 'Leadership', icon: 'leadership', glyph: '\uea93' },
-	{ title: 'Production', icon: 'production', glyph: '\ue68d' },
+const reasonIcons = [
+	{ icon: 'like', glyph: '\uea44' },
+	{ icon: 'analytics', glyph: '\uea0b' },
+	{ icon: 'leadership', glyph: '\uea93' },
+	{ icon: 'production', glyph: '\ue68d' },
 ];
 
 const logos = [
@@ -34,6 +24,7 @@ const logos = [
 	{ src: '/images/consulting-logo-walmart.svg', alt: 'Walmart' },
 	{ src: '/images/consulting-logo-yahoo.svg', alt: 'Yahoo!' },
 ];
+
 ---
 
 <section class="company-hero" aria-labelledby="company-page-title" data-company-parallax>
@@ -42,7 +33,7 @@ const logos = [
 		<p>{content.hero.eyebrow}</p>
 		<h1 id="company-page-title">{content.hero.title}</h1>
 	</div>
-	<a class="company-hero__scroll" href="#about" aria-label="Scroll to about company">
+	<a class="company-hero__scroll" href="#about" aria-label={copy.scrollToAbout}>
 		<span></span>
 	</a>
 </section>
@@ -55,15 +46,15 @@ const logos = [
 		</div>
 		<div class="company-intro__copy" data-company-reveal="children-intro-copy">
 			<p>{content.profile.description}</p>
-			<a href={content.introCta.url}>{content.introCta.label}</a>
+			<a href={getLocalizedCmsHref(content.introCta.url, content.locale)}>{content.introCta.label}</a>
 		</div>
 	</div>
 </section>
 
-<section class="company-timeline" aria-label="Company milestones">
+<section class="company-timeline" aria-label={copy.milestonesLabel}>
 	<div class="company-container company-timeline__inner">
 		<div class="company-timeline__side" data-company-reveal="children-from-right">
-			{milestones.slice(0, 2).map((milestone) => (
+			{copy.milestones.slice(0, 2).map((milestone) => (
 				<article class="company-milestone">
 					<strong data-company-counter={milestone.year}>{milestone.year}</strong>
 					<div><h2>{milestone.title}</h2><p>{milestone.text}</p></div>
@@ -71,10 +62,10 @@ const logos = [
 			))}
 		</div>
 		<div class="company-timeline__image" data-company-reveal="timeline-image">
-			<img src="/images/consulting-company-timeline.webp" width="485" height="485" alt="Consulting team celebrating a milestone" />
+			<img src="/images/consulting-company-timeline.webp" width="485" height="485" alt={copy.timelineImageAlt} />
 		</div>
 		<div class="company-timeline__side" data-company-reveal="children-from-left">
-			{milestones.slice(2).map((milestone) => (
+			{copy.milestones.slice(2).map((milestone) => (
 				<article class="company-milestone">
 					<strong data-company-counter={milestone.year}>{milestone.year}</strong>
 					<div><h2>{milestone.title}</h2><p>{milestone.text}</p></div>
@@ -85,14 +76,12 @@ const logos = [
 </section>
 
 <section class="company-agency">
-	<div class="company-agency__image" role="img" aria-label="Business consultant working at a desk" data-company-reveal="agency-image"></div>
+	<div class="company-agency__image" role="img" aria-label={copy.agencyImageAlt} data-company-reveal="agency-image"></div>
 	<div class="company-agency__content" data-company-reveal="children-up-delayed">
-		<h2>Superior business consulting agency.</h2>
-		<p>Lorem ipsum dolor sit amet consectetur adipiscing elit do eiusmod tempor incididunt ut labore et dolore magna aliqua ipsum dolor sit amet consectetur.</p>
+		<h2>{copy.agencyTitle}</h2>
+		<p>{copy.agencyText}</p>
 		<ul>
-			<li><span aria-hidden="true">✓</span>Change all you have in your world.</li>
-			<li><span aria-hidden="true">✓</span>We develop good teams and leaders.</li>
-			<li><span aria-hidden="true">✓</span>The business guru gives you the idea.</li>
+			{copy.agencyPoints.map((point) => <li><span aria-hidden="true">✓</span>{point}</li>)}
 		</ul>
 	</div>
 </section>
@@ -100,11 +89,11 @@ const logos = [
 <section class="company-expertise" aria-labelledby="company-expertise-title">
 	<div class="company-container">
 		<header class="company-expertise__header" data-company-reveal="fade">
-			<p>Work performance</p>
-			<h2 id="company-expertise-title">Our expertise</h2>
+			<p>{copy.expertiseEyebrow}</p>
+			<h2 id="company-expertise-title">{copy.expertiseTitle}</h2>
 		</header>
 		<div class="company-expertise__grid" data-company-reveal="children-up">
-			{expertise.map((item) => (
+			{copy.expertise.map((item) => (
 				<article class="company-skill" style={`--skill-value:${item.value}`}>
 					<div class="company-skill__chart" data-company-chart>
 						<svg aria-hidden="true" viewBox="0 0 180 180">
@@ -120,7 +109,7 @@ const logos = [
 						<strong><span data-company-percentage={item.value}>0</span>%</strong>
 					</div>
 					<h3>{item.title}</h3>
-					<p>Lorem ipsum dolor consectetur<br />adipiscing eiusmod tempor.</p>
+					<p>{copy.expertiseDescription}</p>
 				</article>
 			))}
 		</div>
@@ -131,23 +120,23 @@ const logos = [
 	<div class="company-container company-reasons__inner">
 		<div class="company-reasons__cards" data-company-reasons>
 			<div class="company-reasons__column company-reasons__column--down">
-				{reasons.slice(0, 2).map((reason) => (
+				{copy.reasons.slice(0, 2).map((reason, index) => (
 					<article class="company-reason-card">
 						<div class="company-reason-card__content">
-							<span class:list={['company-reason-card__icon', `company-reason-card__icon--${reason.icon}`]} aria-hidden="true">{reason.glyph}</span>
+							<span class:list={['company-reason-card__icon', `company-reason-card__icon--${reasonIcons[index].icon}`]} aria-hidden="true">{reasonIcons[index].glyph}</span>
 							<h3>{reason.title}</h3>
-							<p>Lorem ipsum is simply dummy text.</p>
+							<p>{reason.text}</p>
 						</div>
 					</article>
 				))}
 			</div>
 			<div class="company-reasons__column company-reasons__column--up">
-				{reasons.slice(2).map((reason) => (
+				{copy.reasons.slice(2).map((reason, index) => (
 					<article class="company-reason-card">
 						<div class="company-reason-card__content">
-							<span class:list={['company-reason-card__icon', `company-reason-card__icon--${reason.icon}`]} aria-hidden="true">{reason.glyph}</span>
+							<span class:list={['company-reason-card__icon', `company-reason-card__icon--${reasonIcons[index + 2].icon}`]} aria-hidden="true">{reasonIcons[index + 2].glyph}</span>
 							<h3>{reason.title}</h3>
-							<p>Lorem ipsum is simply dummy text.</p>
+							<p>{reason.text}</p>
 						</div>
 					</article>
 				))}
@@ -155,14 +144,14 @@ const logos = [
 		</div>
 
 		<div class="company-reasons__copy" data-company-reveal="children-from-right">
-			<h2 id="company-reasons-title">Why choose our company services?</h2>
-			<p>Lorem ipsum dolor amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ut enim ad minim veniam.</p>
-			<a href="/#contact">Get started now!</a>
+			<h2 id="company-reasons-title">{copy.reasonsTitle}</h2>
+			<p>{copy.reasonsText}</p>
+			<a href={getAvailablePublicPath('/contact/', content.locale)}>{copy.reasonsCta}</a>
 		</div>
 	</div>
 </section>
 
-<section class="company-logos" aria-label="Trusted companies">
+<section class="company-logos" aria-label={copy.trustedCompanies}>
 	<div class="company-container company-logos__inner" data-company-reveal="children-from-right-slow">
 		{logos.map((logo) => <a href="#" aria-label={logo.alt}><img src={logo.src} alt={logo.alt} /></a>)}
 	</div>

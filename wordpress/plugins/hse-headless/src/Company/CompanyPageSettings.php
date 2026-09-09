@@ -7,6 +7,8 @@
 
 namespace HSETraining\Headless\Company;
 
+use HSETraining\Headless\Content\ContentLocale;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -22,6 +24,9 @@ final class CompanyPageSettings {
 	private const MAX_LABEL       = 160;
 	private const MAX_DESCRIPTION = 800;
 	private const MAX_URL         = 2048;
+
+	/** @var string */
+	private static $active_option_name = '';
 
 	/**
 	 * Register WordPress hooks.
@@ -51,17 +56,19 @@ final class CompanyPageSettings {
 	 * Register the bounded settings document.
 	 */
 	public static function register_setting(): void {
-		register_setting(
-			self::SETTINGS_GROUP,
-			self::OPTION_NAME,
-			array(
-				'type'              => 'object',
-				'description'       => __( 'Company Page content shared with the Homepage About section.', 'hse-headless' ),
-				'sanitize_callback' => array( self::class, 'sanitize_settings' ),
-				'default'           => self::defaults(),
-				'show_in_rest'      => false,
-			)
-		);
+		foreach ( ContentLocale::supported() as $locale ) {
+			register_setting(
+				self::settings_group( $locale ),
+				self::option_name( $locale ),
+				array(
+					'type'              => 'object',
+					'description'       => __( 'Company Page content shared with the Homepage About section.', 'hse-headless' ),
+					'sanitize_callback' => array( self::class, 'sanitize_settings' ),
+					'default'           => self::defaults(),
+					'show_in_rest'      => false,
+				)
+			);
+		}
 	}
 
 	/**
@@ -94,10 +101,22 @@ final class CompanyPageSettings {
 	 *
 	 * @return array<string, int|string>
 	 */
-	public static function get_settings(): array {
-		$stored = get_option( self::OPTION_NAME, array() );
+	public static function get_settings( $locale = ContentLocale::DEFAULT_LOCALE ): array {
+		$locale = ContentLocale::sanitize( $locale );
+		if ( '' === $locale ) {
+			return self::defaults();
+		}
+
+		$stored = get_option( self::option_name( $locale ), array() );
 
 		return self::sanitize_settings( is_array( $stored ) ? $stored : array() );
+	}
+
+	/** Return the locale-specific option name without exposing it through REST. */
+	public static function option_name( $locale ): string {
+		$locale = ContentLocale::sanitize( $locale );
+
+		return self::OPTION_NAME . '_' . ( $locale ?: ContentLocale::DEFAULT_LOCALE );
 	}
 
 	/**
@@ -138,8 +157,8 @@ final class CompanyPageSettings {
 	 *
 	 * @return array<string, mixed>|\WP_Error
 	 */
-	public static function get_public_profile() {
-		$settings = self::get_settings();
+	public static function get_public_profile( $locale = ContentLocale::DEFAULT_LOCALE ) {
+		$settings = self::get_settings( $locale );
 		$required = array(
 			'about_eyebrow', 'about_headline', 'about_description', 'about_primary_cta_label',
 			'about_primary_cta_url', 'about_secondary_cta_label', 'about_secondary_cta_url',
@@ -210,8 +229,8 @@ final class CompanyPageSettings {
 	 *
 	 * @return array<string, array<string, string>>
 	 */
-	public static function get_public_page_fields(): array {
-		$settings = self::get_settings();
+	public static function get_public_page_fields( $locale = ContentLocale::DEFAULT_LOCALE ): array {
+		$settings = self::get_settings( $locale );
 
 		return array(
 			'hero'      => array(
@@ -233,13 +252,22 @@ final class CompanyPageSettings {
 			return;
 		}
 
-		$settings = self::get_settings();
+		$locale = isset( $_GET['lang'] ) ? ContentLocale::sanitize( wp_unslash( $_GET['lang'] ) ) : ContentLocale::DEFAULT_LOCALE;
+		$locale = $locale ?: ContentLocale::DEFAULT_LOCALE;
+		$settings = self::get_settings( $locale );
+		self::$active_option_name = self::option_name( $locale );
 		?>
 		<div class="wrap hse-company-admin">
 			<h1><?php esc_html_e( 'Company Page', 'hse-headless' ); ?></h1>
 			<p><?php esc_html_e( 'The shared About profile appears on both the Homepage and Company Page. Layout and animation remain in Astro.', 'hse-headless' ); ?></p>
+			<nav class="nav-tab-wrapper" aria-label="<?php esc_attr_e( 'Content language', 'hse-headless' ); ?>">
+				<?php foreach ( ContentLocale::supported() as $supported_locale ) : ?>
+					<a class="nav-tab <?php echo $locale === $supported_locale ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( add_query_arg( array( 'page' => self::PAGE_SLUG, 'lang' => $supported_locale ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( ContentLocale::label( $supported_locale ) ); ?></a>
+				<?php endforeach; ?>
+			</nav>
+			<p><strong><?php esc_html_e( 'Editing language:', 'hse-headless' ); ?></strong> <?php echo esc_html( ContentLocale::label( $locale ) ); ?></p>
 			<form action="options.php" method="post">
-				<?php settings_fields( self::SETTINGS_GROUP ); ?>
+				<?php settings_fields( self::settings_group( $locale ) ); ?>
 				<h2><?php esc_html_e( 'Company page hero', 'hse-headless' ); ?></h2>
 				<?php self::render_text_field( 'hero_eyebrow', __( 'Hero eyebrow', 'hse-headless' ), $settings['hero_eyebrow'], self::MAX_LABEL ); ?>
 				<?php self::render_text_field( 'hero_title', __( 'Hero title', 'hse-headless' ), $settings['hero_title'], self::MAX_TITLE ); ?>
@@ -277,7 +305,7 @@ final class CompanyPageSettings {
 	private static function render_text_field( $key, $label, $value, $max_length ): void {
 		self::render_field_start( $key, $label );
 		?>
-		<input class="regular-text" id="hse-<?php echo esc_attr( str_replace( '_', '-', $key ) ); ?>" maxlength="<?php echo esc_attr( $max_length ); ?>" name="<?php echo esc_attr( self::OPTION_NAME . '[' . $key . ']' ); ?>" type="text" value="<?php echo esc_attr( $value ); ?>" required>
+		<input class="regular-text" id="hse-<?php echo esc_attr( str_replace( '_', '-', $key ) ); ?>" maxlength="<?php echo esc_attr( $max_length ); ?>" name="<?php echo esc_attr( self::$active_option_name . '[' . $key . ']' ); ?>" type="text" value="<?php echo esc_attr( $value ); ?>" required>
 		<?php
 		self::render_field_end();
 	}
@@ -286,7 +314,7 @@ final class CompanyPageSettings {
 	private static function render_textarea_field( $key, $label, $value ): void {
 		self::render_field_start( $key, $label );
 		?>
-		<textarea class="large-text" id="hse-<?php echo esc_attr( str_replace( '_', '-', $key ) ); ?>" maxlength="<?php echo esc_attr( self::MAX_DESCRIPTION ); ?>" name="<?php echo esc_attr( self::OPTION_NAME . '[' . $key . ']' ); ?>" rows="4" required><?php echo esc_textarea( $value ); ?></textarea>
+		<textarea class="large-text" id="hse-<?php echo esc_attr( str_replace( '_', '-', $key ) ); ?>" maxlength="<?php echo esc_attr( self::MAX_DESCRIPTION ); ?>" name="<?php echo esc_attr( self::$active_option_name . '[' . $key . ']' ); ?>" rows="4" required><?php echo esc_textarea( $value ); ?></textarea>
 		<?php
 		self::render_field_end();
 	}
@@ -297,7 +325,7 @@ final class CompanyPageSettings {
 		self::render_field_start( $key, $label );
 		?>
 		<div data-hse-media-field>
-			<input data-hse-image-id name="<?php echo esc_attr( self::OPTION_NAME . '[' . $key . ']' ); ?>" type="hidden" value="<?php echo esc_attr( $image_id ); ?>">
+			<input data-hse-image-id name="<?php echo esc_attr( self::$active_option_name . '[' . $key . ']' ); ?>" type="hidden" value="<?php echo esc_attr( $image_id ); ?>">
 			<div class="hse-company-admin__image-preview" data-hse-image-preview>
 				<?php if ( $image_url ) : ?><img src="<?php echo esc_url( $image_url ); ?>" alt=""><?php endif; ?>
 			</div>
@@ -334,6 +362,11 @@ final class CompanyPageSettings {
 			),
 			''
 		) + array( 'about_primary_image_id' => 0, 'about_secondary_image_id' => 0 );
+	}
+
+	/** Return an isolated settings group for one locale. */
+	private static function settings_group( $locale ): string {
+		return self::SETTINGS_GROUP . '_' . ContentLocale::sanitize( $locale );
 	}
 
 	/** Sanitize one image attachment ID. */

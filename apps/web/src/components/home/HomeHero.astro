@@ -1,21 +1,27 @@
 ---
 import HomeHeroSlide from './HomeHeroSlide.astro';
 import type { HomepageHero } from '../../types/homepage';
+import type { Locale } from '../../i18n/config';
+import { getUiTranslations } from '../../i18n/ui';
 
 interface Props {
 	content: HomepageHero;
+	locale: Locale;
 }
 
-const { content } = Astro.props;
+const { content, locale } = Astro.props;
 const slides = content.slides;
+const copy = getUiTranslations(locale).homepage.hero;
 ---
 
 <section
 	class="home-hero"
 	role="region"
-	aria-roledescription="carousel"
+	aria-roledescription={copy.carouselDescription}
 	aria-label={content.ariaLabel}
 	data-home-hero
+	data-slide-label={copy.slide}
+	data-of-label={copy.of}
 >
 	<h1 class="home-hero__heading">{content.heading}</h1>
 
@@ -27,17 +33,20 @@ const slides = content.slides;
 					index={index}
 					total={slides.length}
 					active={index === 0}
+					{locale}
+					slideLabel={copy.slideDescription}
+					ofLabel={copy.of}
 				/>
 			))
 		}
 	</div>
 
-	<div class="home-hero__pagination" role="group" aria-label="Choose a hero slide">
+	<div class="home-hero__pagination" role="group" aria-label={copy.chooseSlide}>
 		{
 			slides.map((slide, index) => (
 				<button
 					type="button"
-					aria-label={`Show slide ${index + 1}: ${slide.leadingTitle} ${slide.emphasizedTitle}`}
+					aria-label={`${copy.showSlide} ${index + 1}: ${slide.leadingTitle} ${slide.emphasizedTitle}`}
 					aria-controls={`home-hero-slide-${index + 1}`}
 					aria-current={index === 0 ? 'true' : undefined}
 					data-hero-pagination={index}
@@ -49,7 +58,7 @@ const slides = content.slides;
 	</div>
 
 	<p class="home-hero__status" aria-live="polite" aria-atomic="true" data-hero-status>
-		Slide 1 of {slides.length}: {slides[0].leadingTitle} {slides[0].emphasizedTitle}
+		{copy.slide} 1 {copy.of} {slides.length}: {slides[0].leadingTitle} {slides[0].emphasizedTitle}
 	</p>
 </section>
 
@@ -64,6 +73,8 @@ const slides = content.slides;
 		const controls = [...hero.querySelectorAll<HTMLButtonElement>('[data-hero-pagination]')];
 		const status = hero.querySelector<HTMLElement>('[data-hero-status]');
 		if (!track || !status || slides.length === 0 || controls.length !== slides.length) return;
+		const slideLabel = hero.dataset.slideLabel ?? 'Slide';
+		const ofLabel = hero.dataset.ofLabel ?? 'of';
 
 		hero.dataset.heroReady = 'true';
 		let activeIndex = 0;
@@ -92,7 +103,7 @@ const slides = content.slides;
 
 			if (announce) {
 				const activeSlide = slides[activeIndex];
-				status.textContent = `Slide ${activeIndex + 1} of ${slides.length}: ${activeSlide.dataset.slideTitle}`;
+				status.textContent = `${slideLabel} ${activeIndex + 1} ${ofLabel} ${slides.length}: ${activeSlide.dataset.slideTitle}`;
 			}
 		};
 

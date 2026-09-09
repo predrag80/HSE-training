@@ -1,0 +1,94 @@
+---
+import type { Course } from '../../types/course';
+import type { CoursesLandingPageContent } from '../../types/course-page';
+import type { Locale } from '../../i18n/config';
+import { getCourseUiTranslations } from '../../i18n/course-ui';
+import Container from '../ui/Container.astro';
+import Section from '../ui/Section.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import CourseCard from './CourseCard.astro';
+
+interface Props {
+	courses: readonly Course[];
+	locale: Locale;
+	content: CoursesLandingPageContent;
+}
+
+const { courses, locale, content } = Astro.props;
+const copy = getCourseUiTranslations(locale).index;
+---
+
+<main id="main-content">
+	<Section spacing="compact">
+		<Container>
+			<SectionHeading level="h1" eyebrow={content.hero.eyebrow}>
+				{content.hero.title}
+				<p slot="description">{content.hero.intro}</p>
+			</SectionHeading>
+		</Container>
+	</Section>
+
+	<Section tone="muted">
+		<Container>
+			{
+				courses.length > 0 ? (
+					<ul class="course-grid" aria-label={copy.listLabel}>
+						{courses.map((course) => (
+							<li>
+								<CourseCard course={course} locale={locale} />
+							</li>
+						))}
+					</ul>
+				) : (
+					<section class="empty-state surface-card flow" aria-labelledby="no-courses-title">
+						<h2 id="no-courses-title">{content.emptyState.title}</h2>
+						<p>{content.emptyState.text}</p>
+					</section>
+				)
+			}
+		</Container>
+	</Section>
+</main>
+
+<style>
+	.course-grid {
+		display: grid;
+		grid-template-columns: minmax(0, 23.5625rem);
+		gap: var(--grid-gap);
+		max-width: 74.375rem;
+		padding: 0;
+		margin: 0 auto;
+		list-style: none;
+	}
+
+	.course-grid > li {
+		max-width: none;
+	}
+
+	.empty-state {
+		--flow-space: var(--space-3);
+
+		max-width: var(--container-content);
+		padding: clamp(var(--space-6), 5vw, var(--space-8));
+	}
+
+	.empty-state h2 {
+		font-size: var(--font-size-h3);
+	}
+
+	.empty-state p {
+		color: var(--color-text-muted);
+	}
+
+	@media (min-width: 48rem) {
+		.course-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 64rem) {
+		.course-grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+</style>

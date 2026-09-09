@@ -1,24 +1,33 @@
 ---
 import './home-experts.css';
+import type { Locale } from '../../i18n/config';
+import { getUiTranslations } from '../../i18n/ui';
+
+interface Props {
+	readonly locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = getUiTranslations(locale).homepage.experts;
 
 const experts = [
-	{ name: 'Bryan Jonhson', role: 'Director', image: '/images/consulting-team-01.webp' },
-	{ name: 'Jeremy Dupont', role: 'Specialist', image: '/images/consulting-team-02.webp' },
-	{ name: 'Matthew Taylor', role: 'Manager', image: '/images/consulting-team-03.webp' },
-	{ name: 'Johncy Parker', role: 'Consultant', image: '/images/consulting-team-04.webp' },
+	{ name: 'Bryan Jonhson', image: '/images/consulting-team-01.webp' },
+	{ name: 'Jeremy Dupont', image: '/images/consulting-team-02.webp' },
+	{ name: 'Matthew Taylor', image: '/images/consulting-team-03.webp' },
+	{ name: 'Johncy Parker', image: '/images/consulting-team-04.webp' },
 ];
 ---
 
 <section class="home-experts" aria-labelledby="home-experts-title" data-home-experts>
 	<div class="home-experts__inner">
 		<header class="home-experts__header" data-experts-reveal="header">
-			<p>Meet our people</p>
-			<h2 id="home-experts-title">Leading experts</h2>
+			<p>{copy.eyebrow}</p>
+			<h2 id="home-experts-title">{copy.title}</h2>
 		</header>
 
 		<ul class="home-experts__grid" data-experts-reveal="grid">
 			{
-				experts.map((expert) => (
+				experts.map((expert, index) => (
 					<li>
 						<figure class="expert-card">
 							<div class="expert-card__image">
@@ -39,7 +48,7 @@ const experts = [
 							</div>
 							<figcaption>
 								<strong>{expert.name}</strong>
-								<span>{expert.role}</span>
+								<span>{copy.roles[index]}</span>
 							</figcaption>
 						</figure>
 					</li>

@@ -1,195 +1,29 @@
 ---
-import Button from '../../components/ui/Button.astro';
-import Container from '../../components/ui/Container.astro';
-import Eyebrow from '../../components/ui/Eyebrow.astro';
-import Section from '../../components/ui/Section.astro';
+import CourseDetailPage from '../../components/course/CourseDetailPage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCourses, type Course } from '../../lib/cms';
-import { createGenericCourseStaticPaths, getCoursePageMetadata } from '../../lib/course-pages';
+import {
+	createLocalizedGenericCourseStaticPaths,
+	getCoursePageMetadata,
+	type CourseLanguageAlternates,
+} from '../../lib/course-pages';
 
 interface Props {
 	course: Course;
+	languageAlternates: CourseLanguageAlternates;
 }
 
 export async function getStaticPaths() {
-	return createGenericCourseStaticPaths(await getCourses());
+	const [englishCourses, serbianCourses] = await Promise.all([getCourses('en'), getCourses('sr')]);
+
+	return createLocalizedGenericCourseStaticPaths(englishCourses, serbianCourses);
 }
 
-const { course } = Astro.props;
+const locale = 'en';
+const { course, languageAlternates } = Astro.props;
 const metadata = getCoursePageMetadata(course);
-const heroClass = course.featuredImageUrl ? 'course-hero course-hero--with-image' : 'course-hero';
 ---
 
-<BaseLayout title={metadata.title} description={metadata.description}>
-	<main id="main-content">
-		<article>
-			<Section tone="brand" spacing="compact">
-				<Container>
-					<a class="course-back-link" href="/courses"><span aria-hidden="true">←</span> Back to all courses</a>
-
-					<header class={heroClass}>
-						<div class="course-hero__content flow">
-							<Eyebrow>HSE Training course</Eyebrow>
-							<h1>{course.title}</h1>
-							<p class="course-hero__summary">{course.shortDescription}</p>
-							{course.visiblePrice && <p class="course-hero__price">{course.visiblePrice}</p>}
-							<div class="course-hero__actions">
-								<Button href="#enrollment-information">Enroll</Button>
-							</div>
-						</div>
-
-						{
-							course.featuredImageUrl && (
-								<img
-									class="course-hero__image"
-									src={course.featuredImageUrl}
-									alt={`Course image for ${course.title}`}
-									width="800"
-									height="450"
-									decoding="async"
-									fetchpriority="high"
-								/>
-							)
-						}
-					</header>
-				</Container>
-			</Section>
-
-			<Section>
-				<Container size="content">
-					<section class="course-overview" aria-labelledby="course-content-title">
-						<h2 id="course-content-title">Course overview</h2>
-						<!-- This HTML is trusted editor-authored content validated at the CMS boundary. -->
-						<div class="course-content">
-							<Fragment set:html={course.descriptionHtml} />
-						</div>
-					</section>
-
-					<section
-						id="enrollment-information"
-						class="enrollment surface-card flow"
-						aria-labelledby="enrollment-title"
-					>
-						<h2 id="enrollment-title">Enrollment</h2>
-						<p>Online enrollment will be available soon.</p>
-					</section>
-				</Container>
-			</Section>
-		</article>
-	</main>
+<BaseLayout title={metadata.title} description={metadata.description} {locale} {languageAlternates}>
+	<CourseDetailPage {course} {locale} />
 </BaseLayout>
-
-<style>
-	.course-back-link {
-		display: inline-flex;
-		gap: var(--space-2);
-		align-items: center;
-		margin-bottom: var(--space-6);
-		color: var(--color-text-on-strong);
-		font-size: var(--font-size-label);
-		font-weight: var(--font-weight-medium);
-		letter-spacing: 0.04em;
-		text-decoration: none;
-		text-transform: uppercase;
-	}
-
-	.course-back-link:hover {
-		color: var(--color-accent-soft);
-	}
-
-	.course-hero {
-		display: grid;
-		gap: var(--space-8);
-		align-items: center;
-	}
-
-	.course-hero__content {
-		--flow-space: var(--space-4);
-
-		max-width: 48rem;
-	}
-
-	.course-hero h1 {
-		max-width: 14ch;
-		color: var(--color-text-on-strong);
-	}
-
-	.course-hero .eyebrow {
-		color: var(--color-accent-on-strong);
-	}
-
-	.course-hero__summary {
-		max-width: 42rem;
-		color: var(--color-text-on-strong-muted);
-		font-size: var(--font-size-body-large);
-		line-height: 1.6;
-	}
-
-	.course-hero__price {
-		color: var(--color-accent-on-strong);
-		font-size: var(--font-size-h2);
-		font-weight: var(--font-weight-semibold);
-		letter-spacing: -0.035em;
-		line-height: var(--line-height-heading);
-	}
-
-	.course-hero__actions {
-		padding-top: var(--space-2);
-	}
-
-	.course-hero__image {
-		width: 100%;
-		aspect-ratio: 16 / 9;
-		object-fit: cover;
-		border: 1px solid var(--color-border-on-strong);
-		border-radius: var(--radius-card);
-		box-shadow: var(--shadow-image-on-strong);
-	}
-
-	.course-overview > h2 {
-		margin-bottom: var(--space-5);
-	}
-
-	.course-content {
-		color: var(--color-text);
-	}
-
-	.course-content :global(h2),
-	.course-content :global(h3),
-	.course-content :global(h4) {
-		margin-block: var(--space-7) var(--space-4);
-	}
-
-	.course-content :global(p),
-	.course-content :global(ul),
-	.course-content :global(ol) {
-		margin-block: 0 var(--space-4);
-	}
-
-	.course-content :global(img) {
-		height: auto;
-		margin-block: var(--space-6);
-		border-radius: var(--radius-medium);
-	}
-
-	.enrollment {
-		--flow-space: var(--space-3);
-
-		margin-top: var(--space-8);
-		padding: clamp(var(--space-6), 5vw, var(--space-8));
-	}
-
-	.enrollment h2 {
-		font-size: var(--font-size-h3);
-	}
-
-	.enrollment p {
-		color: var(--color-text-muted);
-	}
-
-	@media (min-width: 48rem) {
-		.course-hero--with-image {
-			grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.8fr);
-		}
-	}
-</style>

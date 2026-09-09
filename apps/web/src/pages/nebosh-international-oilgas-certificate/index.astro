@@ -1,19 +1,21 @@
 ---
 import NeboshIogcPage from '../../components/nebosh/NeboshIogcPage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCourseUiTranslations } from '../../i18n/course-ui';
 import { NEBOSH_COURSE_KEYS } from '../../lib/course-routes';
-import { loadOptionalNeboshCourse } from '../../lib/nebosh-course-content';
+import { loadRequiredNeboshCourse } from '../../lib/nebosh-course-content';
 
-const course = await loadOptionalNeboshCourse(NEBOSH_COURSE_KEYS.iogc);
-const title = course ? `${course.title} | HSE Training` : 'NEBOSH International Oil & Gas Certificate | HSE Training';
-const description =
-	course?.shortDescription ??
-	'Important status and course information for the withdrawn NEBOSH International Oil and Gas Operational Safety qualification.';
+const locale = 'en';
+const copy = getCourseUiTranslations(locale).nebosh.iogc;
+const course = await loadRequiredNeboshCourse(NEBOSH_COURSE_KEYS.iogc, locale);
+const title = `${course?.title ?? copy.fallbackTitle} | HSE Training`;
+const description = course?.shortDescription ?? copy.fallbackDescription;
 ---
 
 <BaseLayout
 	title={title}
 	description={description}
+	locale={locale}
 >
-	<main id="main-content"><NeboshIogcPage course={course} /></main>
+	<main id="main-content"><NeboshIogcPage course={course} {locale} /></main>
 </BaseLayout>

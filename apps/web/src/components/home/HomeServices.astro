@@ -1,19 +1,24 @@
 ---
 import type { Service } from '../../types/service';
+import type { Locale } from '../../i18n/config';
+import { getUiTranslations } from '../../i18n/ui';
+import { getLocalizedCmsHref } from '../../i18n/routes';
 import './home-services.css';
 
 interface Props {
 	readonly services: readonly Service[];
+	readonly locale: Locale;
 }
 
-const { services } = Astro.props;
+const { services, locale } = Astro.props;
+const copy = getUiTranslations(locale).homepage.services;
 ---
 
 <section class="home-services" id="services" aria-labelledby="home-services-title" data-home-services>
 	<div class="home-services__inner">
 		<header class="home-services__header" data-services-heading>
-			<p class="home-services__eyebrow">Innovative solutions</p>
-			<h2 id="home-services-title">Consulting services</h2>
+			<p class="home-services__eyebrow">{copy.eyebrow}</p>
+			<h2 id="home-services-title">{copy.title}</h2>
 		</header>
 
 		<ul class="home-services__grid" data-services-grid>
@@ -24,11 +29,11 @@ const { services } = Astro.props;
 							<div class="service-tilt__scale">
 								<div class="service-tilt__rotate">
 									<div class="service-tilt__inner">
-										<a class="service-card" href={service.cta.url} aria-label={`${service.title}: ${service.shortDescription}`}>
+										<a class="service-card" href={getLocalizedCmsHref(service.cta.url, locale)} aria-label={`${service.title}: ${service.shortDescription}`}>
 											<img
 												class="service-card__image"
 												src={service.image.url}
-												alt={service.image.alt}
+												alt={locale === 'sr' ? service.title : service.image.alt}
 												width={service.image.width}
 												height={service.image.height}
 												loading="lazy"

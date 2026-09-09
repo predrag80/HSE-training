@@ -1,59 +1,66 @@
 ---
 import HeaderSocialLinks from './HeaderSocialLinks.astro';
+import type { Locale } from '../../i18n/config';
+import { getAvailablePublicPath, getDefaultLocalePath } from '../../i18n/routes';
+import { getUiTranslations } from '../../i18n/ui';
 
 interface Props {
 	pathname: string;
+	locale: Locale;
 }
 
-const { pathname } = Astro.props;
-const isHome = pathname === '/';
-const neboshCurrent = pathname.startsWith('/nebosh');
-const otherCoursesCurrent = pathname.startsWith('/other-courses') || pathname.startsWith('/banksman-slinger') || pathname.startsWith('/train-the-trainer');
+const { pathname, locale } = Astro.props;
+const routePath = getDefaultLocalePath(pathname);
+const isHome = routePath === '/';
+const neboshCurrent = routePath.startsWith('/nebosh');
+const otherCoursesCurrent = routePath.startsWith('/other-courses') || routePath.startsWith('/banksman-slinger') || routePath.startsWith('/train-the-trainer');
+const ui = getUiTranslations(locale);
+const path = (value: string) => getAvailablePublicPath(value, locale);
 const links = [
-	{ label: 'Home', href: '/', current: pathname === '/' },
-	{ label: 'Company', href: '/company/', current: pathname.startsWith('/company') },
+	{ label: ui.navigation.home, href: path('/'), current: routePath === '/' },
+	{ label: ui.navigation.company, href: path('/company/'), current: routePath.startsWith('/company') },
 	{
-		label: 'Nebosh',
-		href: '/nebosh/',
+		label: ui.navigation.nebosh,
+		href: path('/nebosh/'),
 		current: neboshCurrent,
 		children: [
 			{
-				label: 'NEBOSH IGC',
-				href: '/nebosh-international-general-certificate-in-occupational-health-and-safety/',
-				current: pathname.startsWith('/nebosh-international-general-certificate-in-occupational-health-and-safety'),
+				label: ui.navigation.neboshIgc,
+				href: path('/nebosh-international-general-certificate-in-occupational-health-and-safety/'),
+				current: routePath.startsWith('/nebosh-international-general-certificate-in-occupational-health-and-safety'),
 			},
 			{
-				label: 'NEBOSH IOGC',
-				href: '/nebosh-international-oilgas-certificate/',
-				current: pathname.startsWith('/nebosh-international-oilgas-certificate'),
+				label: ui.navigation.neboshIogc,
+				href: path('/nebosh-international-oilgas-certificate/'),
+				current: routePath.startsWith('/nebosh-international-oilgas-certificate'),
 			},
 		],
 	},
 	{
-		label: 'Other courses',
-		href: '/other-courses/',
+		label: ui.navigation.otherCourses,
+		href: path('/other-courses/'),
 		current: otherCoursesCurrent,
 		children: [
 			{
-				label: 'Banksman / Slinger',
-				href: '/banksman-slinger/',
-				current: pathname.startsWith('/banksman-slinger'),
+				label: ui.navigation.banksmanSlinger,
+				href: path('/banksman-slinger/'),
+				current: routePath.startsWith('/banksman-slinger'),
 			},
 			{
-				label: 'Train the trainer',
-				href: '/train-the-trainer/',
-				current: pathname.startsWith('/train-the-trainer'),
+				label: ui.navigation.trainTheTrainer,
+				href: path('/train-the-trainer/'),
+				current: routePath.startsWith('/train-the-trainer'),
 			},
 		],
 	},
-	{ label: 'Consulting', href: '/consulting/', current: pathname.startsWith('/consulting') },
-	{ label: 'Gallery', href: '/gallery/', current: pathname.startsWith('/gallery') },
-	{ label: 'Reference', href: isHome ? '#reference' : '/#reference', current: false },
-	{ label: 'Contact', href: '/contact/', current: pathname.startsWith('/contact') },
+	{ label: ui.navigation.consulting, href: path('/consulting/'), current: routePath.startsWith('/consulting') },
+	{ label: ui.navigation.gallery, href: path('/gallery/'), current: routePath.startsWith('/gallery') },
+	{ label: ui.navigation.reference, href: isHome ? '#reference' : `${path('/')}#reference`, current: false },
+	{ label: ui.navigation.contact, href: path('/contact/'), current: routePath.startsWith('/contact') },
 ];
 ---
 
-<nav class="site-nav" id="site-navigation" aria-label="Primary navigation" data-site-navigation>
+<nav class="site-nav" id="site-navigation" aria-label={ui.primaryNavigation} data-site-navigation>
 	<ul class="site-nav__list">
 		{
 			links.map((link) => (
@@ -63,7 +70,7 @@ const links = [
 							{link.label}
 						</a>
 						{link.children && (
-							<button class="site-nav__submenu-toggle" type="button" aria-expanded="false" aria-label={`Toggle ${link.label} submenu`} data-submenu-toggle>
+							<button class="site-nav__submenu-toggle" type="button" aria-expanded="false" aria-label={`${ui.toggleSubmenu} ${link.label}`} data-submenu-toggle>
 								<svg viewBox="0 0 12 8" aria-hidden="true"><path d="m1 1 5 5 5-5" /></svg>
 							</button>
 						)}
@@ -79,7 +86,7 @@ const links = [
 			))
 		}
 	</ul>
-	<HeaderSocialLinks variant="mobile" />
+	<HeaderSocialLinks variant="mobile" {locale} />
 </nav>
 
 <script>

@@ -26,9 +26,18 @@ describe('Course public routes', () => {
 		);
 	});
 
+	it('prefixes Serbian bespoke Course routes', () => {
+		expect(getCoursePublicPath(course(NEBOSH_COURSE_KEYS.igc, 'ignored-slug'), 'sr')).toBe(
+			'/sr/nebosh-international-general-certificate-in-occupational-health-and-safety/',
+		);
+	});
+
 	it('uses the generic dynamic route for courses without a bespoke page', () => {
 		expect(getCoursePublicPath(course('iosh-managing-safely', 'iosh-course'))).toBe(
-			'/courses/iosh-course',
+			'/courses/iosh-course/',
+		);
+		expect(getCoursePublicPath(course('iosh-managing-safely', 'iosh-kurs'), 'sr')).toBe(
+			'/sr/courses/iosh-kurs/',
 		);
 		expect(hasBespokeCoursePage('iosh-managing-safely')).toBe(false);
 	});

@@ -24,11 +24,13 @@ describe('mapWordPressServiceCollection', () => {
 			mapWordPressServiceCollection({
 				schema_version: 1,
 				collection_key: 'services',
+				locale: 'en',
 				services: [service],
 			}),
 		).toEqual({
 			schemaVersion: 1,
 			collectionKey: 'services',
+			locale: 'en',
 			services: [
 				{
 					serviceKey: 'hse-leadership',
@@ -54,6 +56,7 @@ describe('mapWordPressServiceCollection', () => {
 			mapWordPressServiceCollection({
 				schema_version: 1,
 				collection_key: 'services',
+				locale: 'en',
 				services: [{ ...service, cta: { label: 'Bad', url: 'javascript:alert(1)' } }],
 			}),
 		).toThrow('must use HTTP or HTTPS');
@@ -64,6 +67,7 @@ describe('mapWordPressServiceCollection', () => {
 			mapWordPressServiceCollection({
 				schema_version: 1,
 				collection_key: 'services',
+				locale: 'en',
 				services: [{ ...service, image: { ...service.image, width: 0 } }],
 			}),
 		).toThrow('image.width must be a positive integer');

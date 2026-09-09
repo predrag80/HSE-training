@@ -1,9 +1,35 @@
+---
+import type { Locale } from '../../i18n/config';
+import { getAvailablePublicPath } from '../../i18n/routes';
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = locale === 'sr'
+	? {
+		open: 'Otvori pretragu sajta',
+		close: 'Zatvori pretragu sajta',
+		question: 'Šta tražite?',
+		placeholder: 'Unesite ključne reči...',
+		submit: 'Pokreni pretragu',
+	}
+	: {
+		open: 'Open site search',
+		close: 'Close site search',
+		question: 'What are you looking for?',
+		placeholder: 'Enter your keywords...',
+		submit: 'Submit search',
+	};
+---
+
 <button
 	class="site-search-button"
 	type="button"
 	aria-controls="site-search-dialog"
 	aria-expanded="false"
-	aria-label="Open site search"
+	aria-label={copy.open}
 	data-search-button
 >
 	<svg viewBox="0 0 24 24" aria-hidden="true">
@@ -18,25 +44,25 @@
 	data-search-dialog
 >
 	<div class="site-search-dialog__inner">
-		<button class="site-search-dialog__close" type="button" aria-label="Close site search" data-search-close>
+		<button class="site-search-dialog__close" type="button" aria-label={copy.close} data-search-close>
 			<span aria-hidden="true">×</span>
 		</button>
 
-		<form class="site-search-form" action="/courses" method="get" role="search">
+		<form class="site-search-form" action={getAvailablePublicPath('/courses/', locale)} method="get" role="search">
 			<label class="site-search-form__label" id="site-search-title" for="site-search-query">
-				What are you looking for?
+				{copy.question}
 			</label>
 			<div class="site-search-form__field">
 				<input
 					id="site-search-query"
 					name="q"
 					type="search"
-					placeholder="Enter your keywords..."
+					placeholder={copy.placeholder}
 					autocomplete="off"
 					required
 					data-search-input
 				/>
-				<button type="submit" aria-label="Submit search">
+				<button type="submit" aria-label={copy.submit}>
 					<svg viewBox="0 0 24 24" aria-hidden="true">
 						<path d="M11 2C15.9706 2 20 6.02944 20 11C20 13.125 19.2619 15.0766 18.0303 16.6162L21.707 20.293L21.7764 20.3691C22.0963 20.7619 22.0729 21.3411 21.707 21.707C21.3411 22.073 20.7619 22.0963 20.3691 21.7764L20.293 21.707L16.6162 18.0303C15.0766 19.2619 13.125 20 11 20C6.02944 20 2 15.9706 2 11C2 6.02944 6.02944 2 11 2ZM11 4C7.13401 4 4 7.13401 4 11C4 14.866 7.13401 18 11 18C12.8905 18 14.6047 17.2492 15.8643 16.0312C15.8884 16.0007 15.9151 15.9716 15.9434 15.9434C15.9716 15.9151 16.0006 15.8884 16.0312 15.8643C17.2492 14.6047 18 12.8905 18 11C18 7.13401 14.866 4 11 4Z"></path>
 					</svg>

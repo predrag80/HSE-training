@@ -1,14 +1,18 @@
 ---
 import Button from '../ui/Button.astro';
 import type { Course } from '../../types/course';
+import type { Locale } from '../../i18n/config';
+import { getCourseUiTranslations } from '../../i18n/course-ui';
 import { getCoursePublicPath } from '../../lib/course-routes';
 
 interface Props {
 	course: Course;
+	locale?: Locale;
 }
 
-const { course } = Astro.props;
-const coursePath = getCoursePublicPath(course);
+const { course, locale = course.locale } = Astro.props;
+const copy = getCourseUiTranslations(locale).card;
+const coursePath = getCoursePublicPath(course, locale);
 ---
 
 <article class="course-card surface-card">
@@ -17,7 +21,7 @@ const coursePath = getCoursePublicPath(course);
 			<img
 				class="course-card__image"
 				src={course.featuredImageUrl}
-				alt={`Course image for ${course.title}`}
+				alt={`${copy.imageAltPrefix} ${course.title}`}
 				width="800"
 				height="450"
 				loading="lazy"
@@ -26,11 +30,11 @@ const coursePath = getCoursePublicPath(course);
 		)
 	}
 	<div class="course-card__body">
-		<p class="course-card__eyebrow eyebrow">HSE course</p>
+		<p class="course-card__eyebrow eyebrow">{copy.eyebrow}</p>
 		<h2 class="course-card__title">{course.title}</h2>
 		<p class="course-card__summary">{course.shortDescription}</p>
 		{course.visiblePrice && <p class="course-card__price">{course.visiblePrice}</p>}
-		<Button class="course-card__action" href={coursePath}>View course</Button>
+		<Button class="course-card__action" href={coursePath}>{copy.view}</Button>
 	</div>
 </article>
 

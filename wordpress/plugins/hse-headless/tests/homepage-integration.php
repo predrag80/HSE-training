@@ -11,6 +11,7 @@ use HSETraining\Headless\Homepage\HeroSlideMeta;
 use HSETraining\Headless\Homepage\HeroSlidePostType;
 use HSETraining\Headless\Homepage\HomepageRestController;
 use HSETraining\Headless\Company\CompanyPageSettings;
+use HSETraining\Headless\Content\ContentLocale;
 use HSETraining\Headless\Service\ServiceMeta;
 use HSETraining\Headless\Service\ServicePostType;
 
@@ -22,8 +23,12 @@ $failures          = array();
 $created_ids       = array();
 $attachment_id     = 0;
 $original_user     = get_current_user_id();
-$company_existed   = false !== get_option( CompanyPageSettings::OPTION_NAME, false );
-$company_original  = get_option( CompanyPageSettings::OPTION_NAME, array() );
+$company_option    = CompanyPageSettings::option_name( ContentLocale::DEFAULT_LOCALE );
+$company_existed   = false !== get_option( $company_option, false );
+$company_original  = get_option( $company_option, array() );
+$serbian_company_option   = CompanyPageSettings::option_name( ContentLocale::SERBIAN_LOCALE );
+$serbian_company_existed  = false !== get_option( $serbian_company_option, false );
+$serbian_company_original = get_option( $serbian_company_option, array() );
 $published_before  = get_posts(
 	array(
 		'post_type'      => HeroSlidePostType::POST_TYPE,
@@ -41,6 +46,7 @@ $published_services_before = get_posts(
 	)
 );
 $created_service_id = 0;
+$translated_service_id = 0;
 
 /**
  * Record a failed assertion without stopping cleanup.
@@ -63,9 +69,10 @@ function hse_homepage_test_assert( $condition, $message ) {
  * @param string $key           Stable key.
  * @param int    $order         Display order.
  * @param int    $attachment_id Featured image ID.
+ * @param string $locale        Content locale.
  * @return int
  */
-function hse_homepage_test_create_slide( $key, $order, $attachment_id ) {
+function hse_homepage_test_create_slide( $key, $order, $attachment_id, $locale = ContentLocale::DEFAULT_LOCALE ) {
 	$post_id = wp_insert_post(
 		array(
 			'post_type'   => HeroSlidePostType::POST_TYPE,
@@ -79,6 +86,8 @@ function hse_homepage_test_create_slide( $key, $order, $attachment_id ) {
 	if ( is_wp_error( $post_id ) ) {
 		throw new RuntimeException( 'Could not create a temporary Hero Slide.' );
 	}
+
+	update_post_meta( $post_id, ContentLocale::META_KEY, $locale );
 
 	$fields = array(
 		HeroSlideMeta::SLIDE_KEY          => $key,
@@ -153,7 +162,7 @@ try {
 	wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $temp_file ) );
 	update_post_meta( $attachment_id, '_wp_attachment_image_alt', 'Homepage integration image' );
 	update_option(
-		CompanyPageSettings::OPTION_NAME,
+		$company_option,
 		CompanyPageSettings::sanitize_settings(
 			array(
 				'hero_eyebrow' => 'Business profile', 'hero_title' => 'About company',
@@ -231,12 +240,80 @@ try {
 	$data = is_wp_error( $response ) ? array() : $response->get_data();
 	hse_homepage_test_assert( 1 === ( $data['schema_version'] ?? null ), 'Homepage REST contract remains version 1.' );
 	hse_homepage_test_assert( 'home' === ( $data['page_key'] ?? null ), 'Homepage REST contract uses the stable home key.' );
+	hse_homepage_test_assert( 'en' === ( $data['locale'] ?? null ), 'Homepage REST defaults to English.' );
 	hse_homepage_test_assert( HeroSlideMeta::MAX_PUBLISHED === count( $data['hero']['slides'] ?? array() ), 'Homepage REST returns all five published slides.' );
 	hse_homepage_test_assert( $key_prefix . '-first' === ( $data['hero']['slides'][0]['slide_key'] ?? null ), 'Homepage REST orders slides by the WordPress Order field.' );
 	hse_homepage_test_assert( 1 === ( $data['hero']['slides'][0]['image']['width'] ?? null ), 'Homepage REST resolves image dimensions.' );
 	hse_homepage_test_assert( ! isset( $data['hero']['slides'][0]['image']['id'] ), 'WordPress attachment IDs do not cross the CMS boundary.' );
 	hse_homepage_test_assert( 1 === count( $data['featured_services'] ?? array() ), 'Homepage REST contains the featured Service collection.' );
 	hse_homepage_test_assert( ! isset( $data['featured_services'][0]['image']['id'] ), 'Service attachment IDs do not cross the Homepage API boundary.' );
+
+	$invalid_request = new WP_REST_Request( 'GET', '/hse/v1/homepage' );
+	$invalid_request->set_param( 'lang', 'de' );
+	$invalid_response = HomepageRestController::get_homepage( $invalid_request );
+	hse_homepage_test_assert( is_wp_error( $invalid_response ), 'Homepage REST rejects an unsupported language.' );
+	hse_homepage_test_assert( 400 === ( $invalid_response->get_error_data()['status'] ?? 0 ), 'An unsupported Homepage language returns HTTP 400.' );
+
+	$serbian_settings = CompanyPageSettings::sanitize_settings(
+		array(
+			'hero_eyebrow' => 'Profil kompanije', 'hero_title' => 'O kompaniji',
+			'about_eyebrow' => 'Vizija kompanije', 'about_headline' => 'Bezbednost počinje od ljudi.',
+			'about_description' => 'Zajednički profil kompanije na srpskom jeziku.',
+			'about_primary_cta_label' => 'O kompaniji', 'about_primary_cta_url' => '/sr/company/',
+			'about_secondary_cta_label' => 'Kako radimo', 'about_secondary_cta_url' => '#about',
+			'about_signature_label' => 'Obuke i konsalting',
+			'about_primary_image_id' => $attachment_id, 'about_secondary_image_id' => $attachment_id,
+			'value_training_title' => 'Obuke', 'value_training_description' => 'Opis obuka.',
+			'value_management_title' => 'Upravljanje', 'value_management_description' => 'Opis upravljanja.',
+			'value_consultancy_title' => 'Konsalting', 'value_consultancy_description' => 'Opis konsaltinga.',
+			'company_intro_cta_label' => 'Usluge', 'company_intro_cta_url' => '/sr/#services',
+		)
+	);
+	update_option( $serbian_company_option, $serbian_settings );
+
+	$translated_service_id = wp_insert_post(
+		array(
+			'post_type' => ServicePostType::POST_TYPE, 'post_status' => 'draft',
+			'post_title' => 'Usluga na srpskom', 'menu_order' => 10,
+		),
+		true
+	);
+	if ( is_wp_error( $translated_service_id ) ) {
+		throw new RuntimeException( 'Could not create the translated Homepage Service.' );
+	}
+	update_post_meta( $translated_service_id, ContentLocale::META_KEY, ContentLocale::SERBIAN_LOCALE );
+	$translated_service_fields = array(
+		ServiceMeta::SERVICE_KEY          => get_post_meta( $created_service_id, ServiceMeta::SERVICE_KEY, true ),
+		ServiceMeta::CARD_LABEL           => 'Mogućnost',
+		ServiceMeta::SHORT_DESCRIPTION    => 'Opis usluge na srpskom jeziku',
+		ServiceMeta::DETAILED_DESCRIPTION => 'Detaljan opis usluge na srpskom jeziku.',
+		ServiceMeta::CTA_LABEL            => 'Kontakt',
+		ServiceMeta::CTA_URL              => '/sr/contact/',
+		ServiceMeta::FEATURED_ON_HOMEPAGE => true,
+	);
+	foreach ( $translated_service_fields as $meta_key => $value ) {
+		update_post_meta( $translated_service_id, $meta_key, $value );
+	}
+	set_post_thumbnail( $translated_service_id, $attachment_id );
+	wp_update_post( array( 'ID' => $translated_service_id, 'post_status' => 'publish' ) );
+
+	$translated_slide_id = hse_homepage_test_create_slide( $key_prefix . '-later', 10, $attachment_id, ContentLocale::SERBIAN_LOCALE );
+	$created_ids[]       = $translated_slide_id;
+	wp_update_post( array( 'ID' => $translated_slide_id, 'post_status' => 'publish' ) );
+	hse_homepage_test_assert( 'publish' === get_post_status( $translated_slide_id ), 'A translation may reuse a slide key in another locale.' );
+	hse_homepage_test_assert( 'publish' === get_post_status( $translated_service_id ), 'A translation may reuse a Service key in another locale.' );
+	hse_homepage_test_assert( false === update_post_meta( $translated_slide_id, ContentLocale::META_KEY, ContentLocale::DEFAULT_LOCALE ), 'A published content locale cannot be changed.' );
+
+	$serbian_request = new WP_REST_Request( 'GET', '/hse/v1/homepage' );
+	$serbian_request->set_param( 'lang', ContentLocale::SERBIAN_LOCALE );
+	$serbian_response = HomepageRestController::get_homepage( $serbian_request );
+	hse_homepage_test_assert( ! is_wp_error( $serbian_response ), 'A complete Serbian Homepage returns a public document.' );
+	$serbian_data = is_wp_error( $serbian_response ) ? array() : $serbian_response->get_data();
+	hse_homepage_test_assert( 'sr' === ( $serbian_data['locale'] ?? null ), 'Homepage REST returns the requested Serbian locale.' );
+	hse_homepage_test_assert( 1 === count( $serbian_data['hero']['slides'] ?? array() ), 'Serbian Homepage returns only Serbian Hero Slides.' );
+	hse_homepage_test_assert( $key_prefix . '-later' === ( $serbian_data['hero']['slides'][0]['slide_key'] ?? null ), 'A translated Hero Slide retains its stable key.' );
+	hse_homepage_test_assert( 'Bezbednost počinje od ljudi.' === ( $serbian_data['about']['headline'] ?? null ), 'Serbian Homepage uses Serbian Company profile content.' );
+	hse_homepage_test_assert( 1 === count( $serbian_data['featured_services'] ?? array() ), 'Serbian Homepage returns only Serbian featured Services.' );
 } finally {
 	wp_set_current_user( $original_user );
 
@@ -246,14 +323,22 @@ try {
 	if ( $created_service_id && ! is_wp_error( $created_service_id ) ) {
 		wp_delete_post( $created_service_id, true );
 	}
+	if ( $translated_service_id && ! is_wp_error( $translated_service_id ) ) {
+		wp_delete_post( $translated_service_id, true );
+	}
 
 	if ( $attachment_id && ! is_wp_error( $attachment_id ) ) {
 		wp_delete_attachment( $attachment_id, true );
 	}
 	if ( $company_existed ) {
-		update_option( CompanyPageSettings::OPTION_NAME, $company_original );
+		update_option( $company_option, $company_original );
 	} else {
-		delete_option( CompanyPageSettings::OPTION_NAME );
+		delete_option( $company_option );
+	}
+	if ( $serbian_company_existed ) {
+		update_option( $serbian_company_option, $serbian_company_original );
+	} else {
+		delete_option( $serbian_company_option );
 	}
 
 	// Avoid a stale per-request published-count cache while restoring fixtures.

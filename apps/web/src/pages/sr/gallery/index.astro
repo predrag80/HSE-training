@@ -1,0 +1,12 @@
+---
+import GalleryPage from '../../../components/gallery/GalleryPage.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getGalleryUiTranslations } from '../../../i18n/gallery-ui';
+
+const locale = 'sr';
+const copy = getGalleryUiTranslations(locale);
+---
+
+<BaseLayout title={copy.metaTitle} description={copy.metaDescription} locale={locale}>
+	<main id="main-content"><GalleryPage {locale} /></main>
+</BaseLayout>

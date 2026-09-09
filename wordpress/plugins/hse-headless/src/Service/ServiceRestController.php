@@ -7,6 +7,8 @@
 
 namespace HSETraining\Headless\Service;
 
+use HSETraining\Headless\Content\ContentLocale;
+
 defined( 'ABSPATH' ) || exit;
 
 /** Exposes the ordered Service collection to Astro. */
@@ -29,13 +31,19 @@ final class ServiceRestController {
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => array( self::class, 'get_services' ),
 				'permission_callback' => '__return_true',
+				'args'                => array( 'lang' => ContentLocale::rest_argument() ),
 			)
 		);
 	}
 
 	/** Return the complete published Service collection. */
-	public static function get_services() {
-		$services = ServiceRepository::get_published_services();
+	public static function get_services( $request = null ) {
+		$locale = ContentLocale::from_rest_request( $request );
+		if ( is_wp_error( $locale ) ) {
+			return $locale;
+		}
+
+		$services = ServiceRepository::get_published_services( false, $locale );
 		if ( is_wp_error( $services ) ) {
 			return $services;
 		}
@@ -44,6 +52,7 @@ final class ServiceRestController {
 			array(
 				'schema_version' => self::SCHEMA_VERSION,
 				'collection_key' => 'services',
+				'locale'         => $locale,
 				'services'       => $services,
 			)
 		);

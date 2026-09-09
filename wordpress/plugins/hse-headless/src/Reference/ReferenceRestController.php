@@ -7,6 +7,8 @@
 
 namespace HSETraining\Headless\Reference;
 
+use HSETraining\Headless\Content\ContentLocale;
+
 defined( 'ABSPATH' ) || exit;
 
 /** Exposes the ordered Reference collection to Astro. */
@@ -28,13 +30,19 @@ final class ReferenceRestController {
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => array( self::class, 'get_references' ),
 				'permission_callback' => '__return_true',
+				'args'                => array( 'lang' => ContentLocale::rest_argument() ),
 			)
 		);
 	}
 
 	/** Return the complete published Reference collection. */
-	public static function get_references() {
-		$references = ReferenceRepository::get_published_references();
+	public static function get_references( $request = null ) {
+		$locale = ContentLocale::from_rest_request( $request );
+		if ( is_wp_error( $locale ) ) {
+			return $locale;
+		}
+
+		$references = ReferenceRepository::get_published_references( $locale );
 		if ( is_wp_error( $references ) ) {
 			return $references;
 		}
@@ -43,6 +51,7 @@ final class ReferenceRestController {
 			array(
 				'schema_version' => 1,
 				'collection_key' => 'references',
+				'locale'         => $locale,
 				'references'     => $references,
 			)
 		);

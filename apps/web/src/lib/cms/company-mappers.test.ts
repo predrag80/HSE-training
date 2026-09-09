@@ -21,6 +21,7 @@ const profile = {
 const companyPage = {
 	schema_version: 1,
 	page_key: 'company',
+	locale: 'en',
 	hero: { eyebrow: 'Business profile', title: 'About company' },
 	profile,
 	intro_cta: { label: 'Explore services', url: '/#services' },
@@ -40,9 +41,10 @@ describe('Company CMS mappers', () => {
 	});
 
 	it('maps the dedicated Company Page document', () => {
-		expect(mapWordPressCompanyPage(companyPage)).toMatchObject({
+			expect(mapWordPressCompanyPage(companyPage)).toMatchObject({
 			schemaVersion: 1,
 			pageKey: 'company',
+			locale: 'en',
 			hero: { eyebrow: 'Business profile', title: 'About company' },
 			profile: { headline: 'Safety culture starts with people.' },
 			introCta: { label: 'Explore services', url: '/#services' },

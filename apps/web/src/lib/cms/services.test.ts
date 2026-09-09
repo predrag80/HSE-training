@@ -5,6 +5,7 @@ import { getServices } from './services';
 const rawServices = {
 	schema_version: 1,
 	collection_key: 'services',
+	locale: 'en',
 	services: [
 		{
 			service_key: 'hse-leadership',
@@ -47,8 +48,8 @@ describe('getServices', () => {
 		});
 
 		const requestedUrl = new URL(String(fetchMock.mock.calls[0]?.[0]));
-		expect(requestedUrl.pathname).toBe('/wp-json/hse/v1/services');
-		expect(requestedUrl.search).toBe('');
+			expect(requestedUrl.pathname).toBe('/wp-json/hse/v1/services');
+		expect(requestedUrl.searchParams.get('lang')).toBe('en');
 	});
 
 	it('throws a typed HTTP error when Services are not configured', async () => {

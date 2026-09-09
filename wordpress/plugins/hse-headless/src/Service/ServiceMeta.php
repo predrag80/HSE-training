@@ -7,6 +7,8 @@
 
 namespace HSETraining\Headless\Service;
 
+use HSETraining\Headless\Content\ContentLocale;
+
 defined( 'ABSPATH' ) || exit;
 
 /** Owns the public Service fields and publication rules. */
@@ -49,6 +51,8 @@ final class ServiceMeta {
 
 	/** Register private, sanitized Service metadata. */
 	public static function register_meta(): void {
+		ContentLocale::register_post_meta( ServicePostType::POST_TYPE );
+
 		foreach ( self::text_sanitizers() as $meta_key => $sanitize_callback ) {
 			register_post_meta(
 				ServicePostType::POST_TYPE,
@@ -160,6 +164,7 @@ final class ServiceMeta {
 		$is_locked = '' !== get_post_meta( $post->ID, self::LOCKED_SERVICE_KEY, true );
 
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME );
+		ContentLocale::render_editor_field( $post->ID );
 		self::render_input( self::SERVICE_KEY, __( 'Service key', 'hse-headless' ), $post->ID, self::MAX_KEY_LENGTH, $is_locked, __( 'Stable identifier; locks after first publication.', 'hse-headless' ) );
 		self::render_input( self::CARD_LABEL, __( 'Homepage card label', 'hse-headless' ), $post->ID, self::MAX_LABEL_LENGTH );
 		self::render_input( self::SHORT_DESCRIPTION, __( 'Short description', 'hse-headless' ), $post->ID, self::MAX_SHORT_LENGTH );
@@ -209,6 +214,13 @@ final class ServiceMeta {
 			return;
 		}
 
+		$locale = ContentLocale::save_post_locale( $post_id );
+		if ( is_wp_error( $locale ) ) {
+			self::$admin_error_code = $locale->get_error_code();
+
+			return;
+		}
+
 		foreach ( self::text_sanitizers() as $meta_key => $sanitize_callback ) {
 			$field_name = 'hse_' . $meta_key;
 			$raw        = isset( $_POST[ $field_name ] ) ? wp_unslash( $_POST[ $field_name ] ) : '';
@@ -243,6 +255,12 @@ final class ServiceMeta {
 		}
 
 		$post_id = isset( $postarr['ID'] ) ? (int) $postarr['ID'] : 0;
+		$locale  = ContentLocale::get_posted_or_stored_locale( $post_id );
+		$locale_validation = ContentLocale::validate_for_post( $locale, $post_id );
+		if ( is_wp_error( $locale_validation ) ) {
+			return self::reject_publish( $data, $locale_validation->get_error_code() );
+		}
+
 		$key     = self::posted_or_stored( self::SERVICE_KEY, $post_id );
 		$key_validation = self::validate_service_key( $key, $post_id );
 		if ( is_wp_error( $key_validation ) ) {
@@ -265,7 +283,7 @@ final class ServiceMeta {
 		}
 
 		$featured = isset( $_POST[ 'hse_' . self::FEATURED_ON_HOMEPAGE ] ) ? true : (bool) get_post_meta( $post_id, self::FEATURED_ON_HOMEPAGE, true );
-		if ( $featured && self::MAX_HOMEPAGE_SERVICES <= self::featured_count( $post_id ) ) {
+		if ( $featured && self::MAX_HOMEPAGE_SERVICES <= self::featured_count( $post_id, $locale ) ) {
 			return self::reject_publish( $data, 'hse_service_featured_limit' );
 		}
 
@@ -282,7 +300,8 @@ final class ServiceMeta {
 		if ( '' !== $locked && $locked !== $key ) {
 			return new \WP_Error( 'hse_service_key_immutable', __( 'Service key cannot change after publication.', 'hse-headless' ) );
 		}
-		if ( self::service_key_exists( $key, $post_id ) ) {
+		$locale = ContentLocale::get_posted_or_stored_locale( $post_id );
+		if ( self::service_key_exists( $key, $post_id, $locale ) ) {
 			return new \WP_Error( 'hse_service_key_duplicate', __( 'Another Service already uses this key.', 'hse-headless' ) );
 		}
 
@@ -343,6 +362,9 @@ final class ServiceMeta {
 			'hse_service_key_required'    => __( 'Service was saved as a draft because a service key is required.', 'hse-headless' ),
 			'hse_service_key_immutable'   => __( 'The published Service key is locked and was not changed.', 'hse-headless' ),
 			'hse_service_key_duplicate'   => __( 'Service was saved as a draft because its key must be unique.', 'hse-headless' ),
+			'hse_content_locale_invalid'   => __( 'Service was saved as a draft because its content language is invalid.', 'hse-headless' ),
+			'hse_content_locale_immutable' => __( 'Service language cannot change after publication.', 'hse-headless' ),
+			'hse_content_locale_not_saved' => __( 'Service was saved as a draft because its content language could not be saved.', 'hse-headless' ),
 			'hse_service_incomplete'      => __( 'Service was saved as a draft. Complete every field and select a Featured image.', 'hse-headless' ),
 			'hse_service_featured_limit' => sprintf( __( 'Service was saved as a draft because no more than %d services may be featured.', 'hse-headless' ), self::MAX_HOMEPAGE_SERVICES ),
 		);
@@ -409,12 +431,17 @@ final class ServiceMeta {
 	}
 
 	/** Determine whether another Service uses a stable key. */
-	private static function service_key_exists( $key, $post_id ): bool {
+	private static function service_key_exists( $key, $post_id, $locale ): bool {
 		$matches = get_posts(
 			array(
 				'post_type' => ServicePostType::POST_TYPE, 'post_status' => array( 'publish', 'draft', 'pending', 'private', 'future' ),
 				'posts_per_page' => 1, 'fields' => 'ids', 'post__not_in' => $post_id ? array( $post_id ) : array(),
-				'meta_key' => self::SERVICE_KEY, 'meta_value' => $key, 'no_found_rows' => true,
+				'meta_query' => array(
+					'relation' => 'AND',
+					array( 'key' => self::SERVICE_KEY, 'value' => $key ),
+					ContentLocale::query_clause( $locale ),
+				),
+				'no_found_rows' => true,
 			)
 		);
 
@@ -422,12 +449,17 @@ final class ServiceMeta {
 	}
 
 	/** Count other published Homepage-featured Services. */
-	private static function featured_count( $exclude_id ): int {
+	private static function featured_count( $exclude_id, $locale ): int {
 		$matches = get_posts(
 			array(
 				'post_type' => ServicePostType::POST_TYPE, 'post_status' => 'publish', 'posts_per_page' => -1,
 				'fields' => 'ids', 'post__not_in' => $exclude_id ? array( $exclude_id ) : array(),
-				'meta_key' => self::FEATURED_ON_HOMEPAGE, 'meta_value' => '1', 'no_found_rows' => true,
+				'meta_query' => array(
+					'relation' => 'AND',
+					array( 'key' => self::FEATURED_ON_HOMEPAGE, 'value' => '1' ),
+					ContentLocale::query_clause( $locale ),
+				),
+				'no_found_rows' => true,
 			)
 		);
 

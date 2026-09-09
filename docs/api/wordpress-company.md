@@ -5,9 +5,9 @@ Status: Shared About/Value slice implemented
 ## Content ownership
 
 The **Company Page** screen in WordPress is the single editorial source for the
-company profile. That profile is rendered in the Homepage About/Value section
-and in the introduction of `/company/`, avoiding two independently maintained
-copies of company facts.
+company profile in each supported language. Language tabs select the independent
+English or Serbian settings document. Each profile is rendered in its matching
+Homepage About/Value section and Company Page.
 
 The editor currently owns:
 
@@ -22,7 +22,8 @@ parallax, and reveal animations remain controlled by Astro.
 ## Dedicated endpoint
 
 ```text
-GET /wp-json/hse/v1/company
+GET /wp-json/hse/v1/company?lang=en
+GET /wp-json/hse/v1/company?lang=sr
 ```
 
 The response contains a versioned `company` document with `hero`, `profile`,
@@ -37,16 +38,21 @@ URL, alt text, width, and height. Links are limited to same-site paths, page
 anchors, and absolute HTTP(S) URLs. Missing required content returns HTTP 503
 instead of a partial public document.
 
+`lang` defaults to `en` and accepts only `en` or `sr`. Responses include the
+resolved `locale`. Missing Serbian settings never fall back silently to English.
+
 ## Static rendering
 
-Astro calls `getCompanyPage()` for `/company/` and `getHomepage()` for `/` during
-static generation. Both mappers validate the shared profile independently at
-the CMS boundary. Publishing in WordPress requires a later Astro rebuild before
-the production HTML changes.
+Astro calls `getCompanyPage('en')` for `/company/`, `getCompanyPage('sr')` for
+`/sr/company/`, and the matching `getHomepage(locale)` for each Homepage during
+static generation. Both mappers validate the requested locale and shared
+profile independently at the CMS boundary. Publishing in WordPress requires a
+later Astro rebuild before the production HTML changes.
 
 ## Local verification
 
 ```sh
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/company-integration.php
-curl http://cms.hsetraining.test/wp-json/hse/v1/company
+curl 'http://cms.hsetraining.test/wp-json/hse/v1/company?lang=en'
+curl 'http://cms.hsetraining.test/wp-json/hse/v1/company?lang=sr'
 ```

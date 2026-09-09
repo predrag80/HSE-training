@@ -1,8 +1,23 @@
 ---
 import './contact-page.css';
 import { contactDetails } from '../../lib/contact';
+import type { Locale } from '../../i18n/config';
+import { getContactUiTranslations } from '../../i18n/contact-ui';
 
-const contactItems = [
+interface Props {
+	readonly locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = getContactUiTranslations(locale);
+
+interface ContactItem {
+	readonly icon: string;
+	readonly title: string;
+	readonly lines: readonly { readonly text: string; readonly href?: string }[];
+}
+
+const contactItems: readonly ContactItem[] = [
 	{
 		icon: '\ue957',
 		title: contactDetails.companyName,
@@ -13,15 +28,15 @@ const contactItems = [
 	},
 	{
 		icon: '\ue99e',
-		title: 'Call us directly',
+		title: copy.callTitle,
 		lines: [
-			{ text: `Phone: ${contactDetails.phone}`, href: contactDetails.phoneHref },
-			{ text: `Skype: ${contactDetails.skype}` },
+			{ text: `${copy.phonePrefix}: ${contactDetails.phone}`, href: contactDetails.phoneHref },
+			{ text: `${copy.skypePrefix}: ${contactDetails.skype}` },
 		],
 	},
 	{
 		icon: '\uea82',
-		title: 'E-mail us',
+		title: copy.emailTitle,
 		lines: [{ text: contactDetails.email, href: contactDetails.emailHref }],
 	},
 ];
@@ -31,14 +46,14 @@ const contactItems = [
 	<div class="contact-hero__overlay" aria-hidden="true"></div>
 	<div class="contact-hero__content">
 		<p data-contact-reveal="hero-subtitle">{contactDetails.regionalCompanyName}</p>
-		<h1 id="contact-page-title" data-contact-reveal="hero-title">Contact us</h1>
+		<h1 id="contact-page-title" data-contact-reveal="hero-title">{copy.title}</h1>
 	</div>
-	<a class="contact-hero__scroll" href="#contact-details" aria-label="Scroll to contact details" data-contact-reveal="hero-scroll">
+	<a class="contact-hero__scroll" href="#contact-details" aria-label={copy.scroll} data-contact-reveal="hero-scroll">
 		<span></span>
 	</a>
 </section>
 
-<section class="contact-details" id="contact-details" aria-label="Contact details">
+<section class="contact-details" id="contact-details" aria-label={copy.detailsLabel}>
 	<div class="contact-container contact-details__grid">
 		{contactItems.map((item, index) => (
 			<article class="contact-detail" data-contact-reveal="up" style={`--contact-delay:${index * 100}ms`}>
@@ -52,9 +67,9 @@ const contactItems = [
 	</div>
 </section>
 
-<section class="contact-map" aria-label={`Map showing the ${contactDetails.companyName} office in Belgrade`} data-contact-reveal="map">
+<section class="contact-map" aria-label={copy.mapLabel} data-contact-reveal="map">
 	<iframe
-		title={`${contactDetails.companyName} office in Belgrade`}
+		title={copy.mapTitle}
 		src={contactDetails.mapsEmbedUrl}
 		loading="lazy"
 		referrerpolicy="no-referrer-when-downgrade"
@@ -62,28 +77,28 @@ const contactItems = [
 	<div class="contact-map__card">
 		<strong>{contactDetails.companyName}</strong>
 		<p>{contactDetails.streetAddress},<br />{contactDetails.locality}</p>
-		<a href={contactDetails.mapsExternalUrl} target="_blank" rel="noreferrer">View larger map</a>
+		<a href={contactDetails.mapsExternalUrl} target="_blank" rel="noreferrer">{copy.mapLink}</a>
 	</div>
 </section>
 
 <section class="contact-form-section" aria-labelledby="contact-form-title">
 	<div class="contact-container contact-form-section__inner">
 		<header class="contact-form-section__header" data-contact-reveal="up">
-			<p>Contact us</p>
-			<h2 id="contact-form-title">How can we help you?</h2>
+			<p>{copy.formEyebrow}</p>
+			<h2 id="contact-form-title">{copy.formTitle}</h2>
 		</header>
 
-		<form class="contact-form" method="post" data-contact-form data-contact-reveal="form">
+		<form class="contact-form" method="post" data-contact-form data-success-message={copy.form.success} data-contact-reveal="form">
 			<div class="contact-form__fields">
-				<label><span>Your name</span><input type="text" name="name" placeholder="Your name*" autocomplete="name" required /></label>
-				<label><span>Your email address</span><input type="email" name="email" placeholder="Your email address*" autocomplete="email" required /></label>
-				<label><span>Your phone</span><input type="tel" name="phone" placeholder="Your phone" autocomplete="tel" /></label>
-				<label><span>Your subject</span><input type="text" name="subject" placeholder="Your subject" /></label>
-				<label class="contact-form__message"><span>Your message</span><textarea name="message" rows="4" placeholder="Your message"></textarea></label>
+				<label><span>{copy.form.nameLabel}</span><input type="text" name="name" placeholder={copy.form.namePlaceholder} autocomplete="name" required /></label>
+				<label><span>{copy.form.emailLabel}</span><input type="email" name="email" placeholder={copy.form.emailPlaceholder} autocomplete="email" required /></label>
+				<label><span>{copy.form.phoneLabel}</span><input type="tel" name="phone" placeholder={copy.form.phonePlaceholder} autocomplete="tel" /></label>
+				<label><span>{copy.form.subjectLabel}</span><input type="text" name="subject" placeholder={copy.form.subjectPlaceholder} /></label>
+				<label class="contact-form__message"><span>{copy.form.messageLabel}</span><textarea name="message" rows="4" placeholder={copy.form.messagePlaceholder}></textarea></label>
 			</div>
 			<div class="contact-form__footer">
-				<p>We are committed to protecting your privacy. We will never collect<br class="contact-form__desktop-break" /> information about you without your explicit consent.</p>
-				<button type="submit">Send message</button>
+				<p>{copy.form.privacy}</p>
+				<button type="submit">{copy.form.submit}</button>
 			</div>
 			<p class="contact-form__status" role="status" aria-live="polite" data-contact-form-status></p>
 		</form>
@@ -123,7 +138,7 @@ const contactItems = [
 			event.preventDefault();
 			const status = form.querySelector<HTMLElement>('[data-contact-form-status]');
 			if (!form.reportValidity() || !status) return;
-			status.textContent = 'Thank you. Your message is ready to be sent.';
+			status.textContent = form.dataset.successMessage ?? '';
 		});
 	});
 </script>

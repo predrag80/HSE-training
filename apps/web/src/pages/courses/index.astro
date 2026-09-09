@@ -1,88 +1,12 @@
 ---
-import CourseCard from '../../components/course/CourseCard.astro';
-import Container from '../../components/ui/Container.astro';
-import Section from '../../components/ui/Section.astro';
-import SectionHeading from '../../components/ui/SectionHeading.astro';
+import CourseIndexPage from '../../components/course/CourseIndexPage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCourses } from '../../lib/cms';
+import { getCourses, getCoursesLandingPage } from '../../lib/cms';
 
-const courses = await getCourses();
-const pageDescription = 'Browse available HSE Training health and safety courses.';
+const locale = 'en';
+const [courses, content] = await Promise.all([getCourses(locale), getCoursesLandingPage(locale)]);
 ---
 
-<BaseLayout title="Courses | HSE Training" description={pageDescription}>
-	<main id="main-content">
-		<Section spacing="compact">
-			<Container>
-				<SectionHeading level="h1" eyebrow="Professional training">
-					Courses
-					<p slot="description">Explore our available health and safety training.</p>
-				</SectionHeading>
-			</Container>
-		</Section>
-
-		<Section tone="muted">
-			<Container>
-				{
-					courses.length > 0 ? (
-						<ul class="course-grid" aria-label="Available courses">
-							{courses.map((course) => (
-								<li>
-									<CourseCard course={course} />
-								</li>
-							))}
-						</ul>
-					) : (
-						<section class="empty-state surface-card flow" aria-labelledby="no-courses-title">
-							<h2 id="no-courses-title">No courses are currently available.</h2>
-							<p>Please check back soon for new training opportunities.</p>
-						</section>
-					)
-				}
-			</Container>
-		</Section>
-	</main>
+<BaseLayout title={content.meta.title} description={content.meta.description} locale={locale}>
+	<CourseIndexPage {courses} {locale} {content} />
 </BaseLayout>
-
-<style>
-	.course-grid {
-		display: grid;
-		grid-template-columns: minmax(0, 23.5625rem);
-		gap: var(--grid-gap);
-		max-width: 74.375rem;
-		padding: 0;
-		margin: 0 auto;
-		list-style: none;
-	}
-
-	.course-grid > li {
-		max-width: none;
-	}
-
-	.empty-state {
-		--flow-space: var(--space-3);
-
-		max-width: var(--container-content);
-		padding: clamp(var(--space-6), 5vw, var(--space-8));
-	}
-
-	.empty-state h2 {
-		font-size: var(--font-size-h3);
-	}
-
-	.empty-state p {
-		color: var(--color-text-muted);
-	}
-
-	@media (min-width: 48rem) {
-		.course-grid {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-	}
-
-	@media (min-width: 64rem) {
-		.course-grid {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-		}
-	}
-</style>

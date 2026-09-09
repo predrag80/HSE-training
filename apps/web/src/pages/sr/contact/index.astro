@@ -1,0 +1,14 @@
+---
+import ContactPage from '../../../components/contact/ContactPage.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getContactUiTranslations } from '../../../i18n/contact-ui';
+
+const locale = 'sr';
+const copy = getContactUiTranslations(locale);
+---
+
+<BaseLayout title={copy.metaTitle} description={copy.metaDescription} locale={locale}>
+	<main id="main-content">
+		<ContactPage {locale} />
+	</main>
+</BaseLayout>

@@ -20,6 +20,7 @@ interface WordPressFeaturedMediaDto {
 }
 
 export interface WordPressCourseDto {
+	readonly locale: 'en' | 'sr';
 	readonly slug: string;
 	readonly status: 'publish';
 	readonly title: WordPressRenderedField;
@@ -76,6 +77,7 @@ export interface WordPressServiceDto {
 export interface WordPressServiceCollectionDto {
 	readonly schema_version: 1;
 	readonly collection_key: 'services';
+	readonly locale: 'en' | 'sr';
 	readonly services: readonly WordPressServiceDto[];
 }
 
@@ -99,6 +101,7 @@ export interface WordPressCompanyProfileDto {
 export interface WordPressHomepageDto {
 	readonly schema_version: 1;
 	readonly page_key: 'home';
+	readonly locale: 'en' | 'sr';
 	readonly hero: {
 		readonly aria_label: string;
 		readonly heading: string;
@@ -111,6 +114,7 @@ export interface WordPressHomepageDto {
 export interface WordPressCompanyPageDto {
 	readonly schema_version: 1;
 	readonly page_key: 'company';
+	readonly locale: 'en' | 'sr';
 	readonly hero: {
 		readonly eyebrow: string;
 		readonly title: string;
