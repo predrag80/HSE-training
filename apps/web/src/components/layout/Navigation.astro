@@ -13,7 +13,7 @@ const { pathname, locale } = Astro.props;
 const routePath = getDefaultLocalePath(pathname);
 const isHome = routePath === '/';
 const neboshCurrent = routePath.startsWith('/nebosh');
-const otherCoursesCurrent = routePath.startsWith('/other-courses') || routePath.startsWith('/banksman-slinger') || routePath.startsWith('/train-the-trainer');
+const otherCoursesCurrent = routePath.startsWith('/training') || routePath.startsWith('/banksman-slinger') || routePath.startsWith('/train-the-trainer');
 const ui = getUiTranslations(locale);
 const path = (value: string) => getAvailablePublicPath(value, locale);
 const links = [
@@ -34,22 +34,32 @@ const links = [
 				href: path('/nebosh-international-oilgas-certificate/'),
 				current: routePath.startsWith('/nebosh-international-oilgas-certificate'),
 			},
+			{
+				label: ui.navigation.neboshEaw,
+				href: path('/nebosh-award-environmental-awareness-at-work/'),
+				current: routePath.startsWith('/nebosh-award-environmental-awareness-at-work'),
+			},
 		],
 	},
 	{
 		label: ui.navigation.otherCourses,
-		href: path('/other-courses/'),
+		href: path('/training/'),
 		current: otherCoursesCurrent,
 		children: [
 			{
+				label: ui.navigation.customTrainingDesign,
+				href: path('/training/custom-training-design/'),
+				current: routePath.startsWith('/training/custom-training-design'),
+			},
+			{
 				label: ui.navigation.banksmanSlinger,
-				href: path('/banksman-slinger/'),
-				current: routePath.startsWith('/banksman-slinger'),
+				href: path('/training/banksman-slinger/'),
+				current: routePath.startsWith('/training/banksman-slinger'),
 			},
 			{
 				label: ui.navigation.trainTheTrainer,
-				href: path('/train-the-trainer/'),
-				current: routePath.startsWith('/train-the-trainer'),
+				href: path('/training/train-the-trainer/'),
+				current: routePath.startsWith('/training/train-the-trainer'),
 			},
 		],
 	},

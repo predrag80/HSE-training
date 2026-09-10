@@ -5,12 +5,14 @@ import { getLocalizedPath } from '../i18n/routes';
 export const NEBOSH_COURSE_KEYS = {
 	igc: 'nebosh-igc',
 	iogc: 'nebosh-iogc',
+	eaw: 'nebosh-eaw',
 } as const;
 
 const BESPOKE_COURSE_PATHS: Readonly<Record<string, string>> = {
 	[NEBOSH_COURSE_KEYS.igc]:
 		'/nebosh-international-general-certificate-in-occupational-health-and-safety/',
 	[NEBOSH_COURSE_KEYS.iogc]: '/nebosh-international-oilgas-certificate/',
+	[NEBOSH_COURSE_KEYS.eaw]: '/nebosh-award-environmental-awareness-at-work/',
 };
 
 export function getBespokeCoursePath(courseKey: string): string | null {

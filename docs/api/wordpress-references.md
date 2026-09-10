@@ -14,8 +14,10 @@ details** box contains the stable key, quote, role or organisation, Homepage
 selection, and optional accent-card selection. Page Attributes → Order controls
 the public sequence.
 
-At most four published References per language may be selected for the Homepage. Other
-published References remain available in the API for a future dedicated page.
+At most four published References per language may be selected as the Homepage's
+primary cards. Other published References appear below them in a native,
+collapsed **More participant testimonials** disclosure, keeping the initial
+Homepage section concise while preserving access to the complete collection.
 
 ## Endpoint
 

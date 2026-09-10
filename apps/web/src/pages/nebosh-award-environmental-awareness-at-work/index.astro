@@ -1,0 +1,23 @@
+---
+import EditorialCoursePage from '../../components/course/EditorialCoursePage.astro';
+import NeboshPartnerBadge from '../../components/nebosh/NeboshPartnerBadge.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getEditorialCourseUi } from '../../i18n/editorial-course-ui';
+import { getCourseByKey } from '../../lib/cms';
+
+const locale = 'en';
+const copy = getEditorialCourseUi(locale);
+const course = await getCourseByKey(copy.eaw.courseKey, locale);
+const downloads = [{
+	label: 'NEBOSH Award in Environmental Awareness at Work flyer',
+	href: '/downloads/nebosh-eaw-english.pdf',
+	language: 'English',
+}];
+---
+
+<BaseLayout title={`${course?.title ?? copy.eaw.title} | HSE Training`} description={course?.shortDescription ?? copy.eaw.metaDescription} locale={locale}>
+	<main id="main-content">
+		<EditorialCoursePage {course} fallback={copy.eaw} {locale} backHref="/nebosh/" backLabel={copy.backToNebosh} contentLabel={copy.contentLabel} contactCta={copy.contactCta} heroImage="/images/nebosh-overview-feature.webp" {downloads} />
+		<NeboshPartnerBadge {locale} />
+	</main>
+</BaseLayout>

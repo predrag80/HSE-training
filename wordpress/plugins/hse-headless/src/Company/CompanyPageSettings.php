@@ -84,8 +84,8 @@ final class CompanyPageSettings {
 		$plugin_file = dirname( __DIR__, 2 ) . '/hse-headless.php';
 
 		wp_enqueue_media();
-		wp_enqueue_style( 'hse-company-admin', plugins_url( 'assets/company-admin.css', $plugin_file ), array(), '0.4.0' );
-		wp_enqueue_script( 'hse-company-admin', plugins_url( 'assets/company-admin.js', $plugin_file ), array(), '0.4.0', true );
+		wp_enqueue_style( 'hse-company-admin', plugins_url( 'assets/company-admin.css', $plugin_file ), array(), '0.12.0' );
+		wp_enqueue_script( 'hse-company-admin', plugins_url( 'assets/company-admin.js', $plugin_file ), array(), '0.12.0', true );
 		wp_localize_script(
 			'hse-company-admin',
 			'hseCompanyAdmin',
@@ -109,7 +109,14 @@ final class CompanyPageSettings {
 
 		$stored = get_option( self::option_name( $locale ), array() );
 
-		return self::sanitize_settings( is_array( $stored ) ? $stored : array() );
+		$settings = self::sanitize_settings( is_array( $stored ) ? $stored : array() );
+		foreach ( self::team_defaults( $locale ) as $key => $value ) {
+			if ( '' === $settings[ $key ] ) {
+				$settings[ $key ] = $value;
+			}
+		}
+
+		return $settings;
 	}
 
 	/** Return the locale-specific option name without exposing it through REST. */
@@ -149,6 +156,18 @@ final class CompanyPageSettings {
 			'value_consultancy_description'=> self::sanitize_text( $value['value_consultancy_description'] ?? '', self::MAX_DESCRIPTION ),
 			'company_intro_cta_label'     => self::sanitize_text( $value['company_intro_cta_label'] ?? '', self::MAX_LABEL ),
 			'company_intro_cta_url'       => self::sanitize_link_url( $value['company_intro_cta_url'] ?? '' ),
+			'team_ana_name'                => self::sanitize_text( $value['team_ana_name'] ?? '', self::MAX_TITLE ),
+			'team_ana_role'                => self::sanitize_text( $value['team_ana_role'] ?? '', self::MAX_LABEL ),
+			'team_ana_image_id'            => self::sanitize_image_id( $value['team_ana_image_id'] ?? 0 ),
+			'team_john_name'               => self::sanitize_text( $value['team_john_name'] ?? '', self::MAX_TITLE ),
+			'team_john_role'               => self::sanitize_text( $value['team_john_role'] ?? '', self::MAX_LABEL ),
+			'team_john_image_id'           => self::sanitize_image_id( $value['team_john_image_id'] ?? 0 ),
+			'team_biljana_name'            => self::sanitize_text( $value['team_biljana_name'] ?? '', self::MAX_TITLE ),
+			'team_biljana_role'            => self::sanitize_text( $value['team_biljana_role'] ?? '', self::MAX_LABEL ),
+			'team_biljana_image_id'        => self::sanitize_image_id( $value['team_biljana_image_id'] ?? 0 ),
+			'team_kristina_name'           => self::sanitize_text( $value['team_kristina_name'] ?? '', self::MAX_TITLE ),
+			'team_kristina_role'           => self::sanitize_text( $value['team_kristina_role'] ?? '', self::MAX_LABEL ),
+			'team_kristina_image_id'       => self::sanitize_image_id( $value['team_kristina_image_id'] ?? 0 ),
 		);
 	}
 
@@ -220,6 +239,12 @@ final class CompanyPageSettings {
 					'title'       => $settings['value_consultancy_title'],
 					'description' => $settings['value_consultancy_description'],
 				),
+			),
+			'team'            => array(
+				self::prepare_team_member( 'ana-springfield', $settings['team_ana_name'], $settings['team_ana_role'], (int) $settings['team_ana_image_id'] ),
+				self::prepare_team_member( 'john-springfield', $settings['team_john_name'], $settings['team_john_role'], (int) $settings['team_john_image_id'] ),
+				self::prepare_team_member( 'biljana-stojanovic', $settings['team_biljana_name'], $settings['team_biljana_role'], (int) $settings['team_biljana_image_id'] ),
+				self::prepare_team_member( 'kristina-atanaskovic', $settings['team_kristina_name'], $settings['team_kristina_role'], (int) $settings['team_kristina_image_id'] ),
 			),
 		);
 	}
@@ -295,6 +320,15 @@ final class CompanyPageSettings {
 				<h2><?php esc_html_e( 'Company page intro action', 'hse-headless' ); ?></h2>
 				<?php self::render_text_field( 'company_intro_cta_label', __( 'CTA label', 'hse-headless' ), $settings['company_intro_cta_label'], self::MAX_LABEL ); ?>
 				<?php self::render_text_field( 'company_intro_cta_url', __( 'CTA URL', 'hse-headless' ), $settings['company_intro_cta_url'], self::MAX_URL ); ?>
+
+				<h2><?php esc_html_e( 'Team', 'hse-headless' ); ?></h2>
+				<p><?php esc_html_e( 'The same ordered team appears on the Homepage and Company Page. A missing image uses the Astro placeholder.', 'hse-headless' ); ?></p>
+				<?php foreach ( array( 'ana', 'john', 'biljana', 'kristina' ) as $member_key ) : ?>
+					<h3><?php echo esc_html( $settings[ 'team_' . $member_key . '_name' ] ); ?></h3>
+					<?php self::render_text_field( 'team_' . $member_key . '_name', __( 'Name', 'hse-headless' ), $settings[ 'team_' . $member_key . '_name' ], self::MAX_TITLE ); ?>
+					<?php self::render_text_field( 'team_' . $member_key . '_role', __( 'Position', 'hse-headless' ), $settings[ 'team_' . $member_key . '_role' ], self::MAX_LABEL ); ?>
+					<?php self::render_image_field( 'team_' . $member_key . '_image_id', __( 'Photo', 'hse-headless' ), (int) $settings[ 'team_' . $member_key . '_image_id' ] ); ?>
+				<?php endforeach; ?>
 				<?php submit_button(); ?>
 			</form>
 		</div>
@@ -359,9 +393,43 @@ final class CompanyPageSettings {
 				'value_training_description', 'value_management_title', 'value_management_description',
 				'value_consultancy_title', 'value_consultancy_description', 'company_intro_cta_label',
 				'company_intro_cta_url',
+				'team_ana_name', 'team_ana_role', 'team_john_name', 'team_john_role',
+				'team_biljana_name', 'team_biljana_role', 'team_kristina_name', 'team_kristina_role',
 			),
 			''
-		) + array( 'about_primary_image_id' => 0, 'about_secondary_image_id' => 0 );
+		) + array(
+			'about_primary_image_id' => 0, 'about_secondary_image_id' => 0,
+			'team_ana_image_id' => 0, 'team_john_image_id' => 0,
+			'team_biljana_image_id' => 0, 'team_kristina_image_id' => 0,
+		);
+	}
+
+	/** Return locale-aware copy used until the editor is saved for the first time. */
+	private static function team_defaults( $locale ): array {
+		$is_serbian = ContentLocale::SERBIAN_LOCALE === ContentLocale::sanitize( $locale );
+
+		return array(
+			'team_ana_name'      => 'Ana Springfield',
+			'team_ana_role'      => $is_serbian ? 'Direktorka' : 'Director',
+			'team_john_name'     => 'John Springfield',
+			'team_john_role'     => $is_serbian ? 'Direktor operacija' : 'Director of Operations',
+			'team_biljana_name'  => 'Biljana Stojanovic',
+			'team_biljana_role'  => $is_serbian ? 'Finansijska direktorka' : 'Financial Director',
+			'team_kristina_name' => 'Kristina Atanaskovic',
+			'team_kristina_role' => $is_serbian ? 'Konsultantkinja' : 'Consultant',
+		);
+	}
+
+	/** Build one public team member without leaking the attachment ID. */
+	private static function prepare_team_member( $member_key, $name, $role, $image_id ): array {
+		$image = $image_id ? self::prepare_image( $image_id ) : null;
+
+		return array(
+			'member_key' => $member_key,
+			'name'       => $name,
+			'role'       => $role,
+			'image'      => is_wp_error( $image ) ? null : $image,
+		);
 	}
 
 	/** Return an isolated settings group for one locale. */

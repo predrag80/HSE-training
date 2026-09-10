@@ -21,6 +21,13 @@ export interface CompanyValue {
 	readonly description: string;
 }
 
+export interface CompanyTeamMember {
+	readonly memberKey: string;
+	readonly name: string;
+	readonly role: string;
+	readonly image: CompanyImage | null;
+}
+
 export interface CompanyProfile {
 	readonly eyebrow: string;
 	readonly headline: string;
@@ -31,6 +38,7 @@ export interface CompanyProfile {
 	readonly secondaryCta: CompanyLink;
 	readonly signatureLabel: string;
 	readonly values: readonly CompanyValue[];
+	readonly team: readonly CompanyTeamMember[];
 }
 
 export interface CompanyPageContent {

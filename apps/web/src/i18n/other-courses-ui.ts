@@ -8,11 +8,12 @@ const otherCoursesUi = {
 			datesText: 'Course dates and pricing are available upon enquiry.', readyTitle: 'Ready to train your team?', contactCta: 'Contact HSE Training',
 		},
 		overview: {
-			metaTitle: 'Other Professional Courses | HSE Training', metaDescription: 'Explore practical Banksman and Slinger and Train the Trainer courses from HSE Training in Belgrade, Serbia.',
-			heroEyebrow: 'Practical professional development', heroTitle: 'Other courses', selectorEyebrow: 'Choose your course', selectorTitle: 'Practical training for safer, stronger teams.', exploreCta: 'Explore the course',
+			metaTitle: 'Professional Training | HSE Training', metaDescription: 'Explore custom HSE training, Banksman and Slinger and Train the Trainer courses from HSE Training in Belgrade, Serbia.',
+			heroEyebrow: 'Practical professional development', heroTitle: 'Training', selectorEyebrow: 'Choose your training', selectorTitle: 'Practical training for safer, stronger teams.', exploreCta: 'Explore the training',
 			courses: [
-				{ title: 'Banksman / Slinger', details: '5 days · Serbian · Maximum 8 participants', text: 'Practical skills and knowledge for safely selecting, inspecting and using lifting equipment and directing crane operations.', href: '/banksman-slinger/', image: '/images/consulting-service-04.webp' },
-				{ title: 'Train the trainer', details: '3 days · Serbian · Maximum 6 participants', text: 'Hands-on practice in the essential skills required to plan and deliver effective training sessions to groups.', href: '/train-the-trainer/', image: '/images/consulting-hero-02.webp' },
+				{ title: 'Custom Training Design', details: 'Designed for your organisation', text: 'HSE training aligned with your legislation, workforce, culture and operational reality.', href: '/training/custom-training-design/', image: '/images/consulting-service-01.webp' },
+				{ title: 'Banksman / Slinger', details: '5 days · Serbian · Maximum 8 participants', text: 'Practical skills and knowledge for safely selecting, inspecting and using lifting equipment and directing crane operations.', href: '/training/banksman-slinger/', image: '/images/consulting-service-04.webp' },
+				{ title: 'Train the trainer', details: '3 days · Serbian · Maximum 6 participants', text: 'Hands-on practice in the essential skills required to plan and deliver effective training sessions to groups.', href: '/training/train-the-trainer/', image: '/images/consulting-hero-02.webp' },
 			],
 		},
 		banksman: {
@@ -57,11 +58,12 @@ const otherCoursesUi = {
 			datesText: 'Termini i cena kursa dostupni su na upit.', readyTitle: 'Spremni ste da obučite svoj tim?', contactCta: 'Kontaktirajte HSE Training',
 		},
 		overview: {
-			metaTitle: 'Ostali stručni kursevi | HSE Training', metaDescription: 'Istražite praktične kurseve Banksman / Slinger i Train the Trainer kompanije HSE Training iz Beograda.',
-			heroEyebrow: 'Praktični profesionalni razvoj', heroTitle: 'Ostali kursevi', selectorEyebrow: 'Izaberite kurs', selectorTitle: 'Praktične obuke za bezbednije i snažnije timove.', exploreCta: 'Pogledajte kurs',
+			metaTitle: 'Profesionalne obuke | HSE Training', metaDescription: 'Istražite HSE obuke po meri, Banksman / Slinger i Train the Trainer programe kompanije HSE Training.',
+			heroEyebrow: 'Praktični profesionalni razvoj', heroTitle: 'Obuke', selectorEyebrow: 'Izaberite obuku', selectorTitle: 'Praktične obuke za bezbednije i snažnije timove.', exploreCta: 'Pogledajte obuku',
 			courses: [
-				{ title: 'Banksman / Slinger', details: '5 dana · srpski · najviše 8 polaznika', text: 'Praktične veštine i znanje za bezbedan izbor, pregled i korišćenje opreme za podizanje i usmeravanje rada dizalice.', href: '/banksman-slinger/', image: '/images/consulting-service-04.webp' },
-				{ title: 'Train the Trainer', details: '3 dana · srpski · najviše 6 polaznika', text: 'Praktično vežbanje ključnih veština za planiranje i izvođenje delotvornih grupnih obuka.', href: '/train-the-trainer/', image: '/images/consulting-hero-02.webp' },
+				{ title: 'Obuke po meri', details: 'Dizajnirano za vašu organizaciju', text: 'HSE obuka usklađena sa propisima, zaposlenima, kulturom i stvarnim načinom rada vaše organizacije.', href: '/training/custom-training-design/', image: '/images/consulting-service-01.webp' },
+				{ title: 'Banksman / Slinger', details: '5 dana · srpski · najviše 8 polaznika', text: 'Praktične veštine i znanje za bezbedan izbor, pregled i korišćenje opreme za podizanje i usmeravanje rada dizalice.', href: '/training/banksman-slinger/', image: '/images/consulting-service-04.webp' },
+				{ title: 'Train the Trainer', details: '3 dana · srpski · najviše 6 polaznika', text: 'Praktično vežbanje ključnih veština za planiranje i izvođenje delotvornih grupnih obuka.', href: '/training/train-the-trainer/', image: '/images/consulting-hero-02.webp' },
 			],
 		},
 		banksman: {

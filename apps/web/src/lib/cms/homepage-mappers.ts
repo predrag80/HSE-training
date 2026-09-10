@@ -139,7 +139,7 @@ export function mapWordPressHomepage(value: unknown, expectedLocale: Locale): Ho
 			heading: requireString(homepage.hero.heading, 'hero.heading'),
 			slides: homepage.hero.slides.map(parseSlide),
 		},
-		about: mapWordPressCompanyProfile(homepage.about),
+		about: mapWordPressCompanyProfile(homepage.about, expectedLocale),
 		featuredServices: mapWordPressFeaturedServices(homepage.featured_services),
 	};
 }

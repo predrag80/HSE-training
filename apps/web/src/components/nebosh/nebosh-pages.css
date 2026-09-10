@@ -134,10 +134,11 @@
 .nebosh-overview-intro__visual span { color: rgb(255 255 255 / 75%); font-size: 0.9rem; line-height: 1.55; }
 
 .nebosh-courses { padding: 7rem 0 7.75rem; background: #f7f7f7; }
-.nebosh-courses__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.875rem; }
+.nebosh-courses__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.875rem; }
 .nebosh-course-card { position: relative; display: flex; min-height: 32rem; align-items: flex-end; overflow: hidden; color: #fff; background-position: center; background-size: cover; text-decoration: none; }
 .nebosh-course-card--igc { background-image: url('/images/consulting-service-01.webp'); }
 .nebosh-course-card--iogc { background-image: url('/images/consulting-service-04.webp'); }
+.nebosh-course-card--eaw { background-image: url('/images/nebosh-overview-feature.webp'); }
 .nebosh-course-card__image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .nebosh-course-card__shade { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 12%, rgb(18 21 27 / 88%) 100%); transition: background-color 450ms ease; }
 .nebosh-course-card__content { position: relative; z-index: 1; width: 100%; padding: 3rem; transition: transform 450ms cubic-bezier(0.23, 1, 0.32, 1); }
@@ -293,6 +294,7 @@
 	.nebosh-detail-intro__inner { grid-template-columns: 1fr 1fr; gap: 3rem; }
 	.nebosh-overview-intro__visual { min-height: 30rem; }
 	.nebosh-overview-intro__visual img { height: 27rem; }
+	.nebosh-courses__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	.nebosh-course-card { min-height: 29rem; }
 	.nebosh-course-card__content { padding: 2.25rem; }
 	.nebosh-outcomes__inner { grid-template-columns: 1fr; }

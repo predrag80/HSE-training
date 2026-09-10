@@ -238,6 +238,7 @@ final class CourseMeta {
 				);
 				?>
 			</span>
+			<br><span class="description"><?php esc_html_e( 'Page keys for the new editorial routes: custom-training-design and nebosh-eaw. Create one English and one Serbian Course for each key.', 'hse-headless' ); ?></span>
 		</p>
 		<p>
 			<label for="hse-short-description"><strong><?php esc_html_e( 'Short description', 'hse-headless' ); ?></strong></label><br>

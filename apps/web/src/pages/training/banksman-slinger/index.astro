@@ -1,0 +1,12 @@
+---
+import OtherCourseDetailPage from '../../../components/other-courses/OtherCourseDetailPage.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getOtherCoursesUiTranslations } from '../../../i18n/other-courses-ui';
+
+const locale = 'en';
+const course = getOtherCoursesUiTranslations(locale).banksman;
+---
+
+<BaseLayout title={course.metaTitle} description={course.metaDescription} locale={locale}>
+	<main id="main-content"><OtherCourseDetailPage title={course.title} eyebrow={course.eyebrow} heroImage="/images/consulting-service-04.webp" featureImage="/images/consulting-company-timeline.webp" introKicker={course.introKicker} introTitle={course.introTitle} intro={course.intro} facts={course.facts} outcomesTitle={course.outcomesTitle} outcomesIntro={course.outcomesIntro} outcomes={course.outcomes} audienceTitle={course.audienceTitle} audience={course.audience} {locale} /></main>
+</BaseLayout>

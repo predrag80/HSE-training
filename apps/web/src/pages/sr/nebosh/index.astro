@@ -1,18 +1,19 @@
 ---
 import NeboshOverviewPage from '../../../components/nebosh/NeboshOverviewPage.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { getNeboshOverviewPage } from '../../../lib/cms';
+import { getCourseByKey, getNeboshOverviewPage } from '../../../lib/cms';
 import { NEBOSH_COURSE_KEYS } from '../../../lib/course-routes';
 import { loadRequiredNeboshCourse } from '../../../lib/nebosh-course-content';
 
 const locale = 'sr';
-const [igcCourse, iogcCourse, content] = await Promise.all([
+const [igcCourse, iogcCourse, eawCourse, content] = await Promise.all([
 	loadRequiredNeboshCourse(NEBOSH_COURSE_KEYS.igc, locale),
 	loadRequiredNeboshCourse(NEBOSH_COURSE_KEYS.iogc, locale),
+	getCourseByKey(NEBOSH_COURSE_KEYS.eaw, locale),
 	getNeboshOverviewPage(locale),
 ]);
 ---
 
 <BaseLayout title={content.meta.title} description={content.meta.description} locale={locale}>
-	<main id="main-content"><NeboshOverviewPage {igcCourse} {iogcCourse} {locale} {content} /></main>
+	<main id="main-content"><NeboshOverviewPage {igcCourse} {iogcCourse} {eawCourse} {locale} {content} /></main>
 </BaseLayout>

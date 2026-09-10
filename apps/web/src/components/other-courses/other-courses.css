@@ -111,7 +111,7 @@
 
 .other-courses-selector__grid {
 	display: grid;
-	grid-template-columns: repeat(2, 1fr);
+	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: 1.875rem;
 }
 
@@ -290,6 +290,7 @@
 	.other-courses-hero { height: 32rem; background-position: center; }
 	.other-courses-hero__content { padding-top: 0; }
 	.other-course-card { min-height: 29rem; }
+	.other-courses-selector__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	.other-course-card__content { padding: 2.25rem; }
 	.other-course-facts { grid-template-columns: repeat(3, 1fr); }
 	.other-course-facts > div:nth-child(3) { border-right: 0; }

@@ -136,6 +136,12 @@ describe('mapWordPressHomepage', () => {
 				primaryCta: { label: 'About company', url: '/company/' },
 				secondaryCta: { label: 'How we work', url: '/company/#about' },
 				signatureLabel: 'Training & consultancy',
+				team: [
+					{ memberKey: 'ana-springfield', name: 'Ana Springfield', role: 'Director', image: null },
+					{ memberKey: 'john-springfield', name: 'John Springfield', role: 'Director of Operations', image: null },
+					{ memberKey: 'biljana-stojanovic', name: 'Biljana Stojanovic', role: 'Financial Director', image: null },
+					{ memberKey: 'kristina-atanaskovic', name: 'Kristina Atanaskovic', role: 'Consultant', image: null },
+				],
 				values: [
 					{
 						valueKey: 'professional-training',

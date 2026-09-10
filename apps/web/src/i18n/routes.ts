@@ -6,6 +6,7 @@ const localizedContentPaths = new Set([
 	'/nebosh/',
 	'/nebosh-international-general-certificate-in-occupational-health-and-safety/',
 	'/nebosh-international-oilgas-certificate/',
+	'/nebosh-award-environmental-awareness-at-work/',
 	'/company/',
 	'/consulting/',
 	'/contact/',
@@ -13,6 +14,10 @@ const localizedContentPaths = new Set([
 	'/other-courses/',
 	'/banksman-slinger/',
 	'/train-the-trainer/',
+	'/training/',
+	'/training/custom-training-design/',
+	'/training/banksman-slinger/',
+	'/training/train-the-trainer/',
 ]);
 const localizedContentPrefixes = ['/courses/'];
 

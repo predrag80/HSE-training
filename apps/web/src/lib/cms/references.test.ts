@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { getHomepageReferences, getReferences } from './references';
+import { getHomepageReferences, getHomepageReferenceSection, getReferences } from './references';
 
 const reference = {
 	reference_key: 'saule-kuza',
@@ -51,6 +51,20 @@ describe('getReferences', () => {
 });
 
 describe('getHomepageReferences', () => {
+	it('separates primary cards from the additional testimonial collection', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(
+				response([reference, { ...reference, reference_key: 'not-featured', featured_on_homepage: false }]),
+			),
+		);
+
+		await expect(getHomepageReferenceSection()).resolves.toMatchObject({
+			featured: [expect.objectContaining({ referenceKey: 'saule-kuza' })],
+			additional: [expect.objectContaining({ referenceKey: 'not-featured' })],
+		});
+	});
+
 	it('returns only References selected for the Homepage', async () => {
 		vi.stubGlobal(
 			'fetch',

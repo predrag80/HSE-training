@@ -4,7 +4,7 @@ const contactUi = {
 	en: {
 		metaTitle: 'Contact us | HSE Training', metaDescription: 'Contact HSE Training DOO in Belgrade for professional HSE training and consultancy support.',
 		title: 'Contact us', scroll: 'Scroll to contact details', detailsLabel: 'Contact details',
-		callTitle: 'Call us directly', phonePrefix: 'Phone', skypePrefix: 'Skype', emailTitle: 'E-mail us',
+		callTitle: 'WhatsApp or call us', phonePrefix: 'WhatsApp', emailTitle: 'E-mail us', vatLabel: 'VAT number', registrationLabel: 'Registration number',
 		mapLabel: 'Map showing the HSE Training office in Belgrade', mapTitle: 'HSE Training office in Belgrade', mapLink: 'View larger map',
 		formEyebrow: 'Contact us', formTitle: 'How can we help you?',
 		form: {
@@ -18,7 +18,7 @@ const contactUi = {
 	sr: {
 		metaTitle: 'Kontakt | HSE Training', metaDescription: 'Kontaktirajte HSE Training DOO u Beogradu za profesionalne HSE obuke i konsultantsku podršku.',
 		title: 'Kontakt', scroll: 'Pređite na kontakt podatke', detailsLabel: 'Kontakt podaci',
-		callTitle: 'Pozovite nas direktno', phonePrefix: 'Telefon', skypePrefix: 'Skype', emailTitle: 'Pošaljite nam e-mail',
+		callTitle: 'WhatsApp ili poziv', phonePrefix: 'WhatsApp', emailTitle: 'Pošaljite nam e-mail', vatLabel: 'PIB', registrationLabel: 'Matični broj',
 		mapLabel: 'Mapa lokacije kancelarije HSE Training u Beogradu', mapTitle: 'Kancelarija HSE Training u Beogradu', mapLink: 'Prikažite veću mapu',
 		formEyebrow: 'Kontaktirajte nas', formTitle: 'Kako možemo da vam pomognemo?',
 		form: {

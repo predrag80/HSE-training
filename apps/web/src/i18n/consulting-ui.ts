@@ -4,14 +4,14 @@ const consultingUi = {
 	en: {
 		metaTitle: 'HSE Consulting Services | HSE Training',
 		metaDescription: 'HSEQ personnel and project HSE management support for renewable energy, mining, oil and gas, and construction operations.',
-		heroEyebrow: 'Professional HSEQ expertise', heroTitle: 'Consulting', heroScroll: 'Scroll to consulting services',
+		heroEyebrow: 'Professional HSEQ expertise', heroTitle: 'Browse Consultants', heroScroll: 'Scroll to consulting services',
 		introKicker: 'Local capability. International experience.',
 		introTitle: 'HSEQ personnel and project support where you need it.',
 		introParagraphs: [
 			'HSE Training can provide local HSEQ personnel and project HSE management services for operations and projects across Eastern Europe and international locations.',
 			'Our personnel database combines international experience, tertiary qualifications and professionals who bring practical knowledge from operational and technical roles.',
 		],
-		introCta: 'Discuss your requirements', capabilitiesLabel: 'Consulting capabilities',
+		introCta: 'Discuss your requirements', directoryCta: 'Browse the HSE Directory', capabilitiesLabel: 'Consulting capabilities',
 		facts: [
 			{ value: 'HSEQ', label: 'Specialist personnel' }, { value: '13', label: 'Working languages' },
 			{ value: '4', label: 'Core industries' }, { value: 'On-site', label: 'Project support' },
@@ -41,14 +41,14 @@ const consultingUi = {
 	sr: {
 		metaTitle: 'HSE konsalting usluge | HSE Training',
 		metaDescription: 'HSEQ stručnjaci i podrška upravljanju HSE projektima u obnovljivoj energiji, rudarstvu, nafti i gasu i građevinarstvu.',
-		heroEyebrow: 'Profesionalna HSEQ stručnost', heroTitle: 'Konsalting', heroScroll: 'Pređite na konsultantske usluge',
+		heroEyebrow: 'Profesionalna HSEQ stručnost', heroTitle: 'Izaberite konsultanta', heroScroll: 'Pređite na konsultantske usluge',
 		introKicker: 'Lokalni kapaciteti. Međunarodno iskustvo.',
 		introTitle: 'HSEQ stručnjaci i projektna podrška tamo gde su vam potrebni.',
 		introParagraphs: [
 			'HSE Training obezbeđuje lokalne HSEQ stručnjake i usluge upravljanja HSE projektima za aktivnosti i projekte u istočnoj Evropi i na međunarodnim lokacijama.',
 			'Naša baza stručnjaka objedinjuje međunarodno iskustvo, visoko obrazovanje i profesionalce sa praktičnim znanjem iz operativnih i tehničkih poslova.',
 		],
-		introCta: 'Razgovarajte o svojim potrebama', capabilitiesLabel: 'Konsultantski kapaciteti',
+		introCta: 'Razgovarajte o svojim potrebama', directoryCta: 'Otvorite HSE Directory', capabilitiesLabel: 'Konsultantski kapaciteti',
 		facts: [
 			{ value: 'HSEQ', label: 'Specijalizovani stručnjaci' }, { value: '13', label: 'Radnih jezika' },
 			{ value: '4', label: 'Ključne industrije' }, { value: 'Na lokaciji', label: 'Projektna podrška' },

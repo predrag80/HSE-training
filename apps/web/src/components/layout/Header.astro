@@ -20,7 +20,7 @@ const pathname = Astro.url.pathname;
 const routePath = getDefaultLocalePath(pathname);
 const isHome = routePath === '/';
 const isNebosh = routePath.startsWith('/nebosh');
-const isOtherCourses = routePath.startsWith('/other-courses') || routePath.startsWith('/banksman-slinger') || routePath.startsWith('/train-the-trainer');
+const isOtherCourses = routePath.startsWith('/training') || routePath.startsWith('/other-courses') || routePath.startsWith('/banksman-slinger') || routePath.startsWith('/train-the-trainer');
 const isOverlay = isHome || routePath.startsWith('/company') || routePath.startsWith('/consulting') || routePath.startsWith('/contact') || routePath.startsWith('/gallery') || isNebosh || isOtherCourses;
 const ui = getUiTranslations(locale);
 ---

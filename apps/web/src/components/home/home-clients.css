@@ -121,7 +121,7 @@
 
 .home-clients__logos li { padding-inline: 0.9375rem; }
 
-.home-clients__logos a {
+.home-clients__logos span {
 	display: flex;
 	height: 2.8125rem;
 	align-items: center;
@@ -134,8 +134,6 @@
 	transition: opacity 400ms ease;
 }
 
-.home-clients__logos a:hover img,
-.home-clients__logos a:focus-visible img { opacity: 0.4; }
 
 .home-clients__dialog {
 	width: min(90vw, 62.5rem);

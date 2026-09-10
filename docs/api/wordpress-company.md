@@ -1,6 +1,6 @@
 # WordPress Company Page API
 
-Status: Shared About/Value slice implemented
+Status: Shared About/Value and Team slices implemented
 
 ## Content ownership
 
@@ -13,10 +13,11 @@ The editor currently owns:
 
 - Company Page hero eyebrow and title;
 - shared profile eyebrow, headline, description, images, actions, and signature;
-- three fixed value highlights; and
+- three fixed value highlights;
+- four ordered team members, with locale-specific names and positions and an optional Media Library photo; and
 - the Company introduction action.
 
-The three value icon types, page composition, CSS, responsive behavior,
+The three value icon types, team order, page composition, CSS, responsive behavior,
 parallax, and reveal animations remain controlled by Astro.
 
 ## Dedicated endpoint
@@ -34,7 +35,8 @@ GET /wp-json/hse/v1/homepage
 ```
 
 WordPress Media Library IDs remain internal. Both responses contain only image
-URL, alt text, width, and height. Links are limited to same-site paths, page
+URL, alt text, width, and height. A team member without a CMS photo uses the
+project-owned Astro fallback (or the neutral initials placeholder). Links are limited to same-site paths, page
 anchors, and absolute HTTP(S) URLs. Missing required content returns HTTP 503
 instead of a partial public document.
 

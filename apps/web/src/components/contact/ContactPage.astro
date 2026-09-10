@@ -30,8 +30,8 @@ const contactItems: readonly ContactItem[] = [
 		icon: '\ue99e',
 		title: copy.callTitle,
 		lines: [
-			{ text: `${copy.phonePrefix}: ${contactDetails.phone}`, href: contactDetails.phoneHref },
-			{ text: `${copy.skypePrefix}: ${contactDetails.skype}` },
+			{ text: `${copy.phonePrefix}: ${contactDetails.phone}`, href: `https://wa.me/381615335010` },
+			{ text: contactDetails.phone, href: contactDetails.phoneHref },
 		],
 	},
 	{
@@ -64,6 +64,10 @@ const contactItems: readonly ContactItem[] = [
 				</div>
 			</article>
 		))}
+	</div>
+	<div class="contact-container contact-details__registration" data-contact-reveal="up">
+		<span>{copy.vatLabel}: <strong>{contactDetails.vatNumber}</strong></span>
+		<span>{copy.registrationLabel}: <strong>{contactDetails.registrationNumber}</strong></span>
 	</div>
 </section>
 

@@ -7,6 +7,8 @@ import { getCourseUiTranslations } from '../../i18n/course-ui';
 import { contactDetails } from '../../lib/contact';
 import NeboshHero from './NeboshHero.astro';
 import NeboshMotion from './NeboshMotion.astro';
+import NeboshPartnerBadge from './NeboshPartnerBadge.astro';
+import CourseDownloads from '../course/CourseDownloads.astro';
 
 interface Props {
 	course?: Course | null;
@@ -21,6 +23,15 @@ const courseSummary =
 	course?.shortDescription ??
 	igc.fallbackSummary;
 const heroImage = course?.featuredImageUrl ?? '/images/nebosh-igc-hero.jpg';
+const downloads = locale === 'sr'
+	? [
+		{ label: 'NEBOSH Međunarodni opšti sertifikat – brošura', href: '/downloads/nebosh-igc-english.pdf', language: 'Engleski' },
+		{ label: 'NEBOSH Međunarodni opšti sertifikat – brošura', href: '/downloads/nebosh-igc-russian.pdf', language: 'Ruski' },
+	]
+	: [
+		{ label: 'NEBOSH International General Certificate flyer', href: '/downloads/nebosh-igc-english.pdf', language: 'English' },
+		{ label: 'NEBOSH International General Certificate flyer', href: '/downloads/nebosh-igc-russian.pdf', language: 'Russian' },
+	];
 ---
 
 <NeboshHero eyebrow={igc.eyebrow} title={courseTitle} image={heroImage} titleId="igc-title" scrollLabel={copy.heroScroll} compact />
@@ -38,6 +49,7 @@ const heroImage = course?.featuredImageUrl ?? '/images/nebosh-igc-hero.jpg';
 			<ul class="nebosh-icon-list">
 				{igc.highlights.map((highlight) => <li><span aria-hidden="true">✓</span><div><strong>{highlight.title}</strong><small>{highlight.text}</small></div></li>)}
 			</ul>
+			<NeboshPartnerBadge {locale} variant="compact" />
 		</div>
 	</div>
 </section>
@@ -87,6 +99,8 @@ const heroImage = course?.featuredImageUrl ?? '/images/nebosh-igc-hero.jpg';
 		</ul>
 	</div>
 </section>
+
+<CourseDownloads {downloads} {locale} motion="nebosh" />
 
 <section class="nebosh-faq" aria-labelledby="igc-faq-title">
 	<div class="nebosh-container nebosh-faq__inner">

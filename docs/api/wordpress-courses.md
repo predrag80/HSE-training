@@ -159,6 +159,19 @@ Representative normalization:
 | `nebosh/igc` | `nebosh-igc` |
 | `NEBOSH@IGC` | `nebosh-igc` |
 
+The current bespoke Astro routes use these stable keys in both languages:
+
+| Public page | `course_key` |
+|---|---|
+| NEBOSH International General Certificate | `nebosh-igc` |
+| NEBOSH International Oil & Gas Certificate | `nebosh-iogc` |
+| NEBOSH Award in Environmental Awareness at Work | `nebosh-eaw` |
+| Custom Training Design | `custom-training-design` |
+
+Create a separate English and Serbian Course record for each translated page.
+Until the two new records are published, their bespoke Astro routes render the
+approved temporary copy rather than failing the entire static build.
+
 Uniqueness is enforced server-side before Course metadata writes and by the
 admin and REST validation paths. WordPress's post metadata table has no
 cross-post unique-value constraint, so integrations must write through

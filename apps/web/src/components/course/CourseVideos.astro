@@ -1,0 +1,61 @@
+---
+import './course-videos.css';
+
+export interface CourseVideo {
+	readonly src: string;
+	readonly poster: string;
+	readonly title: string;
+	readonly description: string;
+	readonly duration: string;
+}
+
+export interface CourseVideoSection {
+	readonly eyebrow: string;
+	readonly title: string;
+	readonly description: string;
+	readonly fallback: string;
+	readonly items: readonly CourseVideo[];
+}
+
+interface Props {
+	readonly section: CourseVideoSection;
+}
+
+const { section } = Astro.props;
+---
+
+<section class="course-videos" aria-labelledby="course-videos-title">
+	<div class="course-videos__inner">
+		<header class="course-videos__header" data-other-courses-reveal="up">
+			<p>{section.eyebrow}</p>
+			<h2 id="course-videos-title">{section.title}</h2>
+			<div>{section.description}</div>
+		</header>
+
+		<div class="course-videos__grid">
+			{section.items.map((video, index) => (
+				<figure class="course-videos__card" data-other-courses-reveal="up">
+					<div class="course-videos__media">
+						<video
+							controls
+							playsinline
+							preload="metadata"
+							poster={video.poster}
+							width="960"
+							height="540"
+							aria-label={`${video.title}, ${video.duration}`}
+						>
+							<source src={video.src} type="video/mp4" />
+							{section.fallback} <a href={video.src}>{video.title}</a>
+						</video>
+					</div>
+					<figcaption>
+						<span>Demo {String(index + 1).padStart(2, '0')} · {video.duration}</span>
+						<strong>{video.title}</strong>
+						<p>{video.description}</p>
+					</figcaption>
+				</figure>
+			))}
+		</div>
+	</div>
+</section>

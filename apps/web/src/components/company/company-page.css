@@ -584,34 +584,56 @@
 }
 
 .company-logos {
-	padding-bottom: 6.875rem;
+	padding: 6.875rem 0;
 	background: #f7f7f7;
 }
 
-.company-logos__inner {
-	display: flex;
-	align-items: center;
+.company-logos__header {
+	max-width: 44rem;
+	margin: 0 auto 3.5rem;
+	text-align: center;
 }
 
-.company-logos__inner a {
+.company-logos__header p {
+	margin: 0 0 0.35rem;
+	color: #dd6531;
+	font-size: 0.95rem;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.company-logos__header h2 {
+	margin: 0;
+	color: #292d36;
+	font-size: clamp(2.25rem, 4vw, 3.438rem);
+	font-weight: 600;
+	letter-spacing: -0.08rem;
+	line-height: 1.05;
+}
+
+.company-logos__inner {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 1px;
+	padding: 1px;
+	margin: 0;
+	background: #e4e4e7;
+	list-style: none;
+}
+
+.company-logos__inner li {
 	display: flex;
-	width: 25%;
-	height: 2.5rem;
+	min-height: 7.5rem;
 	align-items: center;
 	justify-content: center;
-	padding-inline: 0.9375rem;
-}
-
-.company-logos__inner img {
-	width: auto;
-	max-width: 10rem;
-	height: 2.5rem;
-	object-fit: contain;
-	transition: opacity 300ms ease;
-}
-
-.company-logos__inner a:hover img {
-	opacity: 0.4;
+	padding: 1.5rem;
+	color: #4f5260;
+	background: #fff;
+	font-size: 0.95rem;
+	font-weight: 600;
+	line-height: 1.35;
+	text-align: center;
 }
 
 [data-company-reveal]:not([data-company-reveal^='children']) {
@@ -752,8 +774,7 @@
 	.company-reasons__copy { width: 83.3333%; margin-left: 0; text-align: center; }
 	.company-reasons__copy p { margin-inline: auto; }
 	.company-logos { padding-bottom: 4.6875rem; }
-	.company-logos__inner { flex-wrap: wrap; row-gap: 2.5rem; }
-	.company-logos__inner a { width: 50%; }
+	.company-logos__inner { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 47.999rem) {
@@ -841,13 +862,8 @@
 	.company-skill { margin-bottom: 0; }
 	.company-skill:nth-child(1) { margin-bottom: 1.875rem; }
 	.company-skill:nth-child(2) { margin-bottom: 2.5rem; }
-	.company-logos__inner {
-		height: 16.875rem;
-		flex-direction: column;
-		justify-content: space-between;
-		row-gap: 0;
-	}
-	.company-logos__inner a { width: 100%; flex: 0 0 2.5rem; }
+	.company-logos__inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.company-logos__inner li { min-height: 6rem; padding: 1rem 0.75rem; font-size: 0.82rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

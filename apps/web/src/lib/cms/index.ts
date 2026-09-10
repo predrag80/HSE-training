@@ -2,7 +2,7 @@ export { getCompanyPage } from './company';
 export { getCoursesLandingPage, getNeboshOverviewPage } from './course-pages';
 export { getCourseByKey, getCourseBySlug, getCourses, getHomepageCourses } from './courses';
 export { getHomepage } from './homepage';
-export { getHomepageReferences, getReferences } from './references';
+export { getHomepageReferences, getHomepageReferenceSection, getReferences } from './references';
 export { getServices } from './services';
 export { CmsError, isCmsError } from './errors';
 export type { CmsErrorCode } from './errors';

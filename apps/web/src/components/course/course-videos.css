@@ -1,0 +1,137 @@
+.course-videos {
+	margin-top: clamp(4rem, 8vw, 7rem);
+	padding: clamp(4.5rem, 8vw, 7.5rem) 0;
+	color: #fff;
+	background: #292d36;
+}
+
+.course-videos__inner {
+	width: min(76.25rem, calc(100% - 3.125rem));
+	margin-inline: auto;
+}
+
+.course-videos__header {
+	display: grid;
+	grid-template-columns: minmax(0, 0.65fr) minmax(0, 1.35fr);
+	gap: 0.75rem clamp(2rem, 7vw, 7rem);
+	align-items: end;
+	margin-bottom: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.course-videos__header > p {
+	grid-column: 1 / -1;
+	margin: 0;
+	color: #ed6d35;
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.11em;
+	text-transform: uppercase;
+}
+
+.course-videos__header h2 {
+	max-width: 10ch;
+	margin: 0;
+	color: #fff;
+	font-size: clamp(2.4rem, 5vw, 4.7rem);
+	font-weight: 500;
+	letter-spacing: -0.065em;
+	line-height: 0.98;
+}
+
+.course-videos__header div {
+	max-width: 38rem;
+	padding-bottom: 0.35rem;
+	color: rgb(255 255 255 / 68%);
+	font-size: 1.04rem;
+	line-height: 1.8;
+}
+
+.course-videos__grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1.5rem;
+}
+
+.course-videos__card {
+	min-width: 0;
+	margin: 0;
+	overflow: hidden;
+	color: #292d36;
+	background: #fff;
+	border-radius: 0.25rem;
+	box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 16%);
+}
+
+.course-videos__card:first-child {
+	grid-column: 1 / -1;
+}
+
+.course-videos__media {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	background: #111;
+}
+
+.course-videos__media video {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.course-videos__media video:focus-visible {
+	outline: 3px solid #ed6d35;
+	outline-offset: -3px;
+}
+
+.course-videos__card figcaption {
+	display: grid;
+	gap: 0.6rem;
+	padding: clamp(1.35rem, 3vw, 2rem);
+}
+
+.course-videos__card figcaption > span {
+	color: #dd6531;
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+}
+
+.course-videos__card figcaption strong {
+	font-size: clamp(1.25rem, 2vw, 1.7rem);
+	font-weight: 600;
+	letter-spacing: -0.035em;
+	line-height: 1.15;
+}
+
+.course-videos__card figcaption p {
+	margin: 0;
+	color: #737582;
+	font-size: 0.94rem;
+	line-height: 1.7;
+}
+
+@media (max-width: 47.999rem) {
+	.course-videos__inner {
+		width: calc(100% - 1.875rem);
+	}
+
+	.course-videos__header,
+	.course-videos__grid {
+		grid-template-columns: 1fr;
+	}
+
+	.course-videos__header {
+		gap: 1.25rem;
+	}
+
+	.course-videos__header h2 {
+		max-width: 12ch;
+	}
+
+	.course-videos__card:first-child {
+		grid-column: auto;
+	}
+}

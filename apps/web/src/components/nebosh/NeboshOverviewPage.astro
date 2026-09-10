@@ -8,16 +8,20 @@ import { getCourseUiTranslations } from '../../i18n/course-ui';
 import { getCoursePublicPath } from '../../lib/course-routes';
 import NeboshHero from './NeboshHero.astro';
 import NeboshMotion from './NeboshMotion.astro';
+import NeboshPartnerBadge from './NeboshPartnerBadge.astro';
+import { getEditorialCourseUi } from '../../i18n/editorial-course-ui';
 
 interface Props {
 	igcCourse?: Course | null;
 	iogcCourse?: Course | null;
+	eawCourse?: Course | null;
 	locale: Locale;
 	content: NeboshOverviewPageContent;
 }
 
-const { igcCourse = null, iogcCourse = null, locale, content } = Astro.props;
+const { igcCourse = null, iogcCourse = null, eawCourse = null, locale, content } = Astro.props;
 const copy = getCourseUiTranslations(locale).nebosh;
+const eawCopy = getEditorialCourseUi(locale).eaw;
 const { hero, strengths, intro, courseSelection, testimonial } = content;
 ---
 
@@ -32,6 +36,8 @@ const { hero, strengths, intro, courseSelection, testimonial } = content;
 		</article>
 	))}
 </section>
+
+<NeboshPartnerBadge {locale} />
 
 <section class="nebosh-overview-intro" id="course-content">
 	<div class="nebosh-container nebosh-overview-intro__inner">
@@ -73,6 +79,16 @@ const { hero, strengths, intro, courseSelection, testimonial } = content;
 					<h3>{iogcCourse?.title ?? 'NEBOSH International Oil & Gas Certificate'}</h3>
 					<p>{iogcCourse?.shortDescription ?? courseSelection.iogcFallback}</p>
 					<strong>{courseSelection.iogcCtaLabel} <i aria-hidden="true">→</i></strong>
+				</div>
+			</a>
+			<a class="nebosh-course-card nebosh-course-card--eaw" href={eawCourse ? getCoursePublicPath(eawCourse, locale) : getAvailablePublicPath('/nebosh-award-environmental-awareness-at-work/', locale)} data-nebosh-reveal="up">
+				{eawCourse?.featuredImageUrl && <img class="nebosh-course-card__image" src={eawCourse.featuredImageUrl} alt="" loading="lazy" decoding="async" />}
+				<div class="nebosh-course-card__shade"></div>
+				<div class="nebosh-course-card__content">
+					<span>{locale === 'sr' ? 'Nova kvalifikacija' : 'New qualification'}</span>
+					<h3>{eawCourse?.title ?? eawCopy.title}</h3>
+					<p>{eawCourse?.shortDescription ?? eawCopy.shortDescription}</p>
+					<strong>{locale === 'sr' ? 'Pogledajte program' : 'Explore the programme'} <i aria-hidden="true">→</i></strong>
 				</div>
 			</a>
 		</div>

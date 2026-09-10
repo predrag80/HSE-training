@@ -8,12 +8,12 @@ import HomePricing from '../components/home/HomePricing.astro';
 import HomeReference from '../components/home/HomeReference.astro';
 import HomeServices from '../components/home/HomeServices.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getHomepage, getHomepageCourses, getHomepageReferences } from '../lib/cms';
+import { getHomepage, getHomepageCourses, getHomepageReferenceSection } from '../lib/cms';
 
 const [homepage, homepageCourses, homepageReferences] = await Promise.all([
 	getHomepage('en'),
 	getHomepageCourses('en'),
-	getHomepageReferences('en'),
+	getHomepageReferenceSection('en'),
 ]);
 ---
 
@@ -27,8 +27,8 @@ const [homepage, homepageCourses, homepageReferences] = await Promise.all([
 		<HomeServices services={homepage.featuredServices} locale="en" />
 		<HomePricing courses={homepageCourses} locale="en" />
 		<HomeClients locale="en" />
-		<HomeReference references={homepageReferences} locale="en" />
-		<HomeExperts locale="en" />
+		<HomeReference featuredReferences={homepageReferences.featured} additionalReferences={homepageReferences.additional} locale="en" />
+		<HomeExperts experts={homepage.about.team} locale="en" />
 		<HomeFinalCta locale="en" />
 	</main>
 </BaseLayout>

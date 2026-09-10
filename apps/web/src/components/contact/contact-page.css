@@ -92,6 +92,17 @@
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.contact-details__registration {
+	display: flex;
+	justify-content: center;
+	gap: 2rem;
+	padding-top: 2.75rem;
+	color: #808291;
+	font-size: 0.95rem;
+}
+
+.contact-details__registration strong { color: #292d36; }
+
 .contact-detail {
 	padding-inline: 0.9375rem;
 	text-align: center;
@@ -383,6 +394,7 @@
 }
 
 @media (max-width: 47.999rem) {
+	.contact-details__registration { flex-direction: column; align-items: center; gap: 0.5rem; }
 	.contact-container { width: 33.75rem; max-width: 100%; }
 	.contact-hero { min-height: 25rem; }
 	.contact-hero__content h1 { font-size: 2.25rem; letter-spacing: -0.0625rem; line-height: 2.75rem; }

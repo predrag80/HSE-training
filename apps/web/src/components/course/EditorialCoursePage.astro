@@ -1,0 +1,73 @@
+---
+import type { Locale } from '../../i18n/config';
+import { getAvailablePublicPath } from '../../i18n/routes';
+import type { Course } from '../../types/course';
+import OtherCoursesHero from '../other-courses/OtherCoursesHero.astro';
+import CourseDownloads, { type CourseDownload } from './CourseDownloads.astro';
+import CourseVideos, { type CourseVideoSection } from './CourseVideos.astro';
+import '../other-courses/other-courses.css';
+import './editorial-course-page.css';
+
+interface FallbackContent {
+	readonly title: string;
+	readonly eyebrow: string;
+	readonly shortDescription: string;
+	readonly body: readonly string[];
+}
+
+interface Props {
+	readonly course: Course | null;
+	readonly fallback: FallbackContent;
+	readonly locale: Locale;
+	readonly backHref: string;
+	readonly backLabel: string;
+	readonly contentLabel: string;
+	readonly contactCta: string;
+	readonly heroImage: string;
+	readonly downloads?: readonly CourseDownload[];
+	readonly videoSection?: CourseVideoSection;
+}
+
+const {
+	course, fallback, locale, backHref, backLabel, contentLabel, contactCta,
+	heroImage, downloads = [], videoSection,
+} = Astro.props;
+const title = course?.title || fallback.title;
+const description = course?.shortDescription || fallback.shortDescription;
+---
+
+<OtherCoursesHero eyebrow={fallback.eyebrow} {title} image={course?.featuredImageUrl ?? heroImage} titleId="editorial-course-title" scrollLabel={contentLabel} compact />
+
+<article class="editorial-course" id="course-content">
+	<div class="editorial-course__inner">
+		<a class="editorial-course__back" href={getAvailablePublicPath(backHref, locale)}>← {backLabel}</a>
+		<div class="editorial-course__layout">
+			<header data-other-courses-reveal="left">
+				<p>{fallback.eyebrow}</p>
+				<h2>{description}</h2>
+				<a class="editorial-course__cta" href={getAvailablePublicPath('/contact/', locale)}>{contactCta}</a>
+			</header>
+			<div class="editorial-course__content" data-other-courses-reveal="right">
+				{course?.descriptionHtml ? <Fragment set:html={course.descriptionHtml} /> : fallback.body.map((paragraph) => <p>{paragraph}</p>)}
+			</div>
+		</div>
+
+	</div>
+	{videoSection && <CourseVideos section={videoSection} />}
+	{downloads.length > 0 && <CourseDownloads {downloads} {locale} />}
+</article>
+
+<script>
+	document.querySelectorAll<HTMLElement>('[data-other-courses-reveal]').forEach((element) => {
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+			element.dataset.revealed = 'true';
+			return;
+		}
+		const observer = new IntersectionObserver((entries) => {
+			if (!entries.some((entry) => entry.isIntersecting)) return;
+			element.dataset.revealed = 'true';
+			observer.disconnect();
+		}, { threshold: 0.12 });
+		observer.observe(element);
+	});
+</script>

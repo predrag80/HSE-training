@@ -96,6 +96,12 @@ export interface WordPressCompanyProfileDto {
 		readonly title: string;
 		readonly description: string;
 	}[];
+	readonly team?: readonly {
+		readonly member_key: string;
+		readonly name: string;
+		readonly role: string;
+		readonly image: WordPressContentImageDto | null;
+	}[];
 }
 
 export interface WordPressHomepageDto {

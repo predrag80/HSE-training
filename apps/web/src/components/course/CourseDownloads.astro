@@ -1,0 +1,39 @@
+---
+import type { Locale } from '../../i18n/config';
+import './course-downloads.css';
+
+export interface CourseDownload {
+	readonly label: string;
+	readonly href: string;
+	readonly language: string;
+}
+
+interface Props {
+	readonly downloads: readonly CourseDownload[];
+	readonly locale: Locale;
+	readonly motion?: 'nebosh' | 'other-courses';
+}
+
+const { downloads, locale, motion = 'other-courses' } = Astro.props;
+const revealAttributes = motion === 'nebosh'
+	? { 'data-nebosh-reveal': 'up' }
+	: { 'data-other-courses-reveal': 'up' };
+const heading = locale === 'sr' ? 'Prilozi kvalifikacije' : 'Qualification attachments';
+const downloadLabel = locale === 'sr' ? 'Preuzmi PDF' : 'Download PDF';
+---
+
+<section class="course-downloads" aria-labelledby="course-downloads-title" {...revealAttributes}>
+	<h2 id="course-downloads-title">{heading}</h2>
+	<ul>
+		{downloads.map((download) => (
+			<li>
+				<a href={download.href} download>
+					<span class="course-downloads__format">PDF</span>
+					<strong>{download.label}</strong>
+					<small>{download.language}</small>
+					<span class="course-downloads__action">{downloadLabel}<i aria-hidden="true">↓</i></span>
+				</a>
+			</li>
+		))}
+	</ul>
+</section>

@@ -3,6 +3,7 @@ import type {
 	CompanyLink,
 	CompanyPageContent,
 	CompanyProfile,
+	CompanyTeamMember,
 	CompanyValue,
 	CompanyValueIcon,
 } from '../../types/company';
@@ -100,9 +101,43 @@ function mapValue(value: unknown, index: number): CompanyValue {
 	};
 }
 
-export function mapWordPressCompanyProfile(value: unknown): CompanyProfile {
-	if (!isRecord(value) || !Array.isArray(value.values) || value.values.length !== 3) {
+function mapTeamMember(value: unknown, index: number): CompanyTeamMember {
+	if (!isRecord(value)) return invalidCompany(`team[${index}] must be an object`);
+
+	const memberKey = requireString(value.member_key, `team[${index}].member_key`);
+	if (!CONTENT_KEY_PATTERN.test(memberKey)) {
+		return invalidCompany(`team[${index}].member_key must be canonical`);
+	}
+
+	return {
+		memberKey,
+		name: requireString(value.name, `team[${index}].name`),
+		role: requireString(value.role, `team[${index}].role`),
+		image: value.image === null || value.image === undefined
+			? null
+			: mapImage(value.image, `team[${index}].image`),
+	};
+}
+
+function defaultTeam(locale: Locale): readonly CompanyTeamMember[] {
+	return [
+		{ memberKey: 'ana-springfield', name: 'Ana Springfield', role: locale === 'sr' ? 'Direktorka' : 'Director', image: null },
+		{ memberKey: 'john-springfield', name: 'John Springfield', role: locale === 'sr' ? 'Direktor operacija' : 'Director of Operations', image: null },
+		{ memberKey: 'biljana-stojanovic', name: 'Biljana Stojanovic', role: locale === 'sr' ? 'Finansijska direktorka' : 'Financial Director', image: null },
+		{ memberKey: 'kristina-atanaskovic', name: 'Kristina Atanaskovic', role: locale === 'sr' ? 'Konsultantkinja' : 'Consultant', image: null },
+	];
+}
+
+export function mapWordPressCompanyProfile(value: unknown, locale: Locale = 'en'): CompanyProfile {
+	if (
+		!isRecord(value) ||
+		!Array.isArray(value.values) ||
+		value.values.length !== 3
+	) {
 		return invalidCompany('profile must contain exactly three value highlights');
+	}
+	if (value.team !== undefined && (!Array.isArray(value.team) || value.team.length !== 4)) {
+		return invalidCompany('profile team must contain exactly four members');
 	}
 
 	const profile = value as unknown as WordPressCompanyProfileDto;
@@ -117,6 +152,7 @@ export function mapWordPressCompanyProfile(value: unknown): CompanyProfile {
 		secondaryCta: mapLink(profile.secondary_cta, 'profile.secondary_cta'),
 		signatureLabel: requireString(profile.signature_label, 'profile.signature_label'),
 		values: profile.values.map(mapValue),
+		team: Array.isArray(profile.team) ? profile.team.map(mapTeamMember) : defaultTeam(locale),
 	};
 }
 
@@ -138,7 +174,7 @@ export function mapWordPressCompanyPage(value: unknown, locale: Locale = 'en'): 
 			eyebrow: requireString(page.hero.eyebrow, 'hero.eyebrow'),
 			title: requireString(page.hero.title, 'hero.title'),
 		},
-		profile: mapWordPressCompanyProfile(page.profile),
+		profile: mapWordPressCompanyProfile(page.profile, locale),
 		introCta: mapLink(page.intro_cta, 'intro_cta'),
 	};
 }
