@@ -24,7 +24,7 @@ const rawHomepage = {
 				primary_cta_url: '#contact',
 				message_prefix: 'Request a free',
 				message_link_label: 'business consultation!',
-				message_link_url: '/consulting/',
+				message_link_url: '/browse-hse-talent/',
 			},
 		],
 	},

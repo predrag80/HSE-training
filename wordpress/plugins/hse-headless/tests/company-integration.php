@@ -98,7 +98,7 @@ try {
 	hse_company_test_assert( 'en' === ( $data['locale'] ?? null ), 'Company Page defaults to English.' );
 	hse_company_test_assert( 'Safety starts with people.' === ( $data['profile']['headline'] ?? null ), 'Company endpoint contains the shared profile.' );
 	hse_company_test_assert( 3 === count( $data['profile']['values'] ?? array() ), 'Company endpoint contains three value highlights.' );
-	hse_company_test_assert( 4 === count( $data['profile']['team'] ?? array() ), 'Company endpoint contains four ordered team members.' );
+	hse_company_test_assert( 5 === count( $data['profile']['team'] ?? array() ), 'Company endpoint contains five ordered team members.' );
 	hse_company_test_assert( ! isset( $data['profile']['primary_image']['id'] ), 'WordPress attachment IDs do not cross the Company API boundary.' );
 } finally {
 	if ( $option_existed ) {

@@ -1,5 +1,8 @@
 import type { Course } from '../../types/course';
 import { defaultLocale, type Locale } from '../../i18n/config';
+import { getCourseUiTranslations } from '../../i18n/course-ui';
+import { getEditorialCourseUi } from '../../i18n/editorial-course-ui';
+import { getBespokeCoursePath, NEBOSH_COURSE_KEYS } from '../course-routes';
 import { fetchCmsJson } from './client';
 import { isCanonicalCourseKey } from './course-key';
 import { CmsError } from './errors';
@@ -7,7 +10,11 @@ import { mapWordPressCourse } from './mappers';
 
 const COURSE_ENDPOINT = '/wp-json/wp/v2/courses';
 const COURSE_FIELDS = 'locale,slug,status,title,content,featured_media,meta,_links,_embedded';
-const MAX_HOMEPAGE_COURSES = 3;
+const HOMEPAGE_COURSE_KEYS = [
+	NEBOSH_COURSE_KEYS.igc,
+	NEBOSH_COURSE_KEYS.eaw,
+	NEBOSH_COURSE_KEYS.iogc,
+] as const;
 
 const COLLECTION_QUERY = {
 	_embed: 'wp:featuredmedia',
@@ -16,6 +23,45 @@ const COLLECTION_QUERY = {
 	orderby: 'date',
 	order: 'desc',
 } as const;
+
+function createHomepageCourseFallback(
+	courseKey: (typeof HOMEPAGE_COURSE_KEYS)[number],
+	locale: Locale,
+): Course {
+	const courseCopy = getCourseUiTranslations(locale);
+	const editorialCopy = getEditorialCourseUi(locale);
+	const copy =
+		courseKey === NEBOSH_COURSE_KEYS.igc
+			? {
+					title: courseCopy.nebosh.igc.fallbackTitle,
+					shortDescription: courseCopy.nebosh.igc.fallbackDescription,
+				}
+			: courseKey === NEBOSH_COURSE_KEYS.iogc
+				? {
+						title: courseCopy.nebosh.iogc.fallbackTitle,
+						shortDescription: courseCopy.nebosh.iogc.fallbackDescription,
+					}
+				: {
+						title: editorialCopy.eaw.title,
+						shortDescription: editorialCopy.eaw.shortDescription,
+					};
+	const path = getBespokeCoursePath(courseKey);
+
+	return {
+		locale,
+		slug: path?.replace(/^\//, '').replace(/\/$/, '') ?? courseKey,
+		courseKey,
+		title: copy.title,
+		shortDescription: copy.shortDescription,
+		descriptionHtml: '',
+		featuredImageUrl: null,
+		visiblePrice: locale === 'sr' ? 'Cena na upit' : 'Price on request',
+		homepageLabel: locale === 'sr' ? 'NEBOSH kvalifikacija' : 'NEBOSH qualification',
+		homepageCtaLabel: courseCopy.card.view,
+		featuredOnHomepage: false,
+		status: 'publish',
+	};
+}
 
 function mapCourseCollection(value: unknown, locale: Locale): Course[] {
 	if (!Array.isArray(value)) {
@@ -51,40 +97,30 @@ export async function getCourses(locale: Locale = defaultLocale): Promise<Course
 	);
 }
 
-/** Returns the ordered one-to-three Courses explicitly promoted on the Homepage. */
+/** Returns the three NEBOSH Courses shown in the fixed Homepage course section. */
 export async function getHomepageCourses(locale: Locale = defaultLocale): Promise<Course[]> {
 	const courses = mapCourseCollection(
 		await fetchCmsJson(COURSE_ENDPOINT, {
 			...COLLECTION_QUERY,
-			per_page: String(MAX_HOMEPAGE_COURSES + 1),
-			orderby: 'menu_order',
-			order: 'asc',
-			featured_on_homepage: 'true',
 			lang: locale,
 		}),
 		locale,
 	);
+	const coursesByKey = new Map(courses.map((course) => [course.courseKey, course]));
 
-	if (courses.length === 0 || courses.length > MAX_HOMEPAGE_COURSES) {
-		throw new CmsError(
-			'invalid-response',
-			`CMS must return between 1 and ${MAX_HOMEPAGE_COURSES} Homepage Courses.`,
-		);
-	}
-	for (const course of courses) {
-		if (
-			!course.featuredOnHomepage ||
-			course.homepageLabel.trim().length === 0 ||
-			course.homepageCtaLabel.trim().length === 0 ||
-			course.shortDescription.trim().length === 0 ||
-			course.visiblePrice === null ||
-			course.featuredImageUrl === null
-		) {
-			throw new CmsError('invalid-response', 'CMS returned an incomplete Homepage Course.');
-		}
-	}
+	return HOMEPAGE_COURSE_KEYS.map((courseKey) => {
+		const fallback = createHomepageCourseFallback(courseKey, locale);
+		const course = coursesByKey.get(courseKey);
+		if (!course) return fallback;
 
-	return courses;
+		return {
+			...course,
+			shortDescription: course.shortDescription.trim() || fallback.shortDescription,
+			visiblePrice: course.visiblePrice ?? fallback.visiblePrice,
+			homepageLabel: course.homepageLabel.trim() || fallback.homepageLabel,
+			homepageCtaLabel: course.homepageCtaLabel.trim() || fallback.homepageCtaLabel,
+		};
+	});
 }
 
 /** Returns a published Course by its mutable WordPress route slug, or null when absent. */

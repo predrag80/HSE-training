@@ -5,6 +5,7 @@ import OtherCoursesMotion from './OtherCoursesMotion.astro';
 import type { Locale } from '../../i18n/config';
 import { getOtherCoursesUiTranslations } from '../../i18n/other-courses-ui';
 import { getAvailablePublicPath } from '../../i18n/routes';
+import CourseDownloads, { type CourseDownload } from '../course/CourseDownloads.astro';
 
 interface Fact {
 	label: string;
@@ -31,6 +32,7 @@ interface Props {
 	audienceTitle: string;
 	audience: readonly string[];
 	locale: Locale;
+	downloads?: readonly CourseDownload[];
 }
 
 const {
@@ -48,6 +50,7 @@ const {
 	audienceTitle,
 	audience,
 	locale,
+	downloads = [],
 } = Astro.props;
 const common = getOtherCoursesUiTranslations(locale).common;
 ---
@@ -102,6 +105,8 @@ const common = getOtherCoursesUiTranslations(locale).common;
 		</ul>
 	</div>
 </section>
+
+{downloads.length > 0 && <CourseDownloads {downloads} {locale} />}
 
 <section class="other-course-cta">
 	<div class="other-courses-container" data-other-courses-reveal="up">

@@ -2,6 +2,8 @@
 import './home-clients.css';
 import type { Locale } from '../../i18n/config';
 import { getUiTranslations } from '../../i18n/ui';
+import { clientNames } from '../../data/clients';
+import ClientMarquee from '../shared/ClientMarquee.astro';
 
 interface Props {
 	readonly locale: Locale;
@@ -10,12 +12,6 @@ interface Props {
 const { locale } = Astro.props;
 const copy = getUiTranslations(locale).homepage.clients;
 
-const clientLogos = [
-	{ src: '/images/consulting-logo-envato.svg', alt: 'Envato' },
-	{ src: '/images/consulting-logo-less.svg', alt: 'Less' },
-	{ src: '/images/consulting-logo-pingdom.svg', alt: 'Pingdom' },
-	{ src: '/images/consulting-logo-google.svg', alt: 'Google' },
-];
 ---
 
 <section class="home-clients" aria-labelledby="home-clients-title" data-home-clients>
@@ -31,11 +27,7 @@ const clientLogos = [
 			<h2 id="home-clients-title">{copy.title}</h2>
 		</div>
 
-		<ul class="home-clients__logos" aria-label={copy.logosLabel}>
-			{clientLogos.map((logo) => (
-				<li><span><img src={logo.src} alt={logo.alt} loading="lazy" /></span></li>
-			))}
-		</ul>
+		<ClientMarquee clients={clientNames} label={copy.logosLabel} variant="dark" />
 	</div>
 
 	<dialog class="home-clients__dialog" data-client-video-dialog aria-label={copy.videoLabel} data-video-title={copy.videoLabel}>

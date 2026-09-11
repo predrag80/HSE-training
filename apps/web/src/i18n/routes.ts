@@ -8,7 +8,7 @@ const localizedContentPaths = new Set([
 	'/nebosh-international-oilgas-certificate/',
 	'/nebosh-award-environmental-awareness-at-work/',
 	'/company/',
-	'/consulting/',
+	'/browse-hse-talent/',
 	'/contact/',
 	'/gallery/',
 	'/other-courses/',

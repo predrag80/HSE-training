@@ -22,7 +22,7 @@ describe('locale routes', () => {
 	});
 
 	it('detects only a complete Serbian path segment', () => {
-		expect(getLocaleFromPathname('/sr/consulting/')).toBe('sr');
+		expect(getLocaleFromPathname('/sr/browse-hse-talent/')).toBe('sr');
 		expect(getLocaleFromPathname('/sr')).toBe('sr');
 		expect(getLocaleFromPathname('/services/')).toBe('en');
 	});
@@ -54,7 +54,7 @@ describe('locale routes', () => {
 	});
 
 	it('exposes all completed Serbian marketing routes', () => {
-		for (const path of ['/company/', '/consulting/', '/contact/', '/gallery/', '/other-courses/', '/banksman-slinger/', '/train-the-trainer/']) {
+		for (const path of ['/company/', '/browse-hse-talent/', '/contact/', '/gallery/', '/other-courses/', '/banksman-slinger/', '/train-the-trainer/']) {
 			expect(getAvailablePublicPath(path, 'sr')).toBe(`/sr${path}`);
 			expect(getLanguageAlternates(path)).toEqual({ en: path, sr: `/sr${path}` });
 		}

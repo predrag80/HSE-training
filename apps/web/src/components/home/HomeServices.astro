@@ -2,8 +2,9 @@
 import type { Service } from '../../types/service';
 import type { Locale } from '../../i18n/config';
 import { getUiTranslations } from '../../i18n/ui';
-import { getLocalizedCmsHref } from '../../i18n/routes';
 import './home-services.css';
+
+const HSE_DIRECTORY_URL = 'https://hsedirectory.com.au';
 
 interface Props {
 	readonly services: readonly Service[];
@@ -29,7 +30,7 @@ const copy = getUiTranslations(locale).homepage.services;
 							<div class="service-tilt__scale">
 								<div class="service-tilt__rotate">
 									<div class="service-tilt__inner">
-										<a class="service-card" href={getLocalizedCmsHref(service.cta.url, locale)} aria-label={`${service.title}: ${service.shortDescription}`}>
+										<a class="service-card" href={HSE_DIRECTORY_URL} target="_blank" rel="noreferrer" aria-label={`${copy.enquiry}: ${service.title}`}>
 											<img
 												class="service-card__image"
 												src={service.image.url}
@@ -44,6 +45,7 @@ const copy = getUiTranslations(locale).homepage.services;
 												<span class="service-card__label">{service.cardLabel}</span>
 												<strong class="service-card__title">{service.title}</strong>
 												<span class="service-card__description">{service.shortDescription}</span>
+												<span class="service-card__enquiry">{copy.enquiry} <i aria-hidden="true">↗</i></span>
 											</span>
 										</a>
 									</div>

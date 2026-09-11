@@ -24,7 +24,7 @@ const translations = {
 			customTrainingDesign: 'Custom Training Design',
 			banksmanSlinger: 'Banksman / Slinger',
 			trainTheTrainer: 'Train the trainer',
-			consulting: 'Browse Consultants',
+			consulting: 'Browse HSE Talent',
 			gallery: 'Gallery',
 			reference: 'Reference',
 			contact: 'Contact',
@@ -43,7 +43,8 @@ const translations = {
 			},
 			services: {
 				eyebrow: 'Innovative solutions',
-				title: 'Browse Consultants',
+				title: 'Browse HSE Talent',
+				enquiry: 'Enquiry',
 			},
 			pricing: {
 				title: 'Professional courses built around safer work.',
@@ -55,7 +56,7 @@ const translations = {
 			clients: {
 				playVideo: 'Play consulting video',
 				eyebrow: 'Supporting your business goal',
-				title: "Some of the worldwide clients we've helped.",
+				title: "Worldwide clients we've helped.",
 				logosLabel: 'Clients',
 				videoLabel: 'Consulting video',
 				closeVideo: 'Close video',
@@ -85,7 +86,7 @@ const translations = {
 			explore: 'Explore',
 			company: 'Company',
 			otherCourses: 'Training',
-			consulting: 'Browse Consultants',
+			consulting: 'Browse HSE Talent',
 			gallery: 'Gallery',
 			reference: 'Reference',
 			contact: 'Contact',
@@ -122,7 +123,7 @@ const translations = {
 			customTrainingDesign: 'Obuke po meri',
 			banksmanSlinger: 'Banksman / Slinger',
 			trainTheTrainer: 'Obuka trenera',
-			consulting: 'Izaberite konsultanta',
+			consulting: 'Pregledajte HSE stručnjake',
 			gallery: 'Galerija',
 			reference: 'Reference',
 			contact: 'Kontakt',
@@ -141,7 +142,8 @@ const translations = {
 			},
 			services: {
 				eyebrow: 'Inovativna rešenja',
-				title: 'Izaberite konsultanta',
+				title: 'Pregledajte HSE stručnjake',
+				enquiry: 'Pošaljite upit',
 			},
 			pricing: {
 				title: 'Profesionalni kursevi za bezbedniji rad.',
@@ -153,7 +155,7 @@ const translations = {
 			clients: {
 				playVideo: 'Pokrenite video o konsaltingu',
 				eyebrow: 'Podrška vašim poslovnim ciljevima',
-				title: 'Neki od klijenata širom sveta kojima smo pomogli.',
+				title: 'Klijenti širom sveta kojima smo pomogli.',
 				logosLabel: 'Klijenti',
 				videoLabel: 'Video o konsaltingu',
 				closeVideo: 'Zatvori video',
@@ -183,7 +185,7 @@ const translations = {
 			explore: 'Istražite',
 			company: 'O nama',
 			otherCourses: 'Obuke',
-			consulting: 'Izaberite konsultanta',
+			consulting: 'Pregledajte HSE stručnjake',
 			gallery: 'Galerija',
 			reference: 'Reference',
 			contact: 'Kontakt',

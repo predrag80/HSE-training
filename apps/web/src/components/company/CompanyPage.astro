@@ -5,6 +5,8 @@ import { getCompanyUiTranslations } from '../../i18n/company-ui';
 import { getAvailablePublicPath, getLocalizedCmsHref } from '../../i18n/routes';
 import HomeExperts from '../home/HomeExperts.astro';
 import NeboshPartnerBadge from '../nebosh/NeboshPartnerBadge.astro';
+import ClientMarquee from '../shared/ClientMarquee.astro';
+import { clientNames } from '../../data/clients';
 
 interface Props {
 	content: CompanyPageContent;
@@ -18,14 +20,6 @@ const reasonIcons = [
 	{ icon: 'analytics', glyph: '\uea0b' },
 	{ icon: 'leadership', glyph: '\uea93' },
 	{ icon: 'production', glyph: '\ue68d' },
-];
-
-const clients = [
-	'Elektromontaža d.o.o. Kraljevo', 'NIS a.d. Novi Sad', 'INA', 'Coca-Cola Hellenic',
-	'Nestlé Adriatic', 'Tara Resources', 'HSEES', 'Moravacem', 'Freyssinet Romania',
-	'Feromont Inženjering', 'Freyssinet Serbia', 'ARUP Beograd', 'Ball Global Business Services EMEA',
-	'JCHX Kinsey Mining Construction', 'Kreativa Unlimited', 'GOPA International Energy Consultants',
-	'MOL Serbia', 'Vinstrol',
 ];
 
 ---
@@ -42,7 +36,6 @@ const clients = [
 </section>
 
 <section class="company-intro" id="about">
-	<div class="company-intro__particles" aria-hidden="true"><span></span><span></span><span></span></div>
 	<div class="company-container company-intro__inner">
 		<div class="company-intro__title" data-company-reveal="intro-title">
 			<h2>{content.profile.headline}</h2>
@@ -158,15 +151,15 @@ const clients = [
 
 <HomeExperts experts={content.profile.team} locale={content.locale} headingId="company-team-title" />
 
-<section class="company-logos" aria-label={copy.trustedCompanies}>
+<section class="company-logos" aria-labelledby="company-clients-title">
 	<div class="company-container" data-company-reveal="fade">
 		<header class="company-logos__header">
 			<p>{copy.clientsEyebrow}</p>
-			<h2>{copy.clientsTitle}</h2>
+			<h2 id="company-clients-title">{copy.clientsTitle}</h2>
 		</header>
-		<ul class="company-logos__inner" data-company-reveal="children-from-right-slow">
-			{clients.map((client) => <li>{client}</li>)}
-		</ul>
+		<div data-company-reveal="children-from-right-slow">
+			<ClientMarquee clients={clientNames} label={copy.trustedCompanies} />
+		</div>
 	</div>
 </section>
 

@@ -259,27 +259,6 @@
 	line-height: 1.2;
 }
 
-.about-value__particles {
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-}
-
-.about-value__particles span {
-	position: absolute;
-	width: 0.5rem;
-	height: 0.5rem;
-	background: #d8dade;
-	border-radius: 50%;
-}
-
-.about-value__particles span:nth-child(1) { top: 8%; left: 18%; width: 0.25rem; height: 0.25rem; }
-.about-value__particles span:nth-child(2) { top: 31%; left: 62%; }
-.about-value__particles span:nth-child(3) { top: 46%; right: 4%; width: 0.375rem; height: 0.375rem; background: #f1aa8d; }
-.about-value__particles span:nth-child(4) { top: 63%; left: 71%; width: 0.375rem; height: 0.375rem; }
-.about-value__particles span:nth-child(5) { top: 79%; right: 2%; width: 0.75rem; height: 0.75rem; }
-.about-value__particles span:nth-child(6) { top: 91%; left: 42%; width: 0.3125rem; height: 0.3125rem; background: #f1aa8d; }
-
 [data-reveal-ready='true'] .about-value__highlights[data-about-reveal] > li {
 	opacity: 0;
 	transform: translateY(1.875rem) rotate(5deg);

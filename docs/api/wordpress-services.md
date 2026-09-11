@@ -6,7 +6,7 @@ Status: Implemented
 
 The HSE Headless plugin owns one canonical, ordered Service collection. Astro
 uses the same published records for the four-card Homepage Consulting services
-section and the detailed Services section on `/consulting/`. This prevents the
+section and the detailed Services section on `/browse-hse-talent/`. This prevents the
 two pages from drifting while Astro continues to own their different layouts,
 styles, and motion.
 
@@ -31,7 +31,7 @@ Every published Service requires:
 
 The **Show this service on the Homepage** checkbox selects the Homepage subset.
 At least one and at most four published Services per language may be selected.
-Additional published Services remain available to `/consulting/` without
+Additional published Services remain available to `/browse-hse-talent/` without
 changing the four-card Homepage layout.
 
 CTA values accept a same-site absolute path, page anchor, or absolute HTTP(S)

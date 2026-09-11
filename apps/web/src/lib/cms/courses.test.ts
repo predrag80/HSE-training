@@ -94,47 +94,49 @@ describe('getCourses', () => {
 });
 
 describe('getHomepageCourses', () => {
-	it('requests promoted Courses in explicit WordPress order', async () => {
-		const promotedCourse = {
+	const homepageCourses = [
+		rawCourse,
+		{
 			...rawCourse,
-			featured_media: 42,
-			_embedded: {
-				'wp:featuredmedia': [{ source_url: 'https://cms.example.test/course.jpg' }],
-			},
-		};
-		const fetchMock = vi.fn().mockResolvedValue(jsonResponse([promotedCourse]));
+			slug: 'nebosh-award-environmental-awareness-at-work',
+			meta: { ...rawCourse.meta, course_key: 'nebosh-eaw', featured_on_homepage: false },
+		},
+		{
+			...rawCourse,
+			slug: 'nebosh-international-oilgas-certificate',
+			meta: { ...rawCourse.meta, course_key: 'nebosh-iogc', featured_on_homepage: false },
+		},
+	];
+
+	it('returns IGC, EAW, and IOGC in the fixed Homepage order', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(jsonResponse([...homepageCourses].reverse()));
 		vi.stubGlobal('fetch', fetchMock);
 
-		await expect(getHomepageCourses()).resolves.toEqual([
-			expect.objectContaining({ courseKey: 'nebosh-igc', featuredOnHomepage: true }),
-		]);
+		await expect(getHomepageCourses()).resolves.toEqual(
+			['nebosh-igc', 'nebosh-eaw', 'nebosh-iogc'].map((courseKey) =>
+				expect.objectContaining({ courseKey }),
+			),
+		);
 
 		const requestedUrl = new URL(String(fetchMock.mock.calls[0]?.[0]));
-		expect(requestedUrl.searchParams.get('featured_on_homepage')).toBe('true');
-		expect(requestedUrl.searchParams.get('orderby')).toBe('menu_order');
-		expect(requestedUrl.searchParams.get('order')).toBe('asc');
-		expect(requestedUrl.searchParams.get('per_page')).toBe('4');
+		expect(requestedUrl.searchParams.has('featured_on_homepage')).toBe(false);
+		expect(requestedUrl.searchParams.get('orderby')).toBe('date');
+		expect(requestedUrl.searchParams.get('order')).toBe('desc');
+		expect(requestedUrl.searchParams.get('per_page')).toBe('100');
 		expect(requestedUrl.searchParams.get('lang')).toBe('en');
 	});
 
-	it('requests and validates Serbian promoted Courses', async () => {
+	it('requests and validates all three Serbian Homepage Courses', async () => {
 		const fetchMock = vi.fn().mockResolvedValue(
-			jsonResponse([
-				{
-					...rawCourse,
-					locale: 'sr',
-					featured_media: 42,
-					_embedded: {
-						'wp:featuredmedia': [{ source_url: 'https://cms.example.test/course.jpg' }],
-					},
-				},
-			]),
+			jsonResponse(homepageCourses.map((course) => ({ ...course, locale: 'sr' }))),
 		);
 		vi.stubGlobal('fetch', fetchMock);
 
-		await expect(getHomepageCourses('sr')).resolves.toEqual([
-			expect.objectContaining({ locale: 'sr', courseKey: 'nebosh-igc' }),
-		]);
+		const courses = await getHomepageCourses('sr');
+		expect(courses).toHaveLength(3);
+		expect(courses).toEqual(
+			expect.arrayContaining([expect.objectContaining({ locale: 'sr', courseKey: 'nebosh-eaw' })]),
+		);
 		expect(new URL(String(fetchMock.mock.calls[0]?.[0])).searchParams.get('lang')).toBe('sr');
 	});
 
@@ -144,34 +146,46 @@ describe('getHomepageCourses', () => {
 		await expect(getCourses('sr')).rejects.toMatchObject({ code: 'invalid-response' });
 	});
 
-	it('rejects an incomplete promoted Course', async () => {
-		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse([rawCourse])));
+	it('fills incomplete Homepage card fields with safe localized copy', async () => {
+		const incompleteCourses = homepageCourses.map((course) =>
+			course.meta.course_key === 'nebosh-eaw'
+				? {
+						...course,
+						meta: {
+							...course.meta,
+							homepage_cta_label: '',
+							homepage_label: '',
+							short_description: '',
+							visible_price: '',
+						},
+					}
+				: course,
+		);
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(incompleteCourses)));
 
-		await expect(getHomepageCourses()).rejects.toMatchObject({ code: 'invalid-response' });
+		await expect(getHomepageCourses()).resolves.toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					courseKey: 'nebosh-eaw',
+					homepageCtaLabel: 'View course',
+					homepageLabel: 'NEBOSH qualification',
+					visiblePrice: 'Price on request',
+				}),
+			]),
+		);
 	});
 
-	it('rejects more than three promoted Courses', async () => {
-		const promotedCourse = {
-			...rawCourse,
-			featured_media: 42,
-			_embedded: {
-				'wp:featuredmedia': [{ source_url: 'https://cms.example.test/course.jpg' }],
-			},
-		};
-		vi.stubGlobal(
-			'fetch',
-			vi.fn().mockResolvedValue(
-				jsonResponse(
-					Array.from({ length: 4 }, (_, index) => ({
-						...promotedCourse,
-						slug: `course-${index + 1}`,
-						meta: { ...promotedCourse.meta, course_key: `course-${index + 1}` },
-					})),
-				),
-			),
-		);
+	it('provides the approved fallback when a Homepage Course is missing from CMS', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(homepageCourses.slice(0, 2))));
 
-		await expect(getHomepageCourses()).rejects.toThrow('between 1 and 3');
+		await expect(getHomepageCourses()).resolves.toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					courseKey: 'nebosh-iogc',
+					title: 'NEBOSH International Oil & Gas Certificate',
+				}),
+			]),
+		);
 	});
 });
 

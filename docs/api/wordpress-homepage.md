@@ -96,7 +96,7 @@ falling back to another language.
       "height": 452
     },
     "primary_cta": { "label": "About company", "url": "/company/" },
-    "secondary_cta": { "label": "How we work", "url": "/consulting/" },
+    "secondary_cta": { "label": "How we work", "url": "/browse-hse-talent/" },
     "signature_label": "Training & consultancy",
     "values": [
       {

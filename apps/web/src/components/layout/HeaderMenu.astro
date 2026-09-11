@@ -20,6 +20,11 @@ const copy = locale === 'sr'
 		titleEmphasis: 'obuke',
 		panelNavigation: 'Navigacija informativnog panela',
 		courses: 'Pogledajte kurseve',
+		courseLinks: {
+			igc: 'NEBOSH IGC',
+			eaw: 'NEBOSH EAW',
+			iogc: 'NEBOSH IOGC',
+		},
 		about: 'O HSE Training',
 		contact: 'Kontaktirajte nas',
 	}
@@ -32,6 +37,11 @@ const copy = locale === 'sr'
 		titleEmphasis: 'training',
 		panelNavigation: 'Information panel navigation',
 		courses: 'View courses',
+		courseLinks: {
+			igc: 'NEBOSH IGC',
+			eaw: 'NEBOSH EAW',
+			iogc: 'NEBOSH IOGC',
+		},
 		about: 'About HSE Training',
 		contact: 'Contact us',
 	};
@@ -75,7 +85,17 @@ const copy = locale === 'sr'
 			<h2 id="site-drawer-title">{copy.titleLeading} <span>{copy.titleEmphasis}</span></h2>
 
 			<nav aria-label={copy.panelNavigation}>
-				<a href={path('/courses/')}>{copy.courses}</a>
+				<details class="site-drawer__course-menu">
+					<summary>
+						<span>{copy.courses}</span>
+						<svg aria-hidden="true" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4" /></svg>
+					</summary>
+					<div class="site-drawer__course-links">
+						<a href={path('/nebosh-international-general-certificate-in-occupational-health-and-safety/')}>{copy.courseLinks.igc}</a>
+						<a href={path('/nebosh-award-environmental-awareness-at-work/')}>{copy.courseLinks.eaw}</a>
+						<a href={path('/nebosh-international-oilgas-certificate/')}>{copy.courseLinks.iogc}</a>
+					</div>
+				</details>
 				<a href={`${path('/')}#about`}>{copy.about}</a>
 				<a href={path('/contact/')}>{copy.contact}</a>
 			</nav>
@@ -400,6 +420,57 @@ const copy = locale === 'sr'
 		font-weight: var(--font-weight-regular);
 		text-decoration: none;
 		transition: color var(--transition-base);
+	}
+
+	.site-drawer__course-menu summary {
+		display: flex;
+		min-height: 2rem;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		cursor: pointer;
+		color: var(--color-text-on-strong);
+		font-size: 1.0625rem;
+		font-weight: var(--font-weight-regular);
+		list-style: none;
+		transition: color var(--transition-base);
+	}
+
+	.site-drawer__course-menu summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.site-drawer__course-menu summary:hover,
+	.site-drawer__course-menu summary:focus-visible {
+		color: var(--color-accent-on-strong);
+	}
+
+	.site-drawer__course-menu summary svg {
+		width: 0.875rem;
+		height: 0.875rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 1.5;
+		transition: transform var(--transition-base);
+	}
+
+	.site-drawer__course-menu[open] summary svg {
+		transform: rotate(180deg);
+	}
+
+	.site-drawer__course-links {
+		display: grid;
+		gap: 0.35rem;
+		padding: 0.55rem 0 0.15rem 0.9rem;
+		border-left: 1px solid rgb(255 255 255 / 18%);
+	}
+
+	.site-drawer nav .site-drawer__course-links a {
+		min-height: 1.65rem;
+		color: var(--color-text-on-strong-muted);
+		font-size: 0.9rem;
 	}
 
 	.site-drawer nav a:hover,

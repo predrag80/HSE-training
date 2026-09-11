@@ -5,8 +5,20 @@ import { getOtherCoursesUiTranslations } from '../../../i18n/other-courses-ui';
 
 const locale = 'en';
 const course = getOtherCoursesUiTranslations(locale).banksman;
+const downloads = [
+	{
+		label: 'Banksman and slinger presentation',
+		href: '/downloads/banksman-slinger-prezentacija-srpski.pdf',
+		language: 'Serbian',
+	},
+	{
+		label: 'HSE Training letter of recommendation',
+		href: '/downloads/hse-training-pismo-preporuke.pdf',
+		language: 'English',
+	},
+];
 ---
 
 <BaseLayout title={course.metaTitle} description={course.metaDescription} locale={locale}>
-	<main id="main-content"><OtherCourseDetailPage title={course.title} eyebrow={course.eyebrow} heroImage="/images/consulting-service-04.webp" featureImage="/images/consulting-company-timeline.webp" introKicker={course.introKicker} introTitle={course.introTitle} intro={course.intro} facts={course.facts} outcomesTitle={course.outcomesTitle} outcomesIntro={course.outcomesIntro} outcomes={course.outcomes} audienceTitle={course.audienceTitle} audience={course.audience} {locale} /></main>
+	<main id="main-content"><OtherCourseDetailPage title={course.title} eyebrow={course.eyebrow} heroImage="/images/consulting-service-04.webp" featureImage="/images/consulting-company-timeline.webp" introKicker={course.introKicker} introTitle={course.introTitle} intro={course.intro} facts={course.facts} outcomesTitle={course.outcomesTitle} outcomesIntro={course.outcomesIntro} outcomes={course.outcomes} audienceTitle={course.audienceTitle} audience={course.audience} {locale} {downloads} /></main>
 </BaseLayout>

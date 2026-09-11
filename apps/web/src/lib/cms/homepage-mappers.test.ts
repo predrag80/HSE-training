@@ -65,7 +65,7 @@ const publishedHomepage = {
 				primary_cta_url: '#contact',
 				message_prefix: 'Request a free',
 				message_link_label: 'business consultation!',
-				message_link_url: '/consulting/',
+				message_link_url: '/browse-hse-talent/',
 			},
 		],
 	},
@@ -113,7 +113,7 @@ describe('mapWordPressHomepage', () => {
 						primaryCtaUrl: '#contact',
 						messagePrefix: 'Request a free',
 						messageLinkLabel: 'business consultation!',
-						messageLinkUrl: '/consulting/',
+						messageLinkUrl: '/browse-hse-talent/',
 					},
 				],
 			},
@@ -141,6 +141,7 @@ describe('mapWordPressHomepage', () => {
 					{ memberKey: 'john-springfield', name: 'John Springfield', role: 'Director of Operations', image: null },
 					{ memberKey: 'biljana-stojanovic', name: 'Biljana Stojanovic', role: 'Financial Director', image: null },
 					{ memberKey: 'kristina-atanaskovic', name: 'Kristina Atanaskovic', role: 'Consultant', image: null },
+					{ memberKey: 'marija-blagojevic', name: 'Marija Blagojevic', role: 'Consultant', image: null },
 				],
 				values: [
 					{

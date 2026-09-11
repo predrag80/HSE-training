@@ -14,7 +14,7 @@ The editor currently owns:
 - Company Page hero eyebrow and title;
 - shared profile eyebrow, headline, description, images, actions, and signature;
 - three fixed value highlights;
-- four ordered team members, with locale-specific names and positions and an optional Media Library photo; and
+- five ordered team members, with locale-specific names and positions and an optional Media Library photo; and
 - the Company introduction action.
 
 The three value icon types, team order, page composition, CSS, responsive behavior,

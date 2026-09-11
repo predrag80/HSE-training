@@ -1,0 +1,87 @@
+---
+interface Props {
+	readonly clients: readonly string[];
+	readonly label: string;
+	readonly variant?: 'dark' | 'light';
+}
+
+const { clients, label, variant = 'light' } = Astro.props;
+---
+
+<div class:list={['client-marquee', `client-marquee--${variant}`]} role="region" aria-label={label}>
+	<div class="client-marquee__track">
+		<ul class="client-marquee__group">
+			{clients.map((client) => <li>{client}</li>)}
+		</ul>
+		<ul class="client-marquee__group" aria-hidden="true">
+			{clients.map((client) => <li>{client}</li>)}
+		</ul>
+	</div>
+</div>
+
+<style>
+	.client-marquee {
+		--client-card-background: #fff;
+		--client-card-border: #e4e4e7;
+		--client-card-color: #4f5260;
+		width: 100%;
+		overflow: hidden;
+		mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+	}
+
+	.client-marquee--dark {
+		--client-card-background: rgb(255 255 255 / 10%);
+		--client-card-border: rgb(255 255 255 / 18%);
+		--client-card-color: #fff;
+	}
+
+	.client-marquee__track {
+		display: flex;
+		width: max-content;
+		animation: client-marquee-scroll 48s linear infinite;
+	}
+
+	.client-marquee:hover .client-marquee__track { animation-play-state: paused; }
+
+	.client-marquee__group {
+		display: flex;
+		flex: none;
+		gap: 1rem;
+		padding: 0 1rem 0 0;
+		margin: 0;
+		list-style: none;
+	}
+
+	.client-marquee__group li {
+		display: flex;
+		width: 15rem;
+		min-height: 7rem;
+		max-width: none;
+		align-items: center;
+		justify-content: center;
+		padding: 1.25rem;
+		color: var(--client-card-color);
+		background: var(--client-card-background);
+		border: 1px solid var(--client-card-border);
+		font-size: 0.95rem;
+		font-weight: 600;
+		line-height: 1.35;
+		text-align: center;
+	}
+
+	@keyframes client-marquee-scroll {
+		to { transform: translateX(-50%); }
+	}
+
+	@media (max-width: 35.999rem) {
+		.client-marquee { mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
+		.client-marquee__group li { width: 12.5rem; min-height: 6rem; font-size: 0.82rem; }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.client-marquee { overflow: visible; mask-image: none; }
+		.client-marquee__track { display: block; width: 100%; animation: none; }
+		.client-marquee__group { flex-wrap: wrap; justify-content: center; padding: 0; }
+		.client-marquee__group[aria-hidden='true'] { display: none; }
+	}
+</style>

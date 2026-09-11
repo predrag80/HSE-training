@@ -2,8 +2,9 @@
 import type { Service } from '../../types/service';
 import type { Locale } from '../../i18n/config';
 import { getConsultingUiTranslations } from '../../i18n/consulting-ui';
-import { getAvailablePublicPath, getLocalizedCmsHref } from '../../i18n/routes';
 import './consulting-page.css';
+
+const HSE_DIRECTORY_URL = 'https://hsedirectory.com.au';
 
 interface Props {
 	readonly services: readonly Service[];
@@ -36,11 +37,12 @@ const industryImages = [
 		<div class="consulting-intro__heading" data-consulting-reveal="left">
 			<p class="consulting-kicker">{copy.introKicker}</p>
 			<h2>{copy.introTitle}</h2>
+			<img class="consulting-intro__directory-logo" src="/images/hse-directory-global.png" width="430" height="130" alt="HSE Directory Global" />
 		</div>
 		<div class="consulting-intro__copy" data-consulting-reveal="right">
 			{copy.introParagraphs.map((paragraph) => <p>{paragraph}</p>)}
-			<a class="consulting-text-link" href={getAvailablePublicPath('/contact/', locale)}>{copy.introCta} <span aria-hidden="true">→</span></a>
-			<a class="consulting-text-link consulting-text-link--directory" href="https://hsedirectory.com.au" target="_blank" rel="noreferrer">{copy.directoryCta} <span aria-hidden="true">↗</span></a>
+			<a class="consulting-text-link" href={HSE_DIRECTORY_URL} target="_blank" rel="noreferrer">{copy.introCta} <span aria-hidden="true">↗</span></a>
+			<a class="consulting-text-link consulting-text-link--directory" href={HSE_DIRECTORY_URL} target="_blank" rel="noreferrer">{copy.directoryCta} <span aria-hidden="true">↗</span></a>
 		</div>
 	</div>
 </section>
@@ -61,10 +63,11 @@ const industryImages = [
 					<span>{String(index + 1).padStart(2, '0')}</span>
 					<h3>{service.title}</h3>
 					<p>{service.detailedDescription}</p>
-					<a href={getLocalizedCmsHref(service.cta.url, locale)} aria-label={`${service.cta.label}: ${service.title}`}>{service.cta.label} <i aria-hidden="true">→</i></a>
+					<a href={HSE_DIRECTORY_URL} target="_blank" rel="noreferrer" aria-label={`${service.cta.label}: ${service.title}`}>{service.cta.label} <i aria-hidden="true">↗</i></a>
 				</article>
 			))}
 		</div>
+		<a class="consulting-directory-button" href={HSE_DIRECTORY_URL} target="_blank" rel="noreferrer">{copy.directoryCta} <span aria-hidden="true">↗</span></a>
 	</div>
 </section>
 
@@ -90,11 +93,11 @@ const industryImages = [
 		</header>
 		<div class="consulting-industries__grid">
 			{copy.industries.map((industry, index) => (
-				<article class="consulting-industry-card" data-consulting-reveal="up">
+				<a class="consulting-industry-card" href={HSE_DIRECTORY_URL} target="_blank" rel="noreferrer" data-consulting-reveal="up" aria-label={`${copy.directoryCta}: ${industry.title}`}>
 					<img src={industryImages[index]} width="600" height="815" alt="" loading="lazy" decoding="async" />
 					<div class="consulting-industry-card__shade" aria-hidden="true"></div>
 					<div class="consulting-industry-card__content"><h3>{industry.title}</h3><p>{industry.text}</p></div>
-				</article>
+				</a>
 			))}
 		</div>
 	</div>
@@ -128,18 +131,17 @@ const industryImages = [
 <section class="consulting-qualifications" aria-labelledby="consulting-qualifications-title">
 	<div class="consulting-qualifications__overlay" aria-hidden="true"></div>
 	<div class="consulting-container consulting-qualifications__inner" data-consulting-reveal="up">
-		<p>{copy.qualificationsEyebrow}</p>
-		<h2 id="consulting-qualifications-title">{copy.qualificationsTitle}</h2>
-		<ul aria-label={copy.qualificationsLabel}>
-			{copy.qualifications.map((qualification) => <li>{qualification}</li>)}
-		</ul>
+		<h2 id="consulting-qualifications-title">
+			<span class="consulting-qualifications__lead">{copy.qualificationsLead}</span>
+			<span class="consulting-qualifications__text">{copy.qualificationsText}</span>
+		</h2>
 	</div>
 </section>
 
 <section class="consulting-cta">
 	<div class="consulting-container consulting-cta__inner" data-consulting-reveal="up">
 		<div><p>{copy.ctaEyebrow}</p><h2>{copy.ctaTitle}</h2></div>
-		<a href={getAvailablePublicPath('/contact/', locale)}>{copy.ctaLabel} <span aria-hidden="true">→</span></a>
+		<a href={HSE_DIRECTORY_URL} target="_blank" rel="noreferrer">{copy.ctaLabel} <span aria-hidden="true">↗</span></a>
 	</div>
 </section>
 

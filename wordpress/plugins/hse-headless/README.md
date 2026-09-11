@@ -116,7 +116,7 @@ Company response:
 The contract is documented in
 [`docs/api/wordpress-company.md`](../../../docs/api/wordpress-company.md).
 
-The editor also owns the four ordered team profiles used by both Astro pages.
+The editor also owns the five ordered team profiles used by both Astro pages.
 Names and positions are localized; each photo is optional so Astro can render a
 controlled fallback while final photography is pending.
 

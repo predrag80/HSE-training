@@ -218,7 +218,7 @@
 
 .pricing-plan ul {
 	padding: 0;
-	margin: 0;
+	margin: 0 0 1.875rem;
 	list-style: none;
 }
 
@@ -251,7 +251,7 @@
 	width: 100%;
 	min-height: 2.875rem;
 	padding: 0.875rem 1.625rem;
-	margin-top: 1.875rem;
+	margin-top: auto;
 }
 
 .pricing-promises {

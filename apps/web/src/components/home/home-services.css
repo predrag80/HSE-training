@@ -101,14 +101,17 @@
 
 .service-card {
 	position: relative;
+	isolation: isolate;
 	display: block;
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
 	color: var(--color-text-on-strong);
 	text-decoration: none;
+	touch-action: manipulation;
 	background: var(--color-ink);
 	border-radius: var(--radius-small);
+	cursor: pointer;
 }
 
 .service-card__image,
@@ -117,6 +120,7 @@
 	inset: 0;
 	width: 100%;
 	height: 100%;
+	pointer-events: none;
 }
 
 .service-card__image {
@@ -141,11 +145,12 @@
 .service-card__content {
 	position: absolute;
 	inset: auto 0 0;
-	z-index: 1;
+	z-index: 2;
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
 	padding: 15%;
+	pointer-events: auto;
 }
 
 .service-card__label {
@@ -180,19 +185,50 @@
 	line-height: 1.667;
 }
 
+.service-card__enquiry {
+	position: relative;
+	z-index: 3;
+	display: inline-flex;
+	gap: 0.625rem;
+	align-items: center;
+	padding-bottom: 0.1875rem;
+	margin-top: 1.125rem;
+	color: var(--color-text-on-strong);
+	border-bottom: 1px solid rgb(255 255 255 / 65%);
+	font-size: 0.8125rem;
+	font-weight: var(--font-weight-semibold);
+	letter-spacing: 0.04em;
+	line-height: 1.4;
+	pointer-events: auto;
+	text-transform: uppercase;
+	cursor: pointer;
+}
+
+.service-card__enquiry i {
+	color: var(--color-accent);
+	font-size: 1rem;
+	font-style: normal;
+	transition: transform 300ms ease;
+}
+
 .service-card:hover,
-.service-card:focus-visible {
+.service-card:focus-within {
 	color: var(--color-text-on-strong);
 }
 
 .service-card:hover .service-card__image,
-.service-card:focus-visible .service-card__image {
+.service-card:focus-within .service-card__image {
 	transform: scale(1.08);
 }
 
 .service-card:hover .service-card__shade::after,
-.service-card:focus-visible .service-card__shade::after {
+.service-card:focus-within .service-card__shade::after {
 	opacity: 1;
+}
+
+.service-card:hover .service-card__enquiry i,
+.service-card:focus-within .service-card__enquiry i {
+	transform: translateX(0.25rem);
 }
 
 [data-reveal-ready='true'] [data-services-heading] {
@@ -288,7 +324,7 @@
 	.home-services__item:hover .service-tilt__scale,
 	.home-services__item:focus-within .service-tilt__scale,
 	.service-card:hover .service-card__image,
-	.service-card:focus-visible .service-card__image {
+	.service-card:focus-within .service-card__image {
 		transform: translate3d(0, 0, 0);
 	}
 }

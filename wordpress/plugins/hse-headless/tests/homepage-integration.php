@@ -97,7 +97,7 @@ function hse_homepage_test_create_slide( $key, $order, $attachment_id, $locale =
 		HeroSlideMeta::PRIMARY_CTA_URL    => '#contact',
 		HeroSlideMeta::MESSAGE_PREFIX     => 'Supporting message',
 		HeroSlideMeta::MESSAGE_LINK_LABEL => 'Learn more',
-		HeroSlideMeta::MESSAGE_LINK_URL   => '/consulting/',
+		HeroSlideMeta::MESSAGE_LINK_URL   => '/browse-hse-talent/',
 	);
 
 	foreach ( $fields as $meta_key => $value ) {
@@ -115,7 +115,7 @@ try {
 	hse_homepage_test_assert( post_type_supports( HeroSlidePostType::POST_TYPE, 'page-attributes' ), 'Hero Slides support explicit ordering.' );
 	hse_homepage_test_assert( 'homepage-main' === HeroSlideMeta::sanitize_slide_key( 'Homepage Main' ), 'Slide keys normalize to canonical form.' );
 	hse_homepage_test_assert( '' === HeroSlideMeta::sanitize_link_url( 'javascript:alert(1)' ), 'Unsafe Hero Slide links are rejected.' );
-	hse_homepage_test_assert( '/consulting/' === HeroSlideMeta::sanitize_link_url( '/consulting/' ), 'Same-site Hero Slide links are accepted.' );
+	hse_homepage_test_assert( '/browse-hse-talent/' === HeroSlideMeta::sanitize_link_url( '/browse-hse-talent/' ), 'Same-site Hero Slide links are accepted.' );
 
 	foreach ( $published_before as $published_id ) {
 		wp_update_post(

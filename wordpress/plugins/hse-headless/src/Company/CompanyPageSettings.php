@@ -84,8 +84,8 @@ final class CompanyPageSettings {
 		$plugin_file = dirname( __DIR__, 2 ) . '/hse-headless.php';
 
 		wp_enqueue_media();
-		wp_enqueue_style( 'hse-company-admin', plugins_url( 'assets/company-admin.css', $plugin_file ), array(), '0.12.0' );
-		wp_enqueue_script( 'hse-company-admin', plugins_url( 'assets/company-admin.js', $plugin_file ), array(), '0.12.0', true );
+		wp_enqueue_style( 'hse-company-admin', plugins_url( 'assets/company-admin.css', $plugin_file ), array(), '0.13.0' );
+		wp_enqueue_script( 'hse-company-admin', plugins_url( 'assets/company-admin.js', $plugin_file ), array(), '0.13.0', true );
 		wp_localize_script(
 			'hse-company-admin',
 			'hseCompanyAdmin',
@@ -168,6 +168,9 @@ final class CompanyPageSettings {
 			'team_kristina_name'           => self::sanitize_text( $value['team_kristina_name'] ?? '', self::MAX_TITLE ),
 			'team_kristina_role'           => self::sanitize_text( $value['team_kristina_role'] ?? '', self::MAX_LABEL ),
 			'team_kristina_image_id'       => self::sanitize_image_id( $value['team_kristina_image_id'] ?? 0 ),
+			'team_marija_name'             => self::sanitize_text( $value['team_marija_name'] ?? '', self::MAX_TITLE ),
+			'team_marija_role'             => self::sanitize_text( $value['team_marija_role'] ?? '', self::MAX_LABEL ),
+			'team_marija_image_id'         => self::sanitize_image_id( $value['team_marija_image_id'] ?? 0 ),
 		);
 	}
 
@@ -245,6 +248,7 @@ final class CompanyPageSettings {
 				self::prepare_team_member( 'john-springfield', $settings['team_john_name'], $settings['team_john_role'], (int) $settings['team_john_image_id'] ),
 				self::prepare_team_member( 'biljana-stojanovic', $settings['team_biljana_name'], $settings['team_biljana_role'], (int) $settings['team_biljana_image_id'] ),
 				self::prepare_team_member( 'kristina-atanaskovic', $settings['team_kristina_name'], $settings['team_kristina_role'], (int) $settings['team_kristina_image_id'] ),
+				self::prepare_team_member( 'marija-blagojevic', $settings['team_marija_name'], $settings['team_marija_role'], (int) $settings['team_marija_image_id'] ),
 			),
 		);
 	}
@@ -323,7 +327,7 @@ final class CompanyPageSettings {
 
 				<h2><?php esc_html_e( 'Team', 'hse-headless' ); ?></h2>
 				<p><?php esc_html_e( 'The same ordered team appears on the Homepage and Company Page. A missing image uses the Astro placeholder.', 'hse-headless' ); ?></p>
-				<?php foreach ( array( 'ana', 'john', 'biljana', 'kristina' ) as $member_key ) : ?>
+				<?php foreach ( array( 'ana', 'john', 'biljana', 'kristina', 'marija' ) as $member_key ) : ?>
 					<h3><?php echo esc_html( $settings[ 'team_' . $member_key . '_name' ] ); ?></h3>
 					<?php self::render_text_field( 'team_' . $member_key . '_name', __( 'Name', 'hse-headless' ), $settings[ 'team_' . $member_key . '_name' ], self::MAX_TITLE ); ?>
 					<?php self::render_text_field( 'team_' . $member_key . '_role', __( 'Position', 'hse-headless' ), $settings[ 'team_' . $member_key . '_role' ], self::MAX_LABEL ); ?>
@@ -395,12 +399,14 @@ final class CompanyPageSettings {
 				'company_intro_cta_url',
 				'team_ana_name', 'team_ana_role', 'team_john_name', 'team_john_role',
 				'team_biljana_name', 'team_biljana_role', 'team_kristina_name', 'team_kristina_role',
+				'team_marija_name', 'team_marija_role',
 			),
 			''
 		) + array(
 			'about_primary_image_id' => 0, 'about_secondary_image_id' => 0,
 			'team_ana_image_id' => 0, 'team_john_image_id' => 0,
 			'team_biljana_image_id' => 0, 'team_kristina_image_id' => 0,
+			'team_marija_image_id' => 0,
 		);
 	}
 
@@ -417,6 +423,8 @@ final class CompanyPageSettings {
 			'team_biljana_role'  => $is_serbian ? 'Finansijska direktorka' : 'Financial Director',
 			'team_kristina_name' => 'Kristina Atanaskovic',
 			'team_kristina_role' => $is_serbian ? 'Konsultantkinja' : 'Consultant',
+			'team_marija_name'   => 'Marija Blagojevic',
+			'team_marija_role'   => $is_serbian ? 'Konsultantkinja' : 'Consultant',
 		);
 	}
 

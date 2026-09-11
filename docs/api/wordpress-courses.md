@@ -97,11 +97,22 @@ It also provides an explicit Homepage promotion filter and supports
 GET /wp-json/wp/v2/courses?featured_on_homepage=true&orderby=menu_order&order=asc
 ```
 
-Between one and three complete published Courses per language may be selected for the
-Homepage. A promoted Course requires its card label, CTA label, short
-description, visible price, and Featured image. The CTA destination is derived
+The Homepage course section presents the three NEBOSH records with keys
+`nebosh-igc`, `nebosh-eaw`, and `nebosh-iogc`, in that order. Astro selects them
+from the complete language-specific collection instead of relying on the
+optional promotion checkbox. Each of those records requires its card label,
+CTA label, short description, and visible price. The CTA destination is derived
 by Astro from `course_key` and route configuration rather than stored as an
 editable payment or business-state URL.
+
+If one of those three language-specific records, or one of its Homepage card
+fields, is not yet configured, the Homepage uses the approved localized course
+copy and a “Price on request” value. This keeps the three required cards and
+their bespoke routes available while editors finish the CMS record.
+
+The REST promotion filter remains available to other consumers. Between one
+and three complete published Courses per language may be marked as promoted;
+a promoted Course additionally requires a Featured image.
 
 `course_key` lookup is exact after validation against the canonical key format.
 Both lookups return a collection because the endpoint uses the core WordPress
