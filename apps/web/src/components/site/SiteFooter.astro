@@ -63,12 +63,15 @@ const currentYear = new Date().getFullYear();
 	<div class="site-footer__separator"><span></span></div>
 
 	<div class="site-footer__bottom">
-		<p>© {currentYear} <a href={path('/')}>{contactDetails.companyName}</a></p>
+		<p class="site-footer__credits">
+			<span>© {currentYear} <a href={path('/')}>{contactDetails.companyName}</a></span>
+			<span>Developed by Ice Tech Development</span>
+		</p>
 		<nav aria-label={copy.legalNavigation}>
 			<ul>
-				<li><a href="#">{copy.privacyPolicy}</a></li>
-				<li><a href="#">{copy.terms}</a></li>
-				<li><a href="#">{copy.copyright}</a></li>
+				<li><a href={path('/privacy-policy/')}>{copy.privacyPolicy}</a></li>
+				<li><a href={path('/terms-and-conditions/')}>{copy.terms}</a></li>
+				<li><a href={path('/copyright/')}>{copy.copyright}</a></li>
 			</ul>
 		</nav>
 	</div>

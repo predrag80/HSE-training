@@ -161,6 +161,10 @@ existing Company settings option is copied to the English locale option and
 retained as rollback data. Editors manage English and Serbian Company content
 independently through the language tabs in WordPress admin.
 
+Homepage content migration schema version 3 updates the existing localized
+Hero Slides by their stable slide key and locale with the approved 2026 copy
+and links.
+
 ## Astro consumption
 
 `getHomepage(locale)` requests the selected locale explicitly during static

@@ -18,6 +18,9 @@ const localizedContentPaths = new Set([
 	'/training/custom-training-design/',
 	'/training/banksman-slinger/',
 	'/training/train-the-trainer/',
+	'/privacy-policy/',
+	'/terms-and-conditions/',
+	'/copyright/',
 ]);
 const localizedContentPrefixes = ['/courses/'];
 

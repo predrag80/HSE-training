@@ -24,11 +24,22 @@ const companyUi = {
 		],
 		expertiseEyebrow: 'Work performance',
 		expertiseTitle: 'Our expertise',
-		expertiseDescription: 'Focused professional support for measurable workplace improvement.',
 		expertise: [
-			{ value: 96, title: 'HSE training' },
-			{ value: 88, title: 'Management systems' },
-			{ value: 90, title: 'Professional consulting' },
+			{
+				title: 'HSE training',
+				description: ['Focused professional support for measurable workplace improvement.'],
+			},
+			{
+				title: 'HSE Directory',
+				description: [
+					'For Employers & Recruiters: Find experienced HSE professionals when you need them.',
+					'For HSE Professionals: Get discovered by employers looking for your skills and experience.',
+				],
+			},
+			{
+				title: 'HSE Coaching (new)',
+				description: ['1-1 HSE Coaching on how you can become a more effective leader.'],
+			},
 		],
 		reasonsTitle: 'Why choose our company services?',
 		reasonsText: 'We combine internationally recognised knowledge with practical experience and support tailored to each organisation.',
@@ -66,11 +77,22 @@ const companyUi = {
 		],
 		expertiseEyebrow: 'Radni učinak',
 		expertiseTitle: 'Naša stručnost',
-		expertiseDescription: 'Usmerena stručna podrška za merljiva unapređenja na radnom mestu.',
 		expertise: [
-			{ value: 96, title: 'HSE obuke' },
-			{ value: 88, title: 'Sistemi upravljanja' },
-			{ value: 90, title: 'Stručni konsalting' },
+			{
+				title: 'HSE obuke',
+				description: ['Usmerena stručna podrška za merljiva unapređenja na radnom mestu.'],
+			},
+			{
+				title: 'HSE Directory',
+				description: [
+					'Za poslodavce i regrutere: Pronađite iskusne HSE stručnjake onda kada su vam potrebni.',
+					'Za HSE stručnjake: Budite dostupni poslodavcima koji traže vaše veštine i iskustvo.',
+				],
+			},
+			{
+				title: 'HSE koučing (novo)',
+				description: ['Individualni HSE koučing koji vam pomaže da postanete efikasniji lider.'],
+			},
 		],
 		reasonsTitle: 'Zašto izabrati usluge naše kompanije?',
 		reasonsText: 'Spajamo međunarodno priznato znanje sa praktičnim iskustvom i podrškom prilagođenom svakoj organizaciji.',

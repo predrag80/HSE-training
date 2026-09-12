@@ -206,7 +206,7 @@
 
 .nebosh-assessment { display: grid; grid-template-columns: 1fr 1fr; min-height: 39rem; }
 .nebosh-assessment__visual { background: url('/images/nebosh-igc-support.webp') center / cover no-repeat; }
-.nebosh-assessment__copy { display: flex; flex-direction: column; justify-content: center; padding: 5rem max(3rem, calc((100vw - 76.25rem) / 2 + 0.9375rem)); color: rgb(255 255 255 / 66%); background: #292d36; }
+.nebosh-assessment__copy { display: flex; flex-direction: column; justify-content: center; padding: 5rem clamp(2rem, 4vw, 5rem); color: rgb(255 255 255 / 66%); background: #292d36; }
 .nebosh-assessment__copy h2 { max-width: 11ch; margin: 0 0 1.5rem; color: #fff; font-size: clamp(2.75rem, 4vw, 3.6rem); font-weight: 500; line-height: 1.02; }
 .nebosh-assessment__copy > p:not(.nebosh-kicker) { max-width: 32rem; margin: 0; line-height: 1.75; }
 .nebosh-assessment__copy ul { padding: 0; margin: 2rem 0 0; list-style: none; }

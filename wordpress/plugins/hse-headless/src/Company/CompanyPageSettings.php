@@ -84,8 +84,8 @@ final class CompanyPageSettings {
 		$plugin_file = dirname( __DIR__, 2 ) . '/hse-headless.php';
 
 		wp_enqueue_media();
-		wp_enqueue_style( 'hse-company-admin', plugins_url( 'assets/company-admin.css', $plugin_file ), array(), '0.13.0' );
-		wp_enqueue_script( 'hse-company-admin', plugins_url( 'assets/company-admin.js', $plugin_file ), array(), '0.13.0', true );
+		wp_enqueue_style( 'hse-company-admin', plugins_url( 'assets/company-admin.css', $plugin_file ), array(), '0.14.0' );
+		wp_enqueue_script( 'hse-company-admin', plugins_url( 'assets/company-admin.js', $plugin_file ), array(), '0.14.0', true );
 		wp_localize_script(
 			'hse-company-admin',
 			'hseCompanyAdmin',

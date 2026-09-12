@@ -2,7 +2,7 @@
 import './home-clients.css';
 import type { Locale } from '../../i18n/config';
 import { getUiTranslations } from '../../i18n/ui';
-import { clientNames } from '../../data/clients';
+import { clients } from '../../data/clients';
 import ClientMarquee from '../shared/ClientMarquee.astro';
 
 interface Props {
@@ -27,7 +27,7 @@ const copy = getUiTranslations(locale).homepage.clients;
 			<h2 id="home-clients-title">{copy.title}</h2>
 		</div>
 
-		<ClientMarquee clients={clientNames} label={copy.logosLabel} variant="dark" />
+		<ClientMarquee {clients} label={copy.logosLabel} variant="dark" />
 	</div>
 
 	<dialog class="home-clients__dialog" data-client-video-dialog aria-label={copy.videoLabel} data-video-title={copy.videoLabel}>

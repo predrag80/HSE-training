@@ -8,8 +8,8 @@ const consultingUi = {
 		introKicker: 'Introducing HSE Directory',
 		introTitle: 'A dedicated global database of HSE professionals.',
 		introParagraphs: [
-			'HSE Directory is a global HSE talent database connecting companies with experienced HSE professionals when and\nwhere they are needed.',
-			'HSE Directory connects employers with HSE professionals for shutdowns, turnarounds, projects, short-term\ncontracts, casual assignments and permanent positions—while giving experienced professionals greater visibility\nand access to opportunities worldwide.',
+			'HSE Directory is a global HSE talent database connecting companies with experienced HSE professionals when and where they are needed.',
+			'HSE Directory connects employers with HSE professionals for shutdowns, turnarounds, projects, short-term contracts, casual assignments and permanent positions—while giving experienced professionals greater visibility and access to opportunities worldwide.',
 		],
 		introCta: 'Discuss your requirements', directoryCta: 'Browse HSE Talent', capabilitiesLabel: 'Consulting capabilities',
 		facts: [
@@ -45,8 +45,8 @@ const consultingUi = {
 		introKicker: 'Predstavljamo HSE Directory',
 		introTitle: 'Specijalizovana globalna baza HSE stručnjaka.',
 		introParagraphs: [
-			'HSE Directory je globalna baza HSE stručnjaka koja povezuje kompanije sa iskusnim profesionalcima onda i\ntamo gde su potrebni.',
-			'HSE Directory povezuje poslodavce sa HSE stručnjacima za remonte, projekte, kratkoročne ugovore, povremene\nangažmane i stalna zaposlenja, a iskusnim profesionalcima pruža veću vidljivost i pristup prilikama širom sveta.',
+			'HSE Directory je globalna baza HSE stručnjaka koja povezuje kompanije sa iskusnim profesionalcima onda i tamo gde su potrebni.',
+			'HSE Directory povezuje poslodavce sa HSE stručnjacima za remonte, projekte, kratkoročne ugovore, povremene angažmane i stalna zaposlenja, a iskusnim profesionalcima pruža veću vidljivost i pristup prilikama širom sveta.',
 		],
 		introCta: 'Razgovarajte o svojim potrebama', directoryCta: 'Pregledajte HSE stručnjake', capabilitiesLabel: 'Konsultantski kapaciteti',
 		facts: [

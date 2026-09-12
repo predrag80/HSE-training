@@ -1,6 +1,8 @@
 ---
+import type { Client } from '../../data/clients';
+
 interface Props {
-	readonly clients: readonly string[];
+	readonly clients: readonly Client[];
 	readonly label: string;
 	readonly variant?: 'dark' | 'light';
 }
@@ -11,10 +13,10 @@ const { clients, label, variant = 'light' } = Astro.props;
 <div class:list={['client-marquee', `client-marquee--${variant}`]} role="region" aria-label={label}>
 	<div class="client-marquee__track">
 		<ul class="client-marquee__group">
-			{clients.map((client) => <li>{client}</li>)}
+			{clients.map((client) => <li>{client.logo ? <img src={client.logo} alt={client.name} loading="lazy" decoding="async" /> : client.name}</li>)}
 		</ul>
 		<ul class="client-marquee__group" aria-hidden="true">
-			{clients.map((client) => <li>{client}</li>)}
+			{clients.map((client) => <li>{client.logo ? <img src={client.logo} alt="" loading="lazy" decoding="async" /> : client.name}</li>)}
 		</ul>
 	</div>
 </div>
@@ -30,9 +32,9 @@ const { clients, label, variant = 'light' } = Astro.props;
 	}
 
 	.client-marquee--dark {
-		--client-card-background: rgb(255 255 255 / 10%);
-		--client-card-border: rgb(255 255 255 / 18%);
-		--client-card-color: #fff;
+		--client-card-background: rgb(255 255 255 / 94%);
+		--client-card-border: rgb(255 255 255 / 72%);
+		--client-card-color: #2b2e37;
 	}
 
 	.client-marquee__track {
@@ -67,6 +69,15 @@ const { clients, label, variant = 'light' } = Astro.props;
 		font-weight: 600;
 		line-height: 1.35;
 		text-align: center;
+	}
+
+	.client-marquee__group img {
+		display: block;
+		width: auto;
+		max-width: 100%;
+		height: auto;
+		max-height: 4.25rem;
+		object-fit: contain;
 	}
 
 	@keyframes client-marquee-scroll {

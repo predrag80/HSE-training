@@ -152,7 +152,7 @@
 	display: flex;
 	min-width: 0;
 	flex-direction: column;
-	padding: 3.6875rem 4.1875rem;
+	padding: 2.75rem 3rem;
 	background: #fff;
 	border: 0.0625rem solid #dee2e6;
 	border-radius: 0.375rem;
@@ -185,7 +185,7 @@
 	grid-template-columns: 1fr;
 	gap: 0.5rem;
 	align-items: end;
-	margin-block: 1.25rem;
+	margin-block: 0.875rem;
 	text-align: center;
 }
 
@@ -218,19 +218,19 @@
 
 .pricing-plan ul {
 	padding: 0;
-	margin: 0 0 1.875rem;
+	margin: 0 0 1.25rem;
 	list-style: none;
 }
 
 .pricing-plan li {
 	display: flex;
-	min-height: 3.8125rem;
+	min-height: 3.25rem;
 	align-items: center;
 	gap: 0.625rem;
 	color: #292d36;
 	font-size: 1.0625rem;
 	font-weight: 500;
-	line-height: 1.55;
+	line-height: 1.45;
 	border-bottom: 0.0625rem solid #e4e4e4;
 }
 
@@ -332,7 +332,7 @@
 	.home-pricing__copy h2 { margin-bottom: 1.875rem; font-size: 3.0078125rem; }
 	.home-pricing__copy p { width: 100%; margin-bottom: 1.875rem; }
 	.pricing-plans { grid-template-columns: minmax(0, 28.75rem); justify-content: center; }
-	.pricing-plan { padding: 4.0625rem; }
+	.pricing-plan { padding: 3rem; }
 	.pricing-promises { min-height: 2.75rem; gap: 2rem; }
 }
 

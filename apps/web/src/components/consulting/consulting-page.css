@@ -19,7 +19,7 @@
 .consulting-experience h2,
 .consulting-languages h2 { margin: 0; color: #292d36; font-size: clamp(2.7rem, 4.25vw, 3.65rem); font-weight: 600; letter-spacing: -0.05em; line-height: 1.02; }
 .consulting-intro__directory-logo { display: block; width: min(100%, 18rem); height: auto; margin-top: 2rem; }
-.consulting-intro__copy > p { max-width: 39rem; margin: 0 0 1rem; color: #808291; line-height: 1.8; white-space: pre-line; }
+.consulting-intro__copy > p { max-width: 39rem; margin: 0 0 1rem; color: #808291; line-height: 1.8; }
 .consulting-text-link { display: inline-flex; gap: 0.65rem; align-items: center; margin-top: 1rem; padding-bottom: 0.2rem; color: #292d36; border-bottom: 2px solid #292d36; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.035em; text-decoration: none; text-transform: uppercase; }
 .consulting-text-link span { color: #dd6531; font-size: 1.2rem; transition: transform 300ms ease; }
 .consulting-text-link:hover span { transform: translateX(0.35rem); }

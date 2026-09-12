@@ -51,6 +51,7 @@ const title = `${leadingTitle} ${emphasizedTitle}`;
 	data-active={active ? '' : undefined}
 	data-slide-position={active ? 'active' : 'after'}
 	data-slide-title={title}
+	data-compact-title={index > 0 ? '' : undefined}
 >
 	<div class="home-hero-slide__cover">
 		<img
@@ -185,6 +186,13 @@ const title = `${leadingTitle} ${emphasizedTitle}`;
 		width: 1.875rem;
 		height: 1px;
 		background: var(--color-border);
+	}
+
+	.home-hero-slide[data-compact-title] .home-hero-slide__title {
+		width: min(84%, 60rem);
+		font-size: clamp(2.5rem, 8.5vw, 4.5rem);
+		letter-spacing: -0.1rem;
+		line-height: 1.02;
 	}
 
 	.home-hero-slide__action {
