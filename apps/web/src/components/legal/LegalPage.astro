@@ -3,31 +3,62 @@ import './legal-page.css';
 
 interface Props {
 	readonly title: string;
-	readonly placeholderLabel: string;
+	readonly eyebrow: string;
+	readonly intro: string;
 	readonly lastUpdated: string;
 	readonly sections: readonly {
 		readonly title: string;
-		readonly paragraph: string;
+		readonly paragraphs: readonly string[];
+		readonly items?: readonly string[];
+		readonly links?: readonly {
+			readonly label: string;
+			readonly href: string;
+			readonly external?: boolean;
+		}[];
 	}[];
 }
 
-const { title, placeholderLabel, lastUpdated, sections } = Astro.props;
+const { title, eyebrow, intro, lastUpdated, sections } = Astro.props;
 ---
 
 <section class="legal-page" aria-labelledby="legal-page-title">
 	<div class="legal-page__hero">
 		<div class="legal-page__container">
-			<p class="legal-page__eyebrow">{placeholderLabel}</p>
+			<p class="legal-page__eyebrow">{eyebrow}</p>
 			<h1 id="legal-page-title">{title}</h1>
+			<p class="legal-page__intro">{intro}</p>
 			<p class="legal-page__notice">{lastUpdated}</p>
 		</div>
 	</div>
 
 	<div class="legal-page__container legal-page__content">
-		{sections.map((section) => (
+		{sections.map((section, index) => (
 			<section>
-				<h2>{section.title}</h2>
-				<p>{section.paragraph}</p>
+				<div class="legal-page__heading">
+					<span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+					<h2>{section.title}</h2>
+				</div>
+				<div class="legal-page__body">
+					{section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+					{section.items && (
+						<ul>
+							{section.items.map((item) => <li>{item}</li>)}
+						</ul>
+					)}
+					{section.links && (
+						<div class="legal-page__links">
+							{section.links.map((link) => (
+								<a
+									href={link.href}
+									target={link.external ? '_blank' : undefined}
+									rel={link.external ? 'noreferrer' : undefined}
+								>
+									{link.label}<span aria-hidden="true">↗</span>
+								</a>
+							))}
+						</div>
+					)}
+				</div>
 			</section>
 		))}
 	</div>

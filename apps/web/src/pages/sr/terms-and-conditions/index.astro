@@ -7,6 +7,6 @@ const locale = 'sr';
 const content = getLegalPageContent(locale, 'terms');
 ---
 
-<BaseLayout title={content.title} description={content.metaDescription} locale={locale} robots="noindex,follow">
+<BaseLayout title={content.title} description={content.metaDescription} locale={locale}>
 	<main id="main-content"><LegalPage {...content} /></main>
 </BaseLayout>
