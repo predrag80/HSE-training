@@ -34,16 +34,17 @@ const {
 } = Astro.props;
 const title = course?.title || fallback.title;
 const description = course?.shortDescription || fallback.shortDescription;
+const eyebrow = course?.pageEyebrow || fallback.eyebrow;
 ---
 
-<OtherCoursesHero eyebrow={fallback.eyebrow} {title} image={course?.featuredImageUrl ?? heroImage} titleId="editorial-course-title" scrollLabel={contentLabel} compact />
+<OtherCoursesHero {eyebrow} {title} image={course?.featuredImageUrl ?? heroImage} titleId="editorial-course-title" scrollLabel={contentLabel} compact />
 
 <article class="editorial-course" id="course-content">
 	<div class="editorial-course__inner">
 		<a class="editorial-course__back" href={getAvailablePublicPath(backHref, locale)}>← {backLabel}</a>
 		<div class="editorial-course__layout">
 			<header data-other-courses-reveal="left">
-				<p>{fallback.eyebrow}</p>
+				<p>{eyebrow}</p>
 				<h2>{description}</h2>
 				<a class="editorial-course__cta" href={getAvailablePublicPath('/contact/', locale)}>{contactCta}</a>
 			</header>

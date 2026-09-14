@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { getCoursesLandingPage, getNeboshOverviewPage } from './course-pages';
+import { getCoursesLandingPage, getNeboshOverviewPage, getTrainingOverviewPage } from './course-pages';
 
 function jsonResponse(body: unknown): Response {
 	return new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -15,6 +15,10 @@ describe('Course page CMS client', () => {
 			content: {
 				meta: { title: 'Kursevi', description: 'Opis' },
 				hero: { eyebrow: 'Obuke', title: 'Kursevi', intro: 'Izaberite kurs.' },
+				groups: {
+					nebosh: { eyebrow: 'Kvalifikacije', title: 'NEBOSH kursevi', list_label: 'NEBOSH kursevi' },
+					training: { eyebrow: 'Razvoj', title: 'Obuke', list_label: 'Stručne obuke' },
+				},
 				empty_state: { title: 'Nema kurseva.', text: 'Pokušajte ponovo.' },
 			},
 		}));
@@ -24,6 +28,23 @@ describe('Course page CMS client', () => {
 		const url = new URL(String(fetchMock.mock.calls[0]?.[0]));
 		expect(url.pathname).toBe('/wp-json/hse/v1/course-pages/courses');
 		expect(url.searchParams.get('lang')).toBe('sr');
+	});
+
+	it('requests the Training overview in the selected language', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(jsonResponse({
+			schema_version: 1, page_key: 'training', locale: 'en',
+			content: {
+				meta: { title: 'Training', description: 'Professional training.' },
+				hero: { eyebrow: 'Practical development', title: 'Training', scroll_label: 'Scroll' },
+				selection: { eyebrow: 'Programmes', title: 'Choose your training', explore_cta_label: 'Explore course' },
+			},
+		}));
+		vi.stubGlobal('fetch', fetchMock);
+
+		await expect(getTrainingOverviewPage('en')).resolves.toMatchObject({ pageKey: 'training', hero: { title: 'Training' } });
+		const url = new URL(String(fetchMock.mock.calls[0]?.[0]));
+		expect(url.pathname).toBe('/wp-json/hse/v1/course-pages/training');
+		expect(url.searchParams.get('lang')).toBe('en');
 	});
 
 	it('requests the NEBOSH overview in the selected language', async () => {

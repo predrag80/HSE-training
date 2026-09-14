@@ -18,6 +18,7 @@ const publishedCourse = {
 		course_key: 'nebosh-igc',
 		short_description: 'Develop practical health and safety skills.',
 		visible_price: '€499',
+		page_eyebrow: 'International qualification',
 		homepage_label: 'Popular course',
 		homepage_cta_label: 'View course',
 		featured_on_homepage: true,
@@ -43,6 +44,7 @@ describe('mapWordPressCourse', () => {
 			descriptionHtml: '<p>Trusted CMS marketing content.</p>',
 			featuredImageUrl: 'https://cms.example.test/course.jpg',
 			visiblePrice: '€499',
+			pageEyebrow: 'International qualification',
 			homepageLabel: 'Popular course',
 			homepageCtaLabel: 'View course',
 			featuredOnHomepage: true,
@@ -87,6 +89,7 @@ describe('mapWordPressCourse', () => {
 					meta: {
 						short_description: publishedCourse.meta.short_description,
 						visible_price: publishedCourse.meta.visible_price,
+						page_eyebrow: publishedCourse.meta.page_eyebrow,
 						homepage_label: publishedCourse.meta.homepage_label,
 						homepage_cta_label: publishedCourse.meta.homepage_cta_label,
 						featured_on_homepage: publishedCourse.meta.featured_on_homepage,

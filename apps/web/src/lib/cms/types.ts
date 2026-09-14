@@ -10,6 +10,7 @@ interface WordPressCourseMetaDto {
 	readonly course_key: string;
 	readonly short_description: string;
 	readonly visible_price: string;
+	readonly page_eyebrow: string;
 	readonly homepage_label: string;
 	readonly homepage_cta_label: string;
 	readonly featured_on_homepage: boolean;

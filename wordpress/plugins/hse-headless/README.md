@@ -5,19 +5,19 @@ CMS integration.
 
 ## Current Status
 
-The plugin provides editor-managed Course content, an ordered Homepage Hero
+The plugin provides separately managed Course and Training content, an ordered Homepage Hero
 Slide collection, a canonical Company profile, and a Service collection shared
 by the Homepage and Consulting Page. Course promotions and client References
 also feed their Homepage sections from WordPress. WordPress theme rendering is
 disabled so the installation remains a CMS rather than a second public site.
-Homepage, Company, Hero Slide, Service, Course, Reference, and Legal Page content supports
+Homepage, Company, Hero Slide, Service, Course, Training, Reference, and Legal Page content supports
 explicit English and Serbian variants without a third-party translation plugin.
 
 ## Responsibilities
 
 - HSE-specific WordPress content models
-- Course metadata validation and admin editing
-- Locale-specific Courses landing and NEBOSH overview page settings
+- Separate Course and Training post types with shared metadata validation
+- Locale-specific Courses landing, NEBOSH overview, and Training overview page settings
 - Homepage Hero Slide publishing, ordering, and featured images
 - Company Page settings and shared About/Value content
 - Ordered Services with a Homepage-featured subset
@@ -53,6 +53,13 @@ Published Courses are available at:
 /wp-json/wp/v2/courses?lang=sr
 ```
 
+Published Trainings are managed under **Trainings** and available separately:
+
+```text
+/wp-json/wp/v2/trainings
+/wp-json/wp/v2/trainings?lang=sr
+```
+
 The full contract and lookup behavior are documented in
 [`docs/api/wordpress-courses.md`](../../../docs/api/wordpress-courses.md).
 
@@ -60,19 +67,23 @@ Run the focused local integration checks from the WordPress runtime:
 
 ```sh
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/integration.php
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/training-integration.php
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/course-promotion-integration.php
 ```
 
-Administrators edit the two Course index pages through **Courses → Course
-pages**, then select **Courses landing** or **NEBOSH overview** and an English
-or Serbian language tab. Astro continues to own their layout, imagery, routes,
-and animation. The public page documents are available at:
+Administrators edit Courses landing and NEBOSH overview through **Courses →
+Course pages**. Training overview is edited separately through **Trainings →
+Training page**. Both editors provide English and Serbian tabs. Astro continues
+to own their layout, imagery, routes, and animation. The public page documents
+are available at:
 
 ```text
 /wp-json/hse/v1/course-pages/courses?lang=en
 /wp-json/hse/v1/course-pages/courses?lang=sr
 /wp-json/hse/v1/course-pages/nebosh?lang=en
 /wp-json/hse/v1/course-pages/nebosh?lang=sr
+/wp-json/hse/v1/course-pages/training?lang=en
+/wp-json/hse/v1/course-pages/training?lang=sr
 ```
 
 ```sh

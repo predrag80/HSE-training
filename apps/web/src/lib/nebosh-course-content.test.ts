@@ -15,6 +15,7 @@ const serbianCourse: Course = {
 	descriptionHtml: '<p>Detalji kursa.</p>',
 	featuredImageUrl: null,
 	visiblePrice: 'Cena na upit',
+	pageEyebrow: null,
 	homepageLabel: 'NEBOSH kvalifikacija',
 	homepageCtaLabel: 'Pogledajte kurs',
 	featuredOnHomepage: true,

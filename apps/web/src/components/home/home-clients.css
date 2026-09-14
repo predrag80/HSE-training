@@ -47,46 +47,6 @@
 	text-align: center;
 }
 
-.home-clients__play {
-	position: relative;
-	display: inline-flex;
-	width: 7.875rem;
-	height: 7.875rem;
-	flex: 0 0 auto;
-	align-items: center;
-	justify-content: center;
-	padding: 0;
-	margin: 0 0 2.8125rem;
-	cursor: pointer;
-	color: #fff;
-	background: transparent;
-	border: 0.1875rem solid rgb(255 255 255 / 30%);
-	border-radius: 50%;
-	transition: border-color 300ms ease, transform 300ms ease;
-}
-
-.home-clients__play svg {
-	width: 1.4375rem;
-	height: 1.4375rem;
-	margin-left: 0.25rem;
-	fill: currentColor;
-}
-
-.home-clients__play-ring {
-	position: absolute;
-	inset: -0.1875rem;
-	border: 0.1875rem solid rgb(255 255 255 / 35%);
-	border-radius: inherit;
-	animation: clients-sonar 2s infinite ease-out;
-}
-
-.home-clients__play:hover,
-.home-clients__play:focus-visible {
-	color: #fff;
-	border-color: rgb(255 255 255 / 70%);
-	transform: scale(1.05);
-}
-
 .home-clients__eyebrow,
 .home-clients h2 {
 	margin: 0;
@@ -111,36 +71,6 @@
 	text-shadow: 0 0 6.25rem rgb(0 0 0 / 90%);
 }
 
-.home-clients__dialog {
-	width: min(90vw, 62.5rem);
-	padding: 0;
-	background: #000;
-	border: 0;
-}
-
-.home-clients__dialog::backdrop { background: rgb(0 0 0 / 88%); }
-
-.home-clients__dialog-close {
-	position: absolute;
-	top: -2.75rem;
-	right: 0;
-	padding: 0;
-	cursor: pointer;
-	color: #fff;
-	font-size: 2rem;
-	line-height: 1;
-	background: transparent;
-	border: 0;
-}
-
-.home-clients__video-frame { aspect-ratio: 16 / 9; }
-.home-clients__video-frame iframe { width: 100%; height: 100%; border: 0; }
-
-@keyframes clients-sonar {
-	0% { opacity: 0.8; transform: scale(1); }
-	80%, 100% { opacity: 0; transform: scale(1.4); }
-}
-
 @media (max-width: 74.999rem) {
 	.home-clients { width: 100%; min-height: auto; transition: none; }
 	.home-clients__content { width: 60rem; }
@@ -161,7 +91,6 @@
 @media (max-width: 35.999rem) {
 	.home-clients { padding-block: 3.125rem; }
 	.home-clients__content { width: 100%; }
-	.home-clients__play { width: 6.25rem; height: 6.25rem; margin-bottom: 1.875rem; }
 	.home-clients__eyebrow { font-size: 0.875rem; }
 	.home-clients h2 { font-size: 3.28125rem; }
 	.home-clients__stage { padding-bottom: 1.828125rem; }
@@ -170,5 +99,4 @@
 @media (prefers-reduced-motion: reduce) {
 	.home-clients { width: 100%; transition: none; }
 	.home-clients__background { transform: none; }
-	.home-clients__play-ring { animation: none; }
 }

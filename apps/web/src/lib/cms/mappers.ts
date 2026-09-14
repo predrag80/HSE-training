@@ -67,6 +67,9 @@ function parseCourse(value: unknown, expectedLocale: Locale): WordPressCourseDto
 	if (typeof meta.visible_price !== 'string') {
 		return invalidCourse('meta.visible_price is required');
 	}
+	if (typeof meta.page_eyebrow !== 'string') {
+		return invalidCourse('meta.page_eyebrow is required');
+	}
 	if (typeof meta.homepage_label !== 'string') {
 		return invalidCourse('meta.homepage_label is required');
 	}
@@ -112,6 +115,7 @@ export function mapWordPressCourse(value: unknown, expectedLocale: Locale): Cour
 		descriptionHtml: course.content.rendered,
 		featuredImageUrl: getFeaturedImageUrl(course),
 		visiblePrice: course.meta.visible_price || null,
+		pageEyebrow: course.meta.page_eyebrow || null,
 		homepageLabel: course.meta.homepage_label,
 		homepageCtaLabel: course.meta.homepage_cta_label,
 		featuredOnHomepage: course.meta.featured_on_homepage,

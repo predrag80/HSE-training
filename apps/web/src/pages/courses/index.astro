@@ -1,12 +1,16 @@
 ---
 import CourseIndexPage from '../../components/course/CourseIndexPage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCoursesLandingPage, getHomepageCourses } from '../../lib/cms';
+import { getCoursesLandingPage, getHomepageCourses, getTrainingCourses } from '../../lib/cms';
 
 const locale = 'en';
-const [courses, content] = await Promise.all([getHomepageCourses(locale), getCoursesLandingPage(locale)]);
+const [courses, trainingCourses, content] = await Promise.all([
+	getHomepageCourses(locale),
+	getTrainingCourses(locale),
+	getCoursesLandingPage(locale),
+]);
 ---
 
 <BaseLayout title={content.meta.title} description={content.meta.description} locale={locale}>
-	<CourseIndexPage {courses} {locale} {content} />
+	<CourseIndexPage {courses} {trainingCourses} {locale} {content} />
 </BaseLayout>

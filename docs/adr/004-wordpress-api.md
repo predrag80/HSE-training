@@ -14,9 +14,11 @@ Astro needs published course and site content from WordPress without inheriting 
 
 ## Proposed Decision
 
-Use the core WordPress posts controller for Courses at
-`/wp-json/wp/v2/courses`. Register the required scalar metadata explicitly and
-add only the `course_key` collection filter that the core controller lacks.
+Use separate WordPress post types and core posts controllers for NEBOSH Courses
+and professional Trainings. Courses are exposed at `/wp-json/wp/v2/courses`;
+Trainings are exposed at `/wp-json/wp/v2/trainings`. Both types register the
+same required scalar marketing metadata and the `course_key` collection filter
+that the core controller lacks.
 
 Astro will validate and map the WordPress response at a CMS adapter boundary.
 Identify courses across systems with a stable `course_key`, never with a
@@ -31,6 +33,9 @@ WordPress post ID.
 ## Consequences
 
 - The API contract must explicitly map CMS content to `course_key`.
+- Editors can manage professional Trainings independently from NEBOSH Courses,
+  while `course_key` uniqueness remains enforced across both post types within
+  each locale.
 - Core WordPress status permissions continue to govern public and privileged
   reads.
 - The public contract retains WordPress's rendered title/content structure; an

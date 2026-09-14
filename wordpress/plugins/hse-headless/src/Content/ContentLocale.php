@@ -17,7 +17,7 @@ final class ContentLocale {
 
 	private const LOCKED_META_KEY = '_hse_locked_content_locale';
 	private const FIELD_NAME      = 'hse_content_locale';
-	private const POST_TYPES      = array( 'course', 'hero_slide', 'hse_service', 'hse_reference' );
+	private const POST_TYPES      = array( 'course', 'training', 'hero_slide', 'hse_service', 'hse_reference' );
 
 	/** Register metadata-boundary protections shared by localized post types. */
 	public static function register_hooks(): void {

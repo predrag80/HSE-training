@@ -4,6 +4,7 @@ import type { Course } from '../types/course';
 import {
 	getBespokeCoursePath,
 	getCoursePublicPath,
+	getNeboshCourseCardHref,
 	hasBespokeCoursePage,
 	NEBOSH_COURSE_KEYS,
 } from './course-routes';
@@ -30,6 +31,14 @@ describe('Course public routes', () => {
 		expect(getCoursePublicPath(course(NEBOSH_COURSE_KEYS.igc, 'ignored-slug'), 'sr')).toBe(
 			'/sr/nebosh-international-general-certificate-in-occupational-health-and-safety/',
 		);
+	});
+
+	it('routes only the IGC card to its course and other NEBOSH cards to Contact', () => {
+		expect(getNeboshCourseCardHref(course(NEBOSH_COURSE_KEYS.igc, 'ignored-slug'))).toBe(
+			'/nebosh-international-general-certificate-in-occupational-health-and-safety/',
+		);
+		expect(getNeboshCourseCardHref(course(NEBOSH_COURSE_KEYS.eaw, 'ignored-slug'))).toBe('/contact/');
+		expect(getNeboshCourseCardHref(course(NEBOSH_COURSE_KEYS.iogc, 'ignored-slug'), 'sr')).toBe('/sr/contact/');
 	});
 
 	it('uses the generic dynamic route for courses without a bespoke page', () => {

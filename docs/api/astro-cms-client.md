@@ -26,11 +26,15 @@ HTTP or HTTPS scheme. The value is not imported into browser code.
 
 ```ts
 getCourses(locale?: Locale): Promise<Course[]>
+getTrainings(locale?: Locale): Promise<Course[]>
 getCourseBySlug(slug: string, locale?: Locale): Promise<Course | null>
 getCourseByKey(courseKey: string, locale?: Locale): Promise<Course | null>
 getHomepageCourses(locale?: Locale): Promise<Course[]>
+getTrainingCourses(locale?: Locale): Promise<Course[]>
+getTrainingCourseByKey(courseKey: TrainingCourseKey, locale?: Locale): Promise<Course>
 getCoursesLandingPage(locale?: Locale): Promise<CoursesLandingPageContent>
 getNeboshOverviewPage(locale?: Locale): Promise<NeboshOverviewPageContent>
+getTrainingOverviewPage(locale?: Locale): Promise<TrainingOverviewPageContent>
 getHomepage(locale?: Locale): Promise<Homepage>
 getCompanyPage(locale?: Locale): Promise<CompanyPageContent>
 getServices(locale?: Locale): Promise<ServiceCollection>
@@ -39,7 +43,8 @@ getHomepageReferences(locale?: Locale): Promise<readonly Reference[]>
 getLegalPage(pageKey: LegalPageKey, locale?: Locale): Promise<LegalPageContent>
 ```
 
-`getCourses()` returns published Courses in newest-first WordPress date order.
+`getCourses()` returns published NEBOSH Courses and `getTrainings()` returns
+published Trainings in newest-first WordPress date order.
 The current request asks WordPress for up to 100 records, which supports the
 planned multi-course model without adding pagination machinery before it is
 needed.
@@ -68,7 +73,13 @@ and rejects cross-language responses. Layout, component selection,
 section order, and animation remain in Astro rather than entering the CMS
 contract.
 
-`getCoursesLandingPage()` and `getNeboshOverviewPage()` consume the fixed Course
+`getTrainingCourses()` reads the separate Training CPT and requires its three
+localized records in their fixed public order. `getTrainingCourseByKey()`
+requires one complete Training record; neither function silently substitutes
+code copy when CMS content is missing.
+
+`getCoursesLandingPage()`, `getNeboshOverviewPage()`, and
+`getTrainingOverviewPage()` consume the fixed Course
 page documents. Astro uses their editorial copy and metadata while retaining
 complete ownership of component structure, images, routes, and motion.
 
@@ -92,6 +103,7 @@ interface Course {
   readonly descriptionHtml: string;
   readonly featuredImageUrl: string | null;
   readonly visiblePrice: string | null;
+  readonly pageEyebrow: string | null;
   readonly homepageLabel: string;
   readonly homepageCtaLabel: string;
   readonly featuredOnHomepage: boolean;
@@ -105,10 +117,11 @@ route input only, and WordPress post IDs do not enter the application model.
 
 ## WordPress requests
 
-All functions consume the core collection endpoint:
+Course and Training functions consume separate core collection endpoints:
 
 ```text
 GET /wp-json/wp/v2/courses
+GET /wp-json/wp/v2/trainings
 ```
 
 The client adds `_fields` to limit the response, and
@@ -140,6 +153,7 @@ Course page content uses:
 ```text
 GET /wp-json/hse/v1/course-pages/courses?lang=<locale>
 GET /wp-json/hse/v1/course-pages/nebosh?lang=<locale>
+GET /wp-json/hse/v1/course-pages/training?lang=<locale>
 ```
 
 Consulting Service content uses:

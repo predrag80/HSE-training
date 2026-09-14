@@ -15,9 +15,36 @@ export interface CoursesLandingPageContent {
 		readonly title: string;
 		readonly intro: string;
 	};
+	readonly groups: {
+		readonly nebosh: CourseGroupHeading;
+		readonly training: CourseGroupHeading;
+	};
 	readonly emptyState: {
 		readonly title: string;
 		readonly text: string;
+	};
+}
+
+export interface CourseGroupHeading {
+	readonly eyebrow: string;
+	readonly title: string;
+	readonly listLabel: string;
+}
+
+export interface TrainingOverviewPageContent {
+	readonly schemaVersion: 1;
+	readonly pageKey: 'training';
+	readonly locale: Locale;
+	readonly meta: CoursePageMeta;
+	readonly hero: {
+		readonly eyebrow: string;
+		readonly title: string;
+		readonly scrollLabel: string;
+	};
+	readonly selection: {
+		readonly eyebrow: string;
+		readonly title: string;
+		readonly exploreCtaLabel: string;
 	};
 }
 

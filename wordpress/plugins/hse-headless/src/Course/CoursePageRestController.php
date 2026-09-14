@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 
 final class CoursePageRestController {
 	public const REST_NAMESPACE = 'hse/v1';
-	public const REST_ROUTE     = '/course-pages/(?P<page_key>courses|nebosh)';
+	public const REST_ROUTE     = '/course-pages/(?P<page_key>courses|nebosh|training)';
 
 	public static function register_hooks(): void {
 		add_action( 'rest_api_init', array( self::class, 'register_route' ) );

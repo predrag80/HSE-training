@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { getCourseByKey, getCourseBySlug, getCourses, getHomepageCourses } from './courses';
+import { getCourseByKey, getCourseBySlug, getCourses, getHomepageCourses, getTrainingCourseByKey, getTrainingCourses } from './courses';
 
 const rawCourse = {
 	locale: 'en',
@@ -13,11 +13,30 @@ const rawCourse = {
 		course_key: 'nebosh-igc',
 		short_description: 'Course summary.',
 		visible_price: '€499',
+		page_eyebrow: 'International qualification',
 		homepage_label: 'Popular course',
 		homepage_cta_label: 'View course',
 		featured_on_homepage: true,
 	},
 };
+
+function trainingCourse(courseKey: 'custom-training-design' | 'banksman-slinger' | 'train-the-trainer') {
+	return {
+		...rawCourse,
+		slug: courseKey,
+		featured_media: 42,
+		meta: {
+			...rawCourse.meta,
+			course_key: courseKey,
+			visible_price: 'Price on request',
+			page_eyebrow: 'Professional training',
+			featured_on_homepage: false,
+		},
+		_embedded: {
+			'wp:featuredmedia': [{ source_url: `https://cms.example.test/${courseKey}.webp`, alt_text: `${courseKey} image` }],
+		},
+	};
+}
 
 function jsonResponse(body: unknown, status = 200): Response {
 	return new Response(JSON.stringify(body), {
@@ -167,7 +186,7 @@ describe('getHomepageCourses', () => {
 			expect.arrayContaining([
 				expect.objectContaining({
 					courseKey: 'nebosh-eaw',
-					homepageCtaLabel: 'View course',
+					homepageCtaLabel: 'Contact us',
 					homepageLabel: 'NEBOSH qualification',
 					visiblePrice: 'Price on request',
 				}),
@@ -183,9 +202,48 @@ describe('getHomepageCourses', () => {
 				expect.objectContaining({
 					courseKey: 'nebosh-iogc',
 					title: 'NEBOSH International Oil & Gas Certificate',
+					homepageCtaLabel: 'Contact us',
 				}),
 			]),
 		);
+	});
+});
+
+describe('getTrainingCourses', () => {
+	const trainingCourses = [
+		trainingCourse('custom-training-design'),
+		trainingCourse('banksman-slinger'),
+		trainingCourse('train-the-trainer'),
+	];
+
+	it('returns all Training Courses in the fixed presentation order', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(jsonResponse([...trainingCourses].reverse()));
+		vi.stubGlobal('fetch', fetchMock);
+
+		await expect(getTrainingCourses()).resolves.toEqual(
+			['custom-training-design', 'banksman-slinger', 'train-the-trainer'].map((courseKey) =>
+				expect.objectContaining({ courseKey, featuredImageUrl: `https://cms.example.test/${courseKey}.webp` }),
+			),
+		);
+		expect(new URL(String(fetchMock.mock.calls[0]?.[0])).pathname).toBe('/wp-json/wp/v2/trainings');
+	});
+
+	it('rejects a missing required Training Course', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(trainingCourses.slice(0, 2))));
+
+		await expect(getTrainingCourses()).rejects.toMatchObject({ code: 'invalid-response' });
+	});
+
+	it('returns one complete Training Course by stable key', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(jsonResponse([trainingCourses[1]]));
+		vi.stubGlobal('fetch', fetchMock);
+
+		await expect(getTrainingCourseByKey('banksman-slinger')).resolves.toMatchObject({
+			courseKey: 'banksman-slinger', pageEyebrow: 'Professional training',
+		});
+		const url = new URL(String(fetchMock.mock.calls[0]?.[0]));
+		expect(url.pathname).toBe('/wp-json/wp/v2/trainings');
+		expect(url.searchParams.get('course_key')).toBe('banksman-slinger');
 	});
 });
 

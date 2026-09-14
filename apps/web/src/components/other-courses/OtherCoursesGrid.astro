@@ -1,32 +1,33 @@
 ---
 import './other-courses.css';
 import type { Locale } from '../../i18n/config';
-import { getOtherCoursesUiTranslations } from '../../i18n/other-courses-ui';
-import { getAvailablePublicPath } from '../../i18n/routes';
+import type { Course } from '../../types/course';
+import { getCoursePublicPath } from '../../lib/course-routes';
 
 interface Props {
 	readonly locale: Locale;
+	readonly courses: readonly Course[];
+	readonly exploreCtaLabel: string;
 	readonly animated?: boolean;
 }
 
-const { locale, animated = false } = Astro.props;
-const copy = getOtherCoursesUiTranslations(locale);
+const { locale, courses, exploreCtaLabel, animated = false } = Astro.props;
 ---
 
 <div class="other-courses-selector__grid">
-	{copy.overview.courses.map((course) => (
+	{courses.map((course) => (
 		<a
 			class="other-course-card"
-			href={getAvailablePublicPath(course.href, locale)}
+			href={getCoursePublicPath(course, locale)}
 			data-other-courses-reveal={animated ? 'up' : undefined}
 		>
-			<img src={course.image} width="900" height="800" alt="" loading="lazy" decoding="async" />
+			<img src={course.featuredImageUrl ?? ''} width="900" height="800" alt="" loading="lazy" decoding="async" />
 			<div class="other-course-card__shade" aria-hidden="true"></div>
 			<div class="other-course-card__content">
-				<span>{course.details}</span>
+				<span>{course.homepageLabel}</span>
 				<h3>{course.title}</h3>
-				<p>{course.text}</p>
-				<strong>{copy.overview.exploreCta} <i aria-hidden="true">→</i></strong>
+				<p>{course.shortDescription}</p>
+				<strong>{course.homepageCtaLabel || exploreCtaLabel} <i aria-hidden="true">→</i></strong>
 			</div>
 		</a>
 	))}

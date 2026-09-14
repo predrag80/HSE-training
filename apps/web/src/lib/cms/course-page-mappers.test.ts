@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { mapWordPressCoursesLandingPage, mapWordPressNeboshOverviewPage } from './course-page-mappers';
+import { mapWordPressCoursesLandingPage, mapWordPressNeboshOverviewPage, mapWordPressTrainingOverviewPage } from './course-page-mappers';
 
 const coursesDocument = {
 	schema_version: 1,
@@ -9,7 +9,22 @@ const coursesDocument = {
 	content: {
 		meta: { title: 'Courses | HSE Training', description: 'Available courses.' },
 		hero: { eyebrow: 'Training', title: 'Courses', intro: 'Choose a course.' },
+		groups: {
+			nebosh: { eyebrow: 'Qualifications', title: 'NEBOSH courses', list_label: 'NEBOSH courses' },
+			training: { eyebrow: 'Development', title: 'Training', list_label: 'Professional training' },
+		},
 		empty_state: { title: 'No courses.', text: 'Please check again.' },
+	},
+};
+
+const trainingDocument = {
+	schema_version: 1,
+	page_key: 'training',
+	locale: 'en',
+	content: {
+		meta: { title: 'Training | HSE Training', description: 'Professional training.' },
+		hero: { eyebrow: 'Practical development', title: 'Training', scroll_label: 'Scroll' },
+		selection: { eyebrow: 'Training programmes', title: 'Choose your training', explore_cta_label: 'Explore course' },
 	},
 };
 
@@ -44,6 +59,12 @@ describe('Course page CMS mappers', () => {
 		expect(mapWordPressNeboshOverviewPage(neboshDocument, 'sr')).toMatchObject({
 			pageKey: 'nebosh', locale: 'sr', intro: { title: 'Bezbedniji rad' },
 			courseSelection: { currentLabel: 'Aktuelno' }, testimonial: { author: 'Autor' },
+		});
+	});
+
+	it('maps a locale-specific Training overview document', () => {
+		expect(mapWordPressTrainingOverviewPage(trainingDocument, 'en')).toMatchObject({
+			pageKey: 'training', locale: 'en', hero: { title: 'Training' }, selection: { exploreCtaLabel: 'Explore course' },
 		});
 	});
 

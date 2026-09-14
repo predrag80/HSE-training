@@ -4,22 +4,26 @@ import OtherCoursesHero from './OtherCoursesHero.astro';
 import OtherCoursesGrid from './OtherCoursesGrid.astro';
 import OtherCoursesMotion from './OtherCoursesMotion.astro';
 import type { Locale } from '../../i18n/config';
-import { getOtherCoursesUiTranslations } from '../../i18n/other-courses-ui';
+import type { Course } from '../../types/course';
+import type { TrainingOverviewPageContent } from '../../types/course-page';
 
-interface Props { readonly locale: Locale; }
-const { locale } = Astro.props;
-const copy = getOtherCoursesUiTranslations(locale);
+interface Props {
+	readonly locale: Locale;
+	readonly courses: readonly Course[];
+	readonly content: TrainingOverviewPageContent;
+}
+const { locale, courses, content } = Astro.props;
 ---
 
-<OtherCoursesHero eyebrow={copy.overview.heroEyebrow} title={copy.overview.heroTitle} image="/images/consulting-hero-03.webp" titleId="other-courses-title" scrollLabel={copy.common.heroScroll} />
+<OtherCoursesHero eyebrow={content.hero.eyebrow} title={content.hero.title} image="/images/consulting-hero-03.webp" titleId="other-courses-title" scrollLabel={content.hero.scrollLabel} />
 
 <section class="other-courses-selector" id="course-content" aria-labelledby="other-courses-selector-title">
 	<div class="other-courses-container">
 		<header class="other-courses-heading" data-other-courses-reveal="up">
-			<p>{copy.overview.selectorEyebrow}</p>
-			<h2 id="other-courses-selector-title">{copy.overview.selectorTitle}</h2>
+			<p>{content.selection.eyebrow}</p>
+			<h2 id="other-courses-selector-title">{content.selection.title}</h2>
 		</header>
-		<OtherCoursesGrid {locale} animated />
+		<OtherCoursesGrid {locale} {courses} exploreCtaLabel={content.selection.exploreCtaLabel} animated />
 	</div>
 </section>
 

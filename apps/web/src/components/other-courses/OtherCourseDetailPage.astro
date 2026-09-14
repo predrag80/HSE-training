@@ -25,6 +25,7 @@ interface Props {
 	introKicker: string;
 	introTitle: string;
 	intro: readonly string[];
+	introHtml?: string;
 	facts: readonly Fact[];
 	outcomesTitle: string;
 	outcomesIntro: string;
@@ -43,6 +44,7 @@ const {
 	introKicker,
 	introTitle,
 	intro,
+	introHtml = '',
 	facts,
 	outcomesTitle,
 	outcomesIntro,
@@ -69,7 +71,7 @@ const common = getOtherCoursesUiTranslations(locale).common;
 		<div class="other-course-intro__copy" data-other-courses-reveal="right">
 			<p class="other-courses-kicker">{introKicker}</p>
 			<h2>{introTitle}</h2>
-			{intro.map((paragraph) => <p>{paragraph}</p>)}
+			{introHtml ? <Fragment set:html={introHtml} /> : intro.map((paragraph) => <p>{paragraph}</p>)}
 			<a class="other-courses-button" href={getAvailablePublicPath('/contact/', locale)}>{common.enquire}</a>
 		</div>
 	</div>

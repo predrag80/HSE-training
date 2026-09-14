@@ -13,6 +13,8 @@ const courseTranslations = {
 		card: {
 			eyebrow: 'HSE course',
 			view: 'View course',
+			addToBasket: 'Add to basket',
+			contactUs: 'Contact us',
 			imageAltPrefix: 'Course image for',
 		},
 		generic: {
@@ -117,6 +119,8 @@ const courseTranslations = {
 		card: {
 			eyebrow: 'HSE kurs',
 			view: 'Pogledajte kurs',
+			addToBasket: 'Dodaj u korpu',
+			contactUs: 'Kontaktirajte nas',
 			imageAltPrefix: 'Slika kursa',
 		},
 		generic: {

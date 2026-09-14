@@ -2,13 +2,14 @@
 import EditorialCoursePage from '../../../components/course/EditorialCoursePage.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { getEditorialCourseUi } from '../../../i18n/editorial-course-ui';
-import { getCourseByKey } from '../../../lib/cms';
+import { getTrainingCourseByKey } from '../../../lib/cms';
+import { TRAINING_COURSE_KEYS } from '../../../lib/course-routes';
 
 const locale = 'en';
 const copy = getEditorialCourseUi(locale);
-const course = await getCourseByKey(copy.custom.courseKey, locale);
+const course = await getTrainingCourseByKey(TRAINING_COURSE_KEYS.custom, locale);
 ---
 
-<BaseLayout title={`${course?.title ?? copy.custom.title} | HSE Training`} description={course?.shortDescription ?? copy.custom.metaDescription} locale={locale}>
+<BaseLayout title={`${course.title} | HSE Training`} description={course.shortDescription} locale={locale}>
 	<main id="main-content"><EditorialCoursePage {course} fallback={copy.custom} {locale} backHref="/training/" backLabel={copy.backToTraining} contentLabel={copy.contentLabel} contactCta={copy.contactCta} heroImage="/images/consulting-service-01.webp" videoSection={copy.custom.video} /></main>
 </BaseLayout>

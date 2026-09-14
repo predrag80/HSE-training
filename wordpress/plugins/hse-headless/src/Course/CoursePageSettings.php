@@ -14,9 +14,10 @@ defined( 'ABSPATH' ) || exit;
 /** Owns bounded, locale-specific content while Astro owns presentation. */
 final class CoursePageSettings {
 	public const OPTION_PREFIX = 'hse_course_page';
-	public const PAGE_KEYS     = array( 'courses', 'nebosh' );
+	public const PAGE_KEYS     = array( 'courses', 'nebosh', 'training' );
 
 	private const PAGE_SLUG      = 'hse-course-pages';
+	private const TRAINING_PAGE_SLUG = 'hse-training-page';
 	private const SETTINGS_GROUP = 'hse_course_page_settings';
 	private const MAX_TITLE      = 180;
 	private const MAX_LABEL      = 180;
@@ -40,6 +41,14 @@ final class CoursePageSettings {
 			'manage_options',
 			self::PAGE_SLUG,
 			array( self::class, 'render_admin_page' )
+		);
+		add_submenu_page(
+			'edit.php?post_type=training',
+			__( 'Training page', 'hse-headless' ),
+			__( 'Training page', 'hse-headless' ),
+			'manage_options',
+			self::TRAINING_PAGE_SLUG,
+			array( self::class, 'render_training_admin_page' )
 		);
 	}
 
@@ -117,7 +126,13 @@ final class CoursePageSettings {
 			}
 		}
 
-		$content = 'courses' === $page_key ? self::courses_document( $settings ) : self::nebosh_document( $settings );
+		if ( 'courses' === $page_key ) {
+			$content = self::courses_document( $settings );
+		} elseif ( 'training' === $page_key ) {
+			$content = self::training_document( $settings );
+		} else {
+			$content = self::nebosh_document( $settings );
+		}
 
 		return array(
 			'schema_version' => 1,
@@ -129,22 +144,32 @@ final class CoursePageSettings {
 
 	/** Render page and language tabs plus the bounded form. */
 	public static function render_admin_page(): void {
+		self::render_editor( array( 'courses', 'nebosh' ), 'courses' );
+	}
+
+	/** Render the separate Training overview editor below the Trainings CPT. */
+	public static function render_training_admin_page(): void {
+		self::render_editor( array( 'training' ), 'training' );
+	}
+
+	/** Render one bounded family of Course page settings. */
+	private static function render_editor( $supported_pages, $default_page ): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
-		$page_key = isset( $_GET['content_page'] ) ? self::sanitize_page_key( wp_unslash( $_GET['content_page'] ) ) : 'courses';
-		$page_key = $page_key ?: 'courses';
+		$page_key = isset( $_GET['content_page'] ) ? self::sanitize_page_key( wp_unslash( $_GET['content_page'] ) ) : $default_page;
+		$page_key = in_array( $page_key, $supported_pages, true ) ? $page_key : $default_page;
 		$locale   = isset( $_GET['lang'] ) ? ContentLocale::sanitize( wp_unslash( $_GET['lang'] ) ) : ContentLocale::DEFAULT_LOCALE;
 		$locale   = $locale ?: ContentLocale::DEFAULT_LOCALE;
 		$settings = self::get_settings( $page_key, $locale );
 		self::$active_option_name = self::option_name( $page_key, $locale );
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Course pages', 'hse-headless' ); ?></h1>
+			<h1><?php echo esc_html( 'training' === $page_key ? __( 'Training page', 'hse-headless' ) : __( 'Course pages', 'hse-headless' ) ); ?></h1>
 			<p><?php esc_html_e( 'Edit page copy here. Layout, imagery, routes, and animation remain controlled by Astro.', 'hse-headless' ); ?></p>
 			<nav class="nav-tab-wrapper" aria-label="<?php esc_attr_e( 'Course page', 'hse-headless' ); ?>">
-				<?php foreach ( self::PAGE_KEYS as $supported_page ) : ?>
+				<?php foreach ( $supported_pages as $supported_page ) : ?>
 					<a class="nav-tab <?php echo $page_key === $supported_page ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( self::admin_url( $supported_page, $locale ) ); ?>"><?php echo esc_html( self::page_label( $supported_page ) ); ?></a>
 				<?php endforeach; ?>
 			</nav>
@@ -188,8 +213,25 @@ final class CoursePageSettings {
 				'hero_eyebrow' => array( 'label' => __( 'Eyebrow', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_LABEL ),
 				'hero_title'    => array( 'label' => __( 'Page title', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_TITLE ),
 				'hero_intro'    => array( 'label' => __( 'Intro', 'hse-headless' ), 'type' => 'textarea', 'max' => self::MAX_TEXT ),
+				'nebosh_eyebrow' => array( 'label' => __( 'NEBOSH section eyebrow', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_LABEL ),
+				'nebosh_title' => array( 'label' => __( 'NEBOSH section title', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_TITLE ),
+				'nebosh_list_label' => array( 'label' => __( 'NEBOSH list accessibility label', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_LABEL ),
+				'training_eyebrow' => array( 'label' => __( 'Training section eyebrow', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_LABEL ),
+				'training_title' => array( 'label' => __( 'Training section title', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_TITLE ),
+				'training_list_label' => array( 'label' => __( 'Training list accessibility label', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_LABEL ),
 				'empty_title'   => array( 'label' => __( 'Empty state title', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_TITLE ),
 				'empty_text'    => array( 'label' => __( 'Empty state text', 'hse-headless' ), 'type' => 'textarea', 'max' => self::MAX_TEXT ),
+			);
+		}
+
+		if ( 'training' === $page_key ) {
+			return $common + array(
+				'hero_eyebrow' => array( 'label' => __( 'Hero eyebrow', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_LABEL ),
+				'hero_title' => array( 'label' => __( 'Hero title', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_TITLE ),
+				'hero_scroll_label' => array( 'label' => __( 'Hero scroll accessibility label', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_LABEL ),
+				'selector_eyebrow' => array( 'label' => __( 'Training selection eyebrow', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_LABEL ),
+				'selector_title' => array( 'label' => __( 'Training selection title', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_TITLE ),
+				'explore_cta_label' => array( 'label' => __( 'Course card CTA label', 'hse-headless' ), 'type' => 'text', 'max' => self::MAX_LABEL ),
 			);
 		}
 
@@ -240,7 +282,28 @@ final class CoursePageSettings {
 		return array(
 			'meta' => array( 'title' => $settings['meta_title'], 'description' => $settings['meta_description'] ),
 			'hero' => array( 'eyebrow' => $settings['hero_eyebrow'], 'title' => $settings['hero_title'], 'intro' => $settings['hero_intro'] ),
+			'groups' => array(
+				'nebosh' => array( 'eyebrow' => $settings['nebosh_eyebrow'], 'title' => $settings['nebosh_title'], 'list_label' => $settings['nebosh_list_label'] ),
+				'training' => array( 'eyebrow' => $settings['training_eyebrow'], 'title' => $settings['training_title'], 'list_label' => $settings['training_list_label'] ),
+			),
 			'empty_state' => array( 'title' => $settings['empty_title'], 'text' => $settings['empty_text'] ),
+		);
+	}
+
+	/** Map flat storage to the Training overview contract. */
+	private static function training_document( $settings ): array {
+		return array(
+			'meta' => array( 'title' => $settings['meta_title'], 'description' => $settings['meta_description'] ),
+			'hero' => array(
+				'eyebrow' => $settings['hero_eyebrow'],
+				'title' => $settings['hero_title'],
+				'scroll_label' => $settings['hero_scroll_label'],
+			),
+			'selection' => array(
+				'eyebrow' => $settings['selector_eyebrow'],
+				'title' => $settings['selector_title'],
+				'explore_cta_label' => $settings['explore_cta_label'],
+			),
 		);
 	}
 
@@ -286,14 +349,23 @@ final class CoursePageSettings {
 	/** Build a safe editor URL. */
 	private static function admin_url( $page_key, $locale ): string {
 		return add_query_arg(
-			array( 'post_type' => 'course', 'page' => self::PAGE_SLUG, 'content_page' => $page_key, 'lang' => $locale ),
+			array(
+				'post_type'    => 'training' === $page_key ? 'training' : 'course',
+				'page'         => 'training' === $page_key ? self::TRAINING_PAGE_SLUG : self::PAGE_SLUG,
+				'content_page' => $page_key,
+				'lang'         => $locale,
+			),
 			admin_url( 'edit.php' )
 		);
 	}
 
 	/** Return a human-readable page label. */
 	private static function page_label( $page_key ): string {
-		return 'nebosh' === $page_key ? __( 'NEBOSH overview', 'hse-headless' ) : __( 'Courses landing', 'hse-headless' );
+		if ( 'nebosh' === $page_key ) {
+			return __( 'NEBOSH overview', 'hse-headless' );
+		}
+
+		return 'training' === $page_key ? __( 'Training overview', 'hse-headless' ) : __( 'Courses landing', 'hse-headless' );
 	}
 
 	/** Bound one UTF-8 string. */

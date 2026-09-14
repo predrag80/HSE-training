@@ -8,6 +8,7 @@
 namespace HSETraining\Headless\Course;
 
 use HSETraining\Headless\Content\ContentLocale;
+use HSETraining\Headless\Training\TrainingPostType;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,8 +29,10 @@ final class CoursePromotionMeta {
 	/** Register WordPress hooks. */
 	public static function register_hooks(): void {
 		add_action( 'init', array( self::class, 'register_meta' ) );
-		add_action( 'add_meta_boxes_course', array( self::class, 'register_meta_box' ) );
-		add_action( 'save_post_course', array( self::class, 'save_meta_box' ), 20, 2 );
+		foreach ( array( CoursePostType::POST_TYPE, TrainingPostType::POST_TYPE ) as $post_type ) {
+			add_action( 'add_meta_boxes_' . $post_type, array( self::class, 'register_meta_box' ) );
+			add_action( 'save_post_' . $post_type, array( self::class, 'save_meta_box' ), 20, 2 );
+		}
 		add_filter( 'wp_insert_post_data', array( self::class, 'validate_publish' ), 20, 4 );
 		add_filter( 'rest_pre_insert_course', array( self::class, 'validate_rest_write' ), 20, 2 );
 		add_filter( 'rest_course_collection_params', array( self::class, 'register_collection_params' ) );
@@ -40,38 +43,41 @@ final class CoursePromotionMeta {
 
 	/** Register the public promotion metadata. */
 	public static function register_meta(): void {
-		foreach ( array( self::HOMEPAGE_LABEL, self::HOMEPAGE_CTA_LABEL ) as $meta_key ) {
+		foreach ( array( CoursePostType::POST_TYPE, TrainingPostType::POST_TYPE ) as $post_type ) {
+			foreach ( array( self::HOMEPAGE_LABEL, self::HOMEPAGE_CTA_LABEL ) as $meta_key ) {
+				register_post_meta(
+					$post_type,
+					$meta_key,
+					array(
+						'type'              => 'string',
+						'single'            => true,
+						'sanitize_callback' => array( self::class, 'sanitize_label' ),
+						'auth_callback'     => array( CourseMeta::class, 'can_edit_meta' ),
+						'revisions_enabled' => true,
+						'show_in_rest'      => array(
+							'schema' => array(
+								'type'      => 'string',
+								'maxLength' => self::MAX_LABEL_LENGTH,
+							),
+						),
+					)
+				);
+			}
+
 			register_post_meta(
-				CoursePostType::POST_TYPE,
-				$meta_key,
+				$post_type,
+				self::FEATURED_ON_HOMEPAGE,
 				array(
-					'type'              => 'string',
+					'type'              => 'boolean',
 					'single'            => true,
-					'sanitize_callback' => array( self::class, 'sanitize_label' ),
+					'default'           => false,
+					'sanitize_callback' => array( self::class, 'sanitize_boolean' ),
 					'auth_callback'     => array( CourseMeta::class, 'can_edit_meta' ),
 					'revisions_enabled' => true,
-					'show_in_rest'      => array(
-						'schema' => array(
-							'type'      => 'string',
-							'maxLength' => self::MAX_LABEL_LENGTH,
-						),
-					),
+					'show_in_rest'      => true,
 				)
 			);
 		}
-
-		register_post_meta(
-			CoursePostType::POST_TYPE,
-			self::FEATURED_ON_HOMEPAGE,
-			array(
-				'type'              => 'boolean',
-				'single'            => true,
-				'sanitize_callback' => array( self::class, 'sanitize_boolean' ),
-				'auth_callback'     => array( CourseMeta::class, 'can_edit_meta' ),
-				'revisions_enabled' => true,
-				'show_in_rest'      => true,
-			)
-		);
 	}
 
 	/** Sanitize a card label or CTA label. */
@@ -90,12 +96,13 @@ final class CoursePromotionMeta {
 	}
 
 	/** Register the Homepage promotion editor. */
-	public static function register_meta_box(): void {
+	public static function register_meta_box( $post ): void {
+		$post_type = $post instanceof \WP_Post ? $post->post_type : CoursePostType::POST_TYPE;
 		add_meta_box(
 			'hse-course-homepage-promotion',
-			__( 'Homepage promotion', 'hse-headless' ),
+			TrainingPostType::POST_TYPE === $post_type ? __( 'Training card', 'hse-headless' ) : __( 'Course card and Homepage promotion', 'hse-headless' ),
 			array( self::class, 'render_meta_box' ),
-			CoursePostType::POST_TYPE,
+			$post_type,
 			'normal',
 			'default'
 		);
@@ -105,19 +112,24 @@ final class CoursePromotionMeta {
 	public static function render_meta_box( $post ): void {
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME );
 		$featured = (bool) get_post_meta( $post->ID, self::FEATURED_ON_HOMEPAGE, true );
+		$is_training = TrainingPostType::POST_TYPE === $post->post_type;
 		?>
 		<p>
 			<label for="hse-course-homepage-label"><strong><?php esc_html_e( 'Card label', 'hse-headless' ); ?></strong></label><br>
 			<input class="widefat" id="hse-course-homepage-label" maxlength="120" name="hse_<?php echo esc_attr( self::HOMEPAGE_LABEL ); ?>" type="text" value="<?php echo esc_attr( get_post_meta( $post->ID, self::HOMEPAGE_LABEL, true ) ); ?>">
 		</p>
 		<p>
-			<label for="hse-course-homepage-cta"><strong><?php esc_html_e( 'CTA label', 'hse-headless' ); ?></strong></label><br>
+			<label for="hse-course-homepage-cta"><strong><?php esc_html_e( 'Card CTA label', 'hse-headless' ); ?></strong></label><br>
 			<input class="widefat" id="hse-course-homepage-cta" maxlength="120" name="hse_<?php echo esc_attr( self::HOMEPAGE_CTA_LABEL ); ?>" type="text" value="<?php echo esc_attr( get_post_meta( $post->ID, self::HOMEPAGE_CTA_LABEL, true ) ); ?>">
 		</p>
-		<p>
-			<label><input name="hse_<?php echo esc_attr( self::FEATURED_ON_HOMEPAGE ); ?>" type="checkbox" value="1" <?php checked( $featured ); ?>> <?php esc_html_e( 'Show this Course on the Homepage', 'hse-headless' ); ?></label>
-		</p>
-		<p class="description"><?php esc_html_e( 'A promoted Course also requires a short description, visible price, Featured image, and Page Attributes → Order. At most three published Courses may be promoted.', 'hse-headless' ); ?></p>
+		<?php if ( ! $is_training ) : ?>
+			<p>
+				<label><input name="hse_<?php echo esc_attr( self::FEATURED_ON_HOMEPAGE ); ?>" type="checkbox" value="1" <?php checked( $featured ); ?>> <?php esc_html_e( 'Show this Course on the Homepage', 'hse-headless' ); ?></label>
+			</p>
+			<p class="description"><?php esc_html_e( 'Card labels are shared by Course listings. A Homepage-promoted Course also requires a short description, visible price, Featured image, and Page Attributes → Order. At most three published Courses may be promoted.', 'hse-headless' ); ?></p>
+		<?php else : ?>
+			<p class="description"><?php esc_html_e( 'These labels are used on the Training and Courses listing cards.', 'hse-headless' ); ?></p>
+		<?php endif; ?>
 		<?php
 	}
 
@@ -136,7 +148,7 @@ final class CoursePromotionMeta {
 			$value = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : '';
 			update_post_meta( $post_id, $meta_key, self::sanitize_label( $value ) );
 		}
-		$featured = isset( $_POST[ 'hse_' . self::FEATURED_ON_HOMEPAGE ] );
+		$featured = CoursePostType::POST_TYPE === $post->post_type && isset( $_POST[ 'hse_' . self::FEATURED_ON_HOMEPAGE ] );
 		update_post_meta( $post_id, self::FEATURED_ON_HOMEPAGE, $featured );
 
 		if ( 'publish' === $post->post_status && $featured && ! self::is_complete( $post_id ) ) {

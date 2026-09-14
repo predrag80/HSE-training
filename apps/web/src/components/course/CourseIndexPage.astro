@@ -2,11 +2,8 @@
 import type { Course } from '../../types/course';
 import type { CoursesLandingPageContent } from '../../types/course-page';
 import type { Locale } from '../../i18n/config';
-import { getCourseUiTranslations } from '../../i18n/course-ui';
-import { getOtherCoursesUiTranslations } from '../../i18n/other-courses-ui';
 import { getUiTranslations } from '../../i18n/ui';
-import { getAvailablePublicPath } from '../../i18n/routes';
-import { getCoursePublicPath } from '../../lib/course-routes';
+import { getCoursePublicPath, getNeboshCourseCardHref } from '../../lib/course-routes';
 import Container from '../ui/Container.astro';
 import Section from '../ui/Section.astro';
 import SectionHeading from '../ui/SectionHeading.astro';
@@ -14,13 +11,12 @@ import CoursePlanCard from './CoursePlanCard.astro';
 
 interface Props {
 	courses: readonly Course[];
+	trainingCourses: readonly Course[];
 	locale: Locale;
 	content: CoursesLandingPageContent;
 }
 
-const { courses, locale, content } = Astro.props;
-const copy = getCourseUiTranslations(locale).index;
-const otherCoursesCopy = getOtherCoursesUiTranslations(locale).overview;
+const { courses, trainingCourses, locale, content } = Astro.props;
 const pricingCopy = getUiTranslations(locale).homepage.pricing;
 ---
 
@@ -38,10 +34,10 @@ const pricingCopy = getUiTranslations(locale).homepage.pricing;
 		<Container>
 			<section class="course-group" aria-labelledby="nebosh-courses-title">
 				<header class="course-group__heading">
-					<p>{copy.neboshEyebrow}</p>
-					<h2 id="nebosh-courses-title">{copy.neboshTitle}</h2>
+					<p>{content.groups.nebosh.eyebrow}</p>
+					<h2 id="nebosh-courses-title">{content.groups.nebosh.title}</h2>
 				</header>
-				<ul class="course-grid" aria-label={copy.listLabel}>
+				<ul class="course-grid" aria-label={content.groups.nebosh.listLabel}>
 					{courses.map((course) => (
 						<li>
 							<CoursePlanCard
@@ -50,7 +46,7 @@ const pricingCopy = getUiTranslations(locale).homepage.pricing;
 								price={course.visiblePrice ?? pricingCopy.priceOnRequest}
 								feeAvailability={pricingCopy.feeAvailability}
 								summary={course.shortDescription}
-								href={getCoursePublicPath(course, locale)}
+								href={getNeboshCourseCardHref(course, locale)}
 								ctaLabel={course.homepageCtaLabel}
 							/>
 						</li>
@@ -60,20 +56,20 @@ const pricingCopy = getUiTranslations(locale).homepage.pricing;
 
 			<section class="course-group course-group--training" aria-labelledby="training-courses-title">
 				<header class="course-group__heading">
-					<p>{copy.trainingEyebrow}</p>
-					<h2 id="training-courses-title">{copy.trainingTitle}</h2>
+					<p>{content.groups.training.eyebrow}</p>
+					<h2 id="training-courses-title">{content.groups.training.title}</h2>
 				</header>
-				<ul class="course-grid" aria-label={copy.trainingListLabel}>
-					{otherCoursesCopy.courses.map((course) => (
+				<ul class="course-grid" aria-label={content.groups.training.listLabel}>
+					{trainingCourses.map((course) => (
 						<li>
 							<CoursePlanCard
 								title={course.title}
-								label={course.details}
-								price={pricingCopy.priceOnRequest}
+								label={course.homepageLabel}
+								price={course.visiblePrice ?? pricingCopy.priceOnRequest}
 								feeAvailability={pricingCopy.feeAvailability}
-								summary={course.text}
-								href={getAvailablePublicPath(course.href, locale)}
-								ctaLabel={otherCoursesCopy.exploreCta}
+								summary={course.shortDescription}
+								href={getCoursePublicPath(course, locale)}
+								ctaLabel={course.homepageCtaLabel}
 							/>
 						</li>
 					))}
@@ -96,6 +92,7 @@ const pricingCopy = getUiTranslations(locale).homepage.pricing;
 	}
 
 	.course-group__heading p {
+		max-width: none;
 		margin: 0 0 0.75rem;
 		color: #dd6531;
 		font-size: 0.75rem;

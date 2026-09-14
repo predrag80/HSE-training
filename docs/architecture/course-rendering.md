@@ -9,21 +9,22 @@ The Astro application exposes parallel English and Serbian Course routes:
 - `/courses/` and `/sr/courses/` list published Courses for their language.
 - `/courses/[slug]/` and `/sr/courses/[slug]/` render generic Course details.
 - `/nebosh/` and `/sr/nebosh/` provide the designed NEBOSH overview.
-- The two bespoke NEBOSH Course routes use their existing path under both the
+- `/training/` and `/sr/training/` provide the CMS-managed Training overview.
+- The three bespoke NEBOSH and three bespoke Training Course routes use their existing paths under both the
   unprefixed English site and the `/sr/` Serbian site.
 
 Both routes consume the domain-oriented CMS client in `apps/web/src/lib/cms`.
 Page and component code does not fetch WordPress directly or depend on raw
 WordPress response fields.
 
-Page-level headings, introductions, metadata, NEBOSH benefits, selection copy,
-and testimonial come from the locale-specific **Courses → Course pages**
-editor. Individual cards and details continue to come from Course records
-identified by `(course_key, locale)`.
+Page-level headings, introductions, metadata, NEBOSH benefits, and selection
+copy come from **Courses → Course pages**. Training overview copy is edited at
+**Trainings → Training page**. Individual cards and details come from the
+separate Course and Training records identified by `(course_key, locale)`.
 
 ```text
-WordPress Course
-  -> WordPress REST API
+WordPress Course / Training
+  -> separate WordPress REST collections
   -> Astro CMS client validation and mapping
   -> Astro Course routes and components
   -> static HTML
@@ -40,7 +41,7 @@ same-language pairs stop the build with a clear error.
 
 An empty published collection produces a useful localized listing empty state
 and no generic detail paths. A slug that was not generated is handled by the
-static host as a normal 404. Bespoke NEBOSH routes require their matching
+static host as a normal 404. Bespoke NEBOSH and Training routes require their matching
 `(course_key, locale)` CMS record and fail the build when it is missing.
 
 If WordPress or its Course API is unavailable, the CMS client throws an

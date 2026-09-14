@@ -56,7 +56,7 @@ try {
 
 	$registered_meta = get_registered_meta_keys( 'post', CoursePostType::POST_TYPE );
 	hse_course_test_assert( isset( $registered_meta[ ContentLocale::META_KEY ] ), 'Course content language is registered.' );
-	foreach ( array( CourseMeta::COURSE_KEY, CourseMeta::SHORT_DESCRIPTION, CourseMeta::VISIBLE_PRICE ) as $meta_key ) {
+	foreach ( array( CourseMeta::COURSE_KEY, CourseMeta::SHORT_DESCRIPTION, CourseMeta::VISIBLE_PRICE, CourseMeta::PAGE_EYEBROW ) as $meta_key ) {
 		$meta_args = isset( $registered_meta[ $meta_key ] ) ? $registered_meta[ $meta_key ] : array();
 		hse_course_test_assert( 'string' === ( $meta_args['type'] ?? null ), sprintf( '%s is registered as a string.', $meta_key ) );
 		hse_course_test_assert( true === ( $meta_args['single'] ?? null ), sprintf( '%s is registered as a scalar value.', $meta_key ) );

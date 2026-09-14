@@ -2,9 +2,13 @@
 import OtherCourseDetailPage from '../../../components/other-courses/OtherCourseDetailPage.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { getOtherCoursesUiTranslations } from '../../../i18n/other-courses-ui';
+import { getTrainingCourseByKey } from '../../../lib/cms';
+import { TRAINING_COURSE_KEYS } from '../../../lib/course-routes';
 
 const locale = 'en';
-const course = getOtherCoursesUiTranslations(locale).banksman;
+const copy = getOtherCoursesUiTranslations(locale).banksman;
+const course = await getTrainingCourseByKey(TRAINING_COURSE_KEYS.banksman, locale);
+const facts = copy.facts.map((fact, index) => index === 1 ? { ...fact, value: course.visiblePrice ?? fact.value } : fact);
 const downloads = [
 	{
 		label: 'Banksman and slinger presentation',
@@ -19,6 +23,6 @@ const downloads = [
 ];
 ---
 
-<BaseLayout title={course.metaTitle} description={course.metaDescription} locale={locale}>
-	<main id="main-content"><OtherCourseDetailPage title={course.title} eyebrow={course.eyebrow} heroImage="/images/consulting-service-04.webp" featureImage="/images/consulting-company-timeline.webp" introKicker={course.introKicker} introTitle={course.introTitle} intro={course.intro} facts={course.facts} outcomesTitle={course.outcomesTitle} outcomesIntro={course.outcomesIntro} outcomes={course.outcomes} audienceTitle={course.audienceTitle} audience={course.audience} {locale} {downloads} /></main>
+<BaseLayout title={`${course.title} | HSE Training`} description={course.shortDescription} locale={locale}>
+	<main id="main-content"><OtherCourseDetailPage title={course.title} eyebrow={course.pageEyebrow ?? copy.eyebrow} heroImage={course.featuredImageUrl ?? '/images/consulting-service-04.webp'} featureImage="/images/consulting-company-timeline.webp" introKicker={copy.introKicker} introTitle={copy.introTitle} intro={copy.intro} introHtml={course.descriptionHtml} {facts} outcomesTitle={copy.outcomesTitle} outcomesIntro={copy.outcomesIntro} outcomes={copy.outcomes} audienceTitle={copy.audienceTitle} audience={copy.audience} {locale} {downloads} /></main>
 </BaseLayout>

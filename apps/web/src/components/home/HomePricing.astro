@@ -3,7 +3,7 @@ import type { Course } from '../../types/course';
 import type { Locale } from '../../i18n/config';
 import { getUiTranslations } from '../../i18n/ui';
 import { getAvailablePublicPath } from '../../i18n/routes';
-import { getCoursePublicPath } from '../../lib/course-routes';
+import { getNeboshCourseCardHref } from '../../lib/course-routes';
 import './home-pricing.css';
 
 interface Props {
@@ -53,7 +53,7 @@ const copy = getUiTranslations(locale).homepage.pricing;
 								<span>{course.shortDescription}</span>
 							</li>
 						</ul>
-						<a class="pricing-plan__button" href={getCoursePublicPath(course, locale)}>{course.homepageCtaLabel}</a>
+						<a class="pricing-plan__button" href={getNeboshCourseCardHref(course, locale)}>{course.homepageCtaLabel}</a>
 					</article>
 				))
 			}

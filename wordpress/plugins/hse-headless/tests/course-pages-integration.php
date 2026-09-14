@@ -37,9 +37,21 @@ try {
 	foreach ( array( 'en' => 'Courses', 'sr' => 'Kursevi' ) as $locale => $title ) {
 		$settings = CoursePageSettings::sanitize_settings( 'courses', array(
 			'meta_title' => $title, 'meta_description' => 'Description', 'hero_eyebrow' => 'Training',
-			'hero_title' => $title, 'hero_intro' => 'Introduction', 'empty_title' => 'Empty', 'empty_text' => 'No courses',
+			'hero_title' => $title, 'hero_intro' => 'Introduction',
+			'nebosh_eyebrow' => 'Qualifications', 'nebosh_title' => 'NEBOSH courses', 'nebosh_list_label' => 'NEBOSH courses',
+			'training_eyebrow' => 'Development', 'training_title' => 'Training', 'training_list_label' => 'Professional training',
+			'empty_title' => 'Empty', 'empty_text' => 'No courses',
 		) );
 		update_option( CoursePageSettings::option_name( 'courses', $locale ), $settings );
+	}
+
+	foreach ( array( 'en' => 'Training', 'sr' => 'Obuke' ) as $locale => $title ) {
+		$settings = CoursePageSettings::sanitize_settings( 'training', array(
+			'meta_title' => $title, 'meta_description' => 'Description', 'hero_eyebrow' => 'Professional development',
+			'hero_title' => $title, 'hero_scroll_label' => 'Scroll', 'selector_eyebrow' => 'Programmes',
+			'selector_title' => 'Choose your training', 'explore_cta_label' => 'Explore course',
+		) );
+		update_option( CoursePageSettings::option_name( 'training', $locale ), $settings );
 	}
 
 	$request = new WP_REST_Request( 'GET', '/hse/v1/course-pages/courses' );
@@ -50,6 +62,14 @@ try {
 	hse_course_pages_test_assert( 'sr' === ( $data['locale'] ?? null ), 'Course page REST response preserves locale.' );
 	hse_course_pages_test_assert( 'Kursevi' === ( $data['content']['hero']['title'] ?? null ), 'Serbian Course page content is isolated.' );
 	hse_course_pages_test_assert( ! isset( $data['content']['id'] ), 'WordPress IDs do not cross the Course page API boundary.' );
+
+	$request = new WP_REST_Request( 'GET', '/hse/v1/course-pages/training' );
+	$request->set_param( 'page_key', 'training' );
+	$request->set_param( 'lang', 'en' );
+	$response = CoursePageRestController::get_course_page( $request );
+	$data     = is_wp_error( $response ) ? array() : $response->get_data();
+	hse_course_pages_test_assert( 'Training' === ( $data['content']['hero']['title'] ?? null ), 'Training page REST response exposes CMS hero copy.' );
+	hse_course_pages_test_assert( 'Explore course' === ( $data['content']['selection']['explore_cta_label'] ?? null ), 'Training page REST response exposes its card CTA.' );
 } finally {
 	foreach ( $original as $option_name => $state ) {
 		if ( $state[0] ) {

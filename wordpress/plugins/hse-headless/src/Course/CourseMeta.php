@@ -8,6 +8,7 @@
 namespace HSETraining\Headless\Course;
 
 use HSETraining\Headless\Content\ContentLocale;
+use HSETraining\Headless\Training\TrainingPostType;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -18,6 +19,7 @@ final class CourseMeta {
 	public const COURSE_KEY        = 'course_key';
 	public const SHORT_DESCRIPTION = 'short_description';
 	public const VISIBLE_PRICE     = 'visible_price';
+	public const PAGE_EYEBROW      = 'page_eyebrow';
 
 	private const LOCKED_COURSE_KEY = '_hse_locked_course_key';
 	private const NONCE_ACTION      = 'hse_save_course_details';
@@ -25,6 +27,7 @@ final class CourseMeta {
 	private const MAX_KEY_LENGTH    = 80;
 	private const MAX_SHORT_DESCRIPTION_LENGTH = 500;
 	private const MAX_VISIBLE_PRICE_LENGTH      = 100;
+	private const MAX_PAGE_EYEBROW_LENGTH       = 180;
 
 	/**
 	 * Error code carried through the post-save redirect.
@@ -38,8 +41,13 @@ final class CourseMeta {
 	 */
 	public static function register_hooks(): void {
 		add_action( 'init', array( self::class, 'register_meta' ) );
-		add_action( 'add_meta_boxes_course', array( self::class, 'register_meta_box' ) );
-		add_action( 'save_post_course', array( self::class, 'save_meta_box' ), 10, 2 );
+		foreach ( self::post_types() as $post_type ) {
+			add_action( 'add_meta_boxes_' . $post_type, array( self::class, 'register_meta_box' ) );
+			add_action( 'save_post_' . $post_type, array( self::class, 'save_meta_box' ), 10, 2 );
+			add_filter( 'rest_pre_insert_' . $post_type, array( self::class, 'validate_rest_write' ), 10, 2 );
+			add_filter( 'rest_' . $post_type . '_collection_params', array( self::class, 'register_rest_collection_params' ) );
+			add_filter( 'rest_' . $post_type . '_query', array( self::class, 'filter_rest_course_query' ), 10, 2 );
+		}
 		add_action( 'transition_post_status', array( self::class, 'lock_key_on_publish' ), 10, 3 );
 		add_action( 'added_post_meta', array( self::class, 'lock_key_after_meta_write' ), 10, 4 );
 		add_action( 'updated_post_meta', array( self::class, 'lock_key_after_meta_write' ), 10, 4 );
@@ -47,9 +55,6 @@ final class CourseMeta {
 		add_filter( 'wp_insert_post_data', array( self::class, 'require_key_for_publish' ), 10, 4 );
 		add_filter( 'add_post_metadata', array( self::class, 'guard_course_key_add' ), 10, 5 );
 		add_filter( 'update_post_metadata', array( self::class, 'guard_course_key_update' ), 10, 5 );
-		add_filter( 'rest_pre_insert_course', array( self::class, 'validate_rest_write' ), 10, 2 );
-		add_filter( 'rest_course_collection_params', array( self::class, 'register_rest_collection_params' ) );
-		add_filter( 'rest_course_query', array( self::class, 'filter_rest_course_query' ), 10, 2 );
 		add_filter( 'redirect_post_location', array( self::class, 'add_admin_error_to_redirect' ), 10, 2 );
 		add_action( 'admin_notices', array( self::class, 'render_admin_notice' ) );
 	}
@@ -60,23 +65,6 @@ final class CourseMeta {
 	 * @see https://developer.wordpress.org/reference/functions/register_post_meta/
 	 */
 	public static function register_meta(): void {
-		ContentLocale::register_post_meta( CoursePostType::POST_TYPE );
-		register_rest_field(
-			CoursePostType::POST_TYPE,
-			'locale',
-			array(
-				'get_callback' => static function ( $object ) {
-					return ContentLocale::get_post_locale( (int) ( $object['id'] ?? 0 ) );
-				},
-				'schema'       => array(
-					'description' => __( 'Editorial content language.', 'hse-headless' ),
-					'type'        => 'string',
-					'enum'        => ContentLocale::supported(),
-					'context'     => array( 'view', 'edit' ),
-				),
-			)
-		);
-
 		$common_args = array(
 			'type'              => 'string',
 			'single'            => true,
@@ -84,62 +72,100 @@ final class CourseMeta {
 			'revisions_enabled' => true,
 		);
 
-		register_post_meta(
-			CoursePostType::POST_TYPE,
-			self::COURSE_KEY,
-			array_merge(
-				$common_args,
+		foreach ( self::post_types() as $post_type ) {
+			ContentLocale::register_post_meta( $post_type );
+			register_rest_field(
+				$post_type,
+				'locale',
 				array(
-					'label'             => __( 'Course key', 'hse-headless' ),
-					'description'       => __( 'Stable cross-system course identifier.', 'hse-headless' ),
-					'sanitize_callback' => array( self::class, 'sanitize_course_key' ),
-					'show_in_rest'      => array(
-						'schema' => array(
-							'type'      => 'string',
-							'maxLength' => self::MAX_KEY_LENGTH,
-						),
+					'get_callback' => static function ( $object ) {
+						return ContentLocale::get_post_locale( (int) ( $object['id'] ?? 0 ) );
+					},
+					'schema'       => array(
+						'description' => __( 'Editorial content language.', 'hse-headless' ),
+						'type'        => 'string',
+						'enum'        => ContentLocale::supported(),
+						'context'     => array( 'view', 'edit' ),
 					),
 				)
-			)
-		);
+			);
 
-		register_post_meta(
-			CoursePostType::POST_TYPE,
-			self::SHORT_DESCRIPTION,
-			array_merge(
-				$common_args,
-				array(
-					'label'             => __( 'Short description', 'hse-headless' ),
-					'description'       => __( 'Concise course summary for listings.', 'hse-headless' ),
-					'sanitize_callback' => array( self::class, 'sanitize_short_description' ),
-					'show_in_rest'      => array(
-						'schema' => array(
-							'type'      => 'string',
-							'maxLength' => self::MAX_SHORT_DESCRIPTION_LENGTH,
+			register_post_meta(
+				$post_type,
+				self::COURSE_KEY,
+				array_merge(
+					$common_args,
+					array(
+						'label'             => __( 'Course key', 'hse-headless' ),
+						'description'       => __( 'Stable cross-system course identifier.', 'hse-headless' ),
+						'sanitize_callback' => array( self::class, 'sanitize_course_key' ),
+						'show_in_rest'      => array(
+							'schema' => array(
+								'type'      => 'string',
+								'maxLength' => self::MAX_KEY_LENGTH,
+							),
 						),
-					),
+					)
 				)
-			)
-		);
+			);
 
-		register_post_meta(
-			CoursePostType::POST_TYPE,
-			self::VISIBLE_PRICE,
-			array_merge(
-				$common_args,
-				array(
-					'label'             => __( 'Visible price', 'hse-headless' ),
-					'description'       => __( 'Display-only price text; not authoritative payment state.', 'hse-headless' ),
-					'sanitize_callback' => array( self::class, 'sanitize_visible_price' ),
-					'show_in_rest'      => array(
-						'schema' => array(
-							'type'      => 'string',
-							'maxLength' => self::MAX_VISIBLE_PRICE_LENGTH,
+			register_post_meta(
+				$post_type,
+				self::SHORT_DESCRIPTION,
+				array_merge(
+					$common_args,
+					array(
+						'label'             => __( 'Short description', 'hse-headless' ),
+						'description'       => __( 'Concise course summary for listings.', 'hse-headless' ),
+						'sanitize_callback' => array( self::class, 'sanitize_short_description' ),
+						'show_in_rest'      => array(
+							'schema' => array(
+								'type'      => 'string',
+								'maxLength' => self::MAX_SHORT_DESCRIPTION_LENGTH,
+							),
 						),
-					),
+					)
 				)
-			)
-		);
+			);
+
+			register_post_meta(
+				$post_type,
+				self::VISIBLE_PRICE,
+				array_merge(
+					$common_args,
+					array(
+						'label'             => __( 'Visible price', 'hse-headless' ),
+						'description'       => __( 'Display-only price text; not authoritative payment state.', 'hse-headless' ),
+						'sanitize_callback' => array( self::class, 'sanitize_visible_price' ),
+						'show_in_rest'      => array(
+							'schema' => array(
+								'type'      => 'string',
+								'maxLength' => self::MAX_VISIBLE_PRICE_LENGTH,
+							),
+						),
+					)
+				)
+			);
+
+			register_post_meta(
+				$post_type,
+				self::PAGE_EYEBROW,
+				array_merge(
+					$common_args,
+					array(
+						'label'             => __( 'Page eyebrow', 'hse-headless' ),
+						'description'       => __( 'Short label displayed above the title on bespoke Course pages.', 'hse-headless' ),
+						'sanitize_callback' => array( self::class, 'sanitize_page_eyebrow' ),
+						'show_in_rest'      => array(
+							'schema' => array(
+								'type'      => 'string',
+								'maxLength' => self::MAX_PAGE_EYEBROW_LENGTH,
+							),
+						),
+					)
+				)
+			);
+		}
 	}
 
 	/**
@@ -181,6 +207,11 @@ final class CourseMeta {
 		return self::sanitize_bounded_text( $value, self::MAX_VISIBLE_PRICE_LENGTH, false );
 	}
 
+	/** Sanitize the optional label displayed above a bespoke Course title. */
+	public static function sanitize_page_eyebrow( $value ): string {
+		return self::sanitize_bounded_text( $value, self::MAX_PAGE_EYEBROW_LENGTH, false );
+	}
+
 	/**
 	 * Authorize changes to registered Course metadata.
 	 *
@@ -200,13 +231,14 @@ final class CourseMeta {
 	 *
 	 * @see https://developer.wordpress.org/reference/functions/add_meta_box/
 	 */
-	public static function register_meta_box(): void {
-		remove_meta_box( 'postcustom', CoursePostType::POST_TYPE, 'normal' );
+	public static function register_meta_box( $post ): void {
+		$post_type = $post instanceof \WP_Post ? $post->post_type : CoursePostType::POST_TYPE;
+		remove_meta_box( 'postcustom', $post_type, 'normal' );
 		add_meta_box(
 			'hse-course-details',
-			__( 'Course details', 'hse-headless' ),
+			TrainingPostType::POST_TYPE === $post_type ? __( 'Training details', 'hse-headless' ) : __( 'Course details', 'hse-headless' ),
 			array( self::class, 'render_meta_box' ),
-			CoursePostType::POST_TYPE,
+			$post_type,
 			'normal',
 			'high'
 		);
@@ -221,6 +253,7 @@ final class CourseMeta {
 		$course_key        = get_post_meta( $post->ID, self::COURSE_KEY, true );
 		$short_description = get_post_meta( $post->ID, self::SHORT_DESCRIPTION, true );
 		$visible_price     = get_post_meta( $post->ID, self::VISIBLE_PRICE, true );
+		$page_eyebrow      = get_post_meta( $post->ID, self::PAGE_EYEBROW, true );
 		$is_locked         = '' !== get_post_meta( $post->ID, self::LOCKED_COURSE_KEY, true );
 
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME );
@@ -238,7 +271,7 @@ final class CourseMeta {
 				);
 				?>
 			</span>
-			<br><span class="description"><?php esc_html_e( 'Page keys for the new editorial routes: custom-training-design and nebosh-eaw. Create one English and one Serbian Course for each key.', 'hse-headless' ); ?></span>
+			<br><span class="description"><?php esc_html_e( 'Use nebosh-* keys for Courses and custom-training-design, banksman-slinger, or train-the-trainer for Trainings. Create one English and one Serbian record for each key.', 'hse-headless' ); ?></span>
 		</p>
 		<p>
 			<label for="hse-short-description"><strong><?php esc_html_e( 'Short description', 'hse-headless' ); ?></strong></label><br>
@@ -248,6 +281,11 @@ final class CourseMeta {
 			<label for="hse-visible-price"><strong><?php esc_html_e( 'Visible price', 'hse-headless' ); ?></strong></label><br>
 			<input class="widefat" id="hse-visible-price" name="hse_visible_price" type="text" maxlength="100" value="<?php echo esc_attr( $visible_price ); ?>">
 			<span class="description"><?php esc_html_e( 'Display text only (for example, €499). The payment provider owns checkout pricing.', 'hse-headless' ); ?></span>
+		</p>
+		<p>
+			<label for="hse-page-eyebrow"><strong><?php esc_html_e( 'Page eyebrow', 'hse-headless' ); ?></strong></label><br>
+			<input class="widefat" id="hse-page-eyebrow" name="hse_page_eyebrow" type="text" maxlength="180" value="<?php echo esc_attr( $page_eyebrow ); ?>">
+			<span class="description"><?php esc_html_e( 'Optional short label above the title on a bespoke Course page.', 'hse-headless' ); ?></span>
 		</p>
 		<?php
 	}
@@ -292,20 +330,23 @@ final class CourseMeta {
 
 		$short_description = isset( $_POST['hse_short_description'] ) ? self::sanitize_short_description( wp_unslash( $_POST['hse_short_description'] ) ) : '';
 		$visible_price     = isset( $_POST['hse_visible_price'] ) ? self::sanitize_visible_price( wp_unslash( $_POST['hse_visible_price'] ) ) : '';
+		$page_eyebrow      = isset( $_POST['hse_page_eyebrow'] ) ? self::sanitize_page_eyebrow( wp_unslash( $_POST['hse_page_eyebrow'] ) ) : '';
 
 		update_post_meta( $post_id, self::SHORT_DESCRIPTION, $short_description );
 		update_post_meta( $post_id, self::VISIBLE_PRICE, $visible_price );
+		update_post_meta( $post_id, self::PAGE_EYEBROW, $page_eyebrow );
 
 		if ( 'publish' === $post->post_status && '' === get_post_meta( $post_id, self::COURSE_KEY, true ) ) {
 			self::$admin_error_code = 'hse_course_key_required';
-			remove_action( 'save_post_course', array( self::class, 'save_meta_box' ), 10 );
+			$hook = 'save_post_' . $post->post_type;
+			remove_action( $hook, array( self::class, 'save_meta_box' ), 10 );
 			wp_update_post(
 				array(
 					'ID'          => $post_id,
 					'post_status' => 'draft',
 				)
 			);
-			add_action( 'save_post_course', array( self::class, 'save_meta_box' ), 10, 2 );
+			add_action( $hook, array( self::class, 'save_meta_box' ), 10, 2 );
 		}
 	}
 
@@ -321,7 +362,7 @@ final class CourseMeta {
 	public static function require_key_for_publish( $data, $postarr, $unsanitized_postarr, $update ) {
 		unset( $update );
 
-		if ( CoursePostType::POST_TYPE !== ( $data['post_type'] ?? '' )
+		if ( ! self::is_managed_post_type( $data['post_type'] ?? '' )
 			|| 'publish' !== ( $data['post_status'] ?? '' )
 			|| ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 			return $data;
@@ -439,7 +480,7 @@ final class CourseMeta {
 	private static function guard_course_key_write( $check, $object_id, $meta_key, $meta_value ) {
 		if ( null !== $check
 			|| self::COURSE_KEY !== $meta_key
-			|| CoursePostType::POST_TYPE !== get_post_type( $object_id ) ) {
+			|| ! self::is_managed_post_type( get_post_type( $object_id ) ) ) {
 			return $check;
 		}
 
@@ -544,7 +585,7 @@ final class CourseMeta {
 	public static function lock_key_on_publish( $new_status, $old_status, $post ): void {
 		unset( $old_status );
 
-		if ( 'publish' === $new_status && CoursePostType::POST_TYPE === $post->post_type ) {
+		if ( 'publish' === $new_status && self::is_managed_post_type( $post->post_type ) ) {
 			self::lock_course_key( $post->ID );
 		}
 	}
@@ -561,7 +602,7 @@ final class CourseMeta {
 		unset( $meta_id, $meta_value );
 
 		if ( self::COURSE_KEY === $meta_key
-			&& CoursePostType::POST_TYPE === get_post_type( $object_id )
+			&& self::is_managed_post_type( get_post_type( $object_id ) )
 			&& 'publish' === get_post_status( $object_id ) ) {
 			self::lock_course_key( $object_id );
 		}
@@ -575,7 +616,7 @@ final class CourseMeta {
 	 * @return string
 	 */
 	public static function add_admin_error_to_redirect( $location, $post_id ) {
-		if ( '' === self::$admin_error_code || CoursePostType::POST_TYPE !== get_post_type( $post_id ) ) {
+		if ( '' === self::$admin_error_code || ! self::is_managed_post_type( get_post_type( $post_id ) ) ) {
 			return $location;
 		}
 
@@ -617,7 +658,7 @@ final class CourseMeta {
 	 */
 	private static function course_key_exists( $course_key, $post_id, $locale ): bool {
 		$query_args = array(
-			'post_type'              => CoursePostType::POST_TYPE,
+			'post_type'              => self::post_types(),
 			'post_status'            => array_values( get_post_stati() ),
 			'posts_per_page'         => 1,
 			'fields'                 => 'ids',
@@ -650,6 +691,16 @@ final class CourseMeta {
 		if ( '' !== $course_key && '' === get_post_meta( $post_id, self::LOCKED_COURSE_KEY, true ) ) {
 			add_post_meta( $post_id, self::LOCKED_COURSE_KEY, $course_key, true );
 		}
+	}
+
+	/** @return array<int, string> */
+	private static function post_types(): array {
+		return array( CoursePostType::POST_TYPE, TrainingPostType::POST_TYPE );
+	}
+
+	/** Return whether a post type participates in the shared training identity contract. */
+	private static function is_managed_post_type( $post_type ): bool {
+		return is_string( $post_type ) && in_array( $post_type, self::post_types(), true );
 	}
 
 	/**

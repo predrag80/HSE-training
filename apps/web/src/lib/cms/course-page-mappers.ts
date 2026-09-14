@@ -1,5 +1,5 @@
 import type { Locale } from '../../i18n/config';
-import type { CoursesLandingPageContent, NeboshOverviewPageContent } from '../../types/course-page';
+import type { CoursesLandingPageContent, NeboshOverviewPageContent, TrainingOverviewPageContent } from '../../types/course-page';
 import { CmsError } from './errors';
 
 function invalidCoursePage(reason: string): never {
@@ -20,7 +20,7 @@ function requireString(value: unknown, field: string): string {
 		: invalidCoursePage(`${field} is required`);
 }
 
-function assertEnvelope(value: unknown, pageKey: 'courses' | 'nebosh', locale: Locale) {
+function assertEnvelope(value: unknown, pageKey: 'courses' | 'nebosh' | 'training', locale: Locale) {
 	const page = requireRecord(value, 'document');
 	if (page.schema_version !== 1) invalidCoursePage('schema_version must be 1');
 	if (page.page_key !== pageKey) invalidCoursePage(`page_key must be ${pageKey}`);
@@ -40,6 +40,9 @@ function mapMeta(value: unknown) {
 export function mapWordPressCoursesLandingPage(value: unknown, locale: Locale): CoursesLandingPageContent {
 	const { content } = assertEnvelope(value, 'courses', locale);
 	const hero = requireRecord(content.hero, 'content.hero');
+	const groups = requireRecord(content.groups, 'content.groups');
+	const neboshGroup = requireRecord(groups.nebosh, 'content.groups.nebosh');
+	const trainingGroup = requireRecord(groups.training, 'content.groups.training');
 	const emptyState = requireRecord(content.empty_state, 'content.empty_state');
 
 	return {
@@ -52,9 +55,44 @@ export function mapWordPressCoursesLandingPage(value: unknown, locale: Locale): 
 			title: requireString(hero.title, 'content.hero.title'),
 			intro: requireString(hero.intro, 'content.hero.intro'),
 		},
+		groups: {
+			nebosh: {
+				eyebrow: requireString(neboshGroup.eyebrow, 'content.groups.nebosh.eyebrow'),
+				title: requireString(neboshGroup.title, 'content.groups.nebosh.title'),
+				listLabel: requireString(neboshGroup.list_label, 'content.groups.nebosh.list_label'),
+			},
+			training: {
+				eyebrow: requireString(trainingGroup.eyebrow, 'content.groups.training.eyebrow'),
+				title: requireString(trainingGroup.title, 'content.groups.training.title'),
+				listLabel: requireString(trainingGroup.list_label, 'content.groups.training.list_label'),
+			},
+		},
 		emptyState: {
 			title: requireString(emptyState.title, 'content.empty_state.title'),
 			text: requireString(emptyState.text, 'content.empty_state.text'),
+		},
+	};
+}
+
+export function mapWordPressTrainingOverviewPage(value: unknown, locale: Locale): TrainingOverviewPageContent {
+	const { content } = assertEnvelope(value, 'training', locale);
+	const hero = requireRecord(content.hero, 'content.hero');
+	const selection = requireRecord(content.selection, 'content.selection');
+
+	return {
+		schemaVersion: 1,
+		pageKey: 'training',
+		locale,
+		meta: mapMeta(content.meta),
+		hero: {
+			eyebrow: requireString(hero.eyebrow, 'content.hero.eyebrow'),
+			title: requireString(hero.title, 'content.hero.title'),
+			scrollLabel: requireString(hero.scroll_label, 'content.hero.scroll_label'),
+		},
+		selection: {
+			eyebrow: requireString(selection.eyebrow, 'content.selection.eyebrow'),
+			title: requireString(selection.title, 'content.selection.title'),
+			exploreCtaLabel: requireString(selection.explore_cta_label, 'content.selection.explore_cta_label'),
 		},
 	};
 }

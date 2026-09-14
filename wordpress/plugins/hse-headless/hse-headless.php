@@ -2,7 +2,7 @@
 /**
  * Plugin Name: HSE Training Headless
  * Description: Custom headless CMS functionality for the HSE Training platform.
- * Version: 0.15.0
+ * Version: 0.17.0
  * Text Domain: hse-headless
  *
  * @package HSETraining\Headless
@@ -19,6 +19,8 @@ require_once __DIR__ . '/src/Course/CourseMeta.php';
 require_once __DIR__ . '/src/Course/CoursePromotionMeta.php';
 require_once __DIR__ . '/src/Course/CoursePageSettings.php';
 require_once __DIR__ . '/src/Course/CoursePageRestController.php';
+require_once __DIR__ . '/src/Training/TrainingPostType.php';
+require_once __DIR__ . '/src/Training/TrainingMigration.php';
 require_once __DIR__ . '/src/Company/CompanyPageSettings.php';
 require_once __DIR__ . '/src/Company/CompanyPageRestController.php';
 require_once __DIR__ . '/src/Legal/LegalPageSettings.php';
@@ -39,10 +41,12 @@ require_once __DIR__ . '/src/Homepage/HomepageMigration.php';
 require_once __DIR__ . '/src/Infrastructure/HeadlessMode.php';
 
 Course\CoursePostType::register_hooks();
+Training\TrainingPostType::register_hooks();
 Course\CourseMeta::register_hooks();
 Course\CoursePromotionMeta::register_hooks();
 Course\CoursePageSettings::register_hooks();
 Course\CoursePageRestController::register_hooks();
+Training\TrainingMigration::register_hooks();
 Company\CompanyPageSettings::register_hooks();
 Company\CompanyPageRestController::register_hooks();
 Legal\LegalPageSettings::register_hooks();

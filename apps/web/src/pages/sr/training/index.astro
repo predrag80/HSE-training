@@ -1,12 +1,12 @@
 ---
 import OtherCoursesOverviewPage from '../../../components/other-courses/OtherCoursesOverviewPage.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { getOtherCoursesUiTranslations } from '../../../i18n/other-courses-ui';
+import { getTrainingCourses, getTrainingOverviewPage } from '../../../lib/cms';
 
 const locale = 'sr';
-const copy = getOtherCoursesUiTranslations(locale).overview;
+const [courses, content] = await Promise.all([getTrainingCourses(locale), getTrainingOverviewPage(locale)]);
 ---
 
-<BaseLayout title={copy.metaTitle} description={copy.metaDescription} locale={locale}>
-	<main id="main-content"><OtherCoursesOverviewPage {locale} /></main>
+<BaseLayout title={content.meta.title} description={content.meta.description} locale={locale}>
+	<main id="main-content"><OtherCoursesOverviewPage {locale} {courses} {content} /></main>
 </BaseLayout>

@@ -4,15 +4,16 @@ Status: Implemented local contract
 
 ## Purpose
 
-WordPress owns editable course marketing content. Astro will consume published
-Course records through this boundary and map the response into its own typed
+WordPress owns editable Course and Training marketing content. Astro consumes
+the two published collections through this boundary and maps the responses into its own typed
 model. WordPress post IDs may be retained for CMS diagnostics, but they must
 never be used as cross-system business identifiers.
 
 ## Content model
 
-The custom post type is `course`. WordPress-native fields own the following
-content:
+NEBOSH qualifications use the `course` post type. Practical trainings use the
+separate `training` post type. Both content types expose the same editorial
+fields and metadata:
 
 | Domain field | WordPress REST field | Notes |
 |---|---|---|
@@ -31,8 +32,9 @@ scalar values under `meta`:
 | `meta.course_key` | string, 80 characters | Stable cross-system business identifier |
 | `meta.short_description` | string, 500 characters | Concise editorial summary |
 | `meta.visible_price` | string, 100 characters | Display-only price text |
-| `meta.homepage_label` | string, 120 characters | Short label above the Homepage card title |
-| `meta.homepage_cta_label` | string, 120 characters | Homepage card action text |
+| `meta.page_eyebrow` | string, 180 characters | Small heading used on bespoke Course pages |
+| `meta.homepage_label` | string, 120 characters | Short label above a Course card title |
+| `meta.homepage_cta_label` | string, 120 characters | Course card action text |
 | `meta.featured_on_homepage` | boolean | Explicit Homepage selection |
 
 `visible_price` is a UTF-8 display string such as `€499`. Consumers must not
@@ -42,7 +44,7 @@ payment integration, not this CMS field.
 
 ## CPT configuration
 
-The Course post type uses these headless settings:
+Both post types use these headless settings:
 
 | Setting | Value | Reason |
 |---|---:|---|
@@ -50,22 +52,22 @@ The Course post type uses these headless settings:
 | `publicly_queryable` | `false` | No theme-based single Course pages |
 | `show_ui` | `true` | Editors manage Courses in wp-admin |
 | `show_in_rest` | `true` | Astro can consume the core REST controller |
-| `rest_base` | `courses` | Stable, plural endpoint |
+| `rest_base` | `courses` / `trainings` | Separate stable plural endpoints |
 | `has_archive` | `false` | No WordPress Course archive |
 | `rewrite` | `false` | No Course rewrite rules or duplicate public URLs |
 
 The post type supports title, editor, featured image, page attributes, revisions, and the
 `custom-fields` feature required by WordPress for registered REST metadata. The
 generic custom-fields meta box is hidden; editors use the plugin-owned Course
-details and Homepage promotion boxes. Page Attributes → Order controls promoted
-Course order.
+or Training details boxes. Page Attributes → Order controls display order.
 
 ## Endpoint and lookups
 
-The canonical collection endpoint is:
+The canonical collection endpoints are:
 
 ```text
 GET /wp-json/wp/v2/courses
+GET /wp-json/wp/v2/trainings
 ```
 
 Every collection lookup accepts `lang=en|sr` and defaults to English:
@@ -84,10 +86,12 @@ Use the core `slug` filter for an Astro `getCourseBySlug(slug)` operation:
 GET /wp-json/wp/v2/courses?slug=nebosh-international-general-certificate
 ```
 
-The plugin adds one allowlisted collection parameter for stable identity:
+The plugin adds one allowlisted collection parameter for stable identity to
+both endpoints:
 
 ```text
 GET /wp-json/wp/v2/courses?course_key=nebosh-igc&lang=sr
+GET /wp-json/wp/v2/trainings?course_key=banksman-slinger&lang=sr
 ```
 
 It also provides an explicit Homepage promotion filter and supports
@@ -128,20 +132,26 @@ GET /wp-json/wp/v2/courses?course_key=nebosh-igc&lang=en&_fields=locale,slug,sta
 
 ## Course page documents
 
-The Course records above remain separate from the two editorial index pages.
-Administrators edit those documents at **Courses → Course pages**, with a page
-tab and an independent EN/SR language tab.
+The Course records above remain separate from the three editorial index pages.
+Administrators edit Courses landing and NEBOSH overview at **Courses → Course
+pages**. They edit Training overview separately at **Trainings → Training
+page**. Both editors provide independent EN/SR language tabs.
 
 ```text
 GET /wp-json/hse/v1/course-pages/courses?lang=en
 GET /wp-json/hse/v1/course-pages/courses?lang=sr
 GET /wp-json/hse/v1/course-pages/nebosh?lang=en
 GET /wp-json/hse/v1/course-pages/nebosh?lang=sr
+GET /wp-json/hse/v1/course-pages/training?lang=en
+GET /wp-json/hse/v1/course-pages/training?lang=sr
 ```
 
-The `courses` document owns its metadata, heading, introduction, and empty
+The `courses` document owns its metadata, heading, introduction, NEBOSH and
+Training group headings/list labels, and empty
 state. The `nebosh` document owns its metadata, hero copy, four fixed benefits,
-introduction, course-selection copy, and testimonial. The number and order of
+introduction, course-selection copy, and testimonial. The `training` document
+owns its metadata, hero copy, course-selection heading, and card CTA fallback.
+The number and order of
 sections, image assets, routes, CSS, and animation remain in Astro. Both
 documents return HTTP 503 when any required field is incomplete, and never
 fall back between languages.
@@ -154,7 +164,7 @@ fall back between languages.
 - Leading and trailing hyphens are removed.
 - The maximum stored length is 80 characters.
 - The resulting value must contain at least one ASCII letter or number.
-- A key must be unique per language across Courses in every WordPress status,
+- A key must be unique per language across Courses and Trainings in every WordPress status,
   including the trash. English and Serbian translations deliberately share the
   same key; the current Course is excluded during its own validation.
 - The first publication stores a private lock value. The key remains immutable
@@ -178,10 +188,14 @@ The current bespoke Astro routes use these stable keys in both languages:
 | NEBOSH International Oil & Gas Certificate | `nebosh-iogc` |
 | NEBOSH Award in Environmental Awareness at Work | `nebosh-eaw` |
 | Custom Training Design | `custom-training-design` |
+| Banksman / Slinger | `banksman-slinger` |
+| Train the Trainer | `train-the-trainer` |
 
-Create a separate English and Serbian Course record for each translated page.
-Until the two new records are published, their bespoke Astro routes render the
-approved temporary copy rather than failing the entire static build.
+Create a separate English and Serbian record for each translated page. The
+three NEBOSH pairs belong under Courses and the three Training pairs belong
+under Trainings. All six translated pairs are required by the bespoke Astro routes. A
+missing or incomplete Training record stops the build instead of publishing
+stale code copy.
 
 Uniqueness is enforced server-side before Course metadata writes and by the
 admin and REST validation paths. WordPress's post metadata table has no
