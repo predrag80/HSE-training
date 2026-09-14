@@ -3,10 +3,14 @@ import type { Course } from '../../types/course';
 import type { CoursesLandingPageContent } from '../../types/course-page';
 import type { Locale } from '../../i18n/config';
 import { getCourseUiTranslations } from '../../i18n/course-ui';
+import { getOtherCoursesUiTranslations } from '../../i18n/other-courses-ui';
+import { getUiTranslations } from '../../i18n/ui';
+import { getAvailablePublicPath } from '../../i18n/routes';
+import { getCoursePublicPath } from '../../lib/course-routes';
 import Container from '../ui/Container.astro';
 import Section from '../ui/Section.astro';
 import SectionHeading from '../ui/SectionHeading.astro';
-import CourseCard from './CourseCard.astro';
+import CoursePlanCard from './CoursePlanCard.astro';
 
 interface Props {
 	courses: readonly Course[];
@@ -16,12 +20,14 @@ interface Props {
 
 const { courses, locale, content } = Astro.props;
 const copy = getCourseUiTranslations(locale).index;
+const otherCoursesCopy = getOtherCoursesUiTranslations(locale).overview;
+const pricingCopy = getUiTranslations(locale).homepage.pricing;
 ---
 
 <main id="main-content">
 	<Section spacing="compact">
 		<Container>
-			<SectionHeading level="h1" eyebrow={content.hero.eyebrow}>
+			<SectionHeading level="h1" eyebrow={content.hero.eyebrow} align="center">
 				{content.hero.title}
 				<p slot="description">{content.hero.intro}</p>
 			</SectionHeading>
@@ -30,31 +36,89 @@ const copy = getCourseUiTranslations(locale).index;
 
 	<Section tone="muted">
 		<Container>
-			{
-				courses.length > 0 ? (
-					<ul class="course-grid" aria-label={copy.listLabel}>
-						{courses.map((course) => (
-							<li>
-								<CourseCard course={course} locale={locale} />
-							</li>
-						))}
-					</ul>
-				) : (
-					<section class="empty-state surface-card flow" aria-labelledby="no-courses-title">
-						<h2 id="no-courses-title">{content.emptyState.title}</h2>
-						<p>{content.emptyState.text}</p>
-					</section>
-				)
-			}
+			<section class="course-group" aria-labelledby="nebosh-courses-title">
+				<header class="course-group__heading">
+					<p>{copy.neboshEyebrow}</p>
+					<h2 id="nebosh-courses-title">{copy.neboshTitle}</h2>
+				</header>
+				<ul class="course-grid" aria-label={copy.listLabel}>
+					{courses.map((course) => (
+						<li>
+							<CoursePlanCard
+								title={course.title}
+								label={course.homepageLabel}
+								price={course.visiblePrice ?? pricingCopy.priceOnRequest}
+								feeAvailability={pricingCopy.feeAvailability}
+								summary={course.shortDescription}
+								href={getCoursePublicPath(course, locale)}
+								ctaLabel={course.homepageCtaLabel}
+							/>
+						</li>
+					))}
+				</ul>
+			</section>
+
+			<section class="course-group course-group--training" aria-labelledby="training-courses-title">
+				<header class="course-group__heading">
+					<p>{copy.trainingEyebrow}</p>
+					<h2 id="training-courses-title">{copy.trainingTitle}</h2>
+				</header>
+				<ul class="course-grid" aria-label={copy.trainingListLabel}>
+					{otherCoursesCopy.courses.map((course) => (
+						<li>
+							<CoursePlanCard
+								title={course.title}
+								label={course.details}
+								price={pricingCopy.priceOnRequest}
+								feeAvailability={pricingCopy.feeAvailability}
+								summary={course.text}
+								href={getAvailablePublicPath(course.href, locale)}
+								ctaLabel={otherCoursesCopy.exploreCta}
+							/>
+						</li>
+					))}
+				</ul>
+			</section>
 		</Container>
 	</Section>
 </main>
 
 <style>
+	.course-group--training {
+		margin-top: clamp(5rem, 9vw, 8rem);
+		padding-top: clamp(4rem, 7vw, 6rem);
+		border-top: 1px solid var(--color-border);
+	}
+
+	.course-group__heading {
+		margin-bottom: clamp(2.5rem, 5vw, 4.25rem);
+		text-align: center;
+	}
+
+	.course-group__heading p {
+		margin: 0 0 0.75rem;
+		color: #dd6531;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.045em;
+		line-height: 1.4;
+		text-transform: uppercase;
+	}
+
+	.course-group__heading h2 {
+		margin: 0;
+		color: #292d36;
+		font-size: clamp(2.3rem, 4vw, 3.6rem);
+		font-weight: 600;
+		letter-spacing: -0.05em;
+		line-height: 1.03;
+	}
+
 	.course-grid {
 		display: grid;
-		grid-template-columns: minmax(0, 23.5625rem);
-		gap: var(--grid-gap);
+		grid-template-columns: minmax(0, 28.75rem);
+		gap: 1.875rem;
+		justify-content: center;
 		max-width: 74.375rem;
 		padding: 0;
 		margin: 0 auto;
@@ -63,21 +127,6 @@ const copy = getCourseUiTranslations(locale).index;
 
 	.course-grid > li {
 		max-width: none;
-	}
-
-	.empty-state {
-		--flow-space: var(--space-3);
-
-		max-width: var(--container-content);
-		padding: clamp(var(--space-6), 5vw, var(--space-8));
-	}
-
-	.empty-state h2 {
-		font-size: var(--font-size-h3);
-	}
-
-	.empty-state p {
-		color: var(--color-text-muted);
 	}
 
 	@media (min-width: 48rem) {

@@ -1,0 +1,165 @@
+---
+interface Props {
+	readonly title: string;
+	readonly label: string;
+	readonly price: string;
+	readonly feeAvailability: string;
+	readonly summary: string;
+	readonly href: string;
+	readonly ctaLabel: string;
+}
+
+const { title, label, price, feeAvailability, summary, href, ctaLabel } = Astro.props;
+---
+
+<article class="course-plan-card">
+	<h2>{title}</h2>
+	<p class="course-plan-card__label">{label}</p>
+	<div class="course-plan-card__price-row">
+		<p class="course-plan-card__price">{price}</p>
+		<p class="course-plan-card__period">{feeAvailability}</p>
+	</div>
+	<ul>
+		<li>
+			<svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6" /></svg>
+			<span>{summary}</span>
+		</li>
+	</ul>
+	<a class="course-plan-card__button" href={href}>{ctaLabel}</a>
+</article>
+
+<style>
+	.course-plan-card {
+		display: flex;
+		height: 100%;
+		min-width: 0;
+		flex-direction: column;
+		padding: 2.75rem 3rem;
+		background: #fff;
+		border: 0.0625rem solid #dee2e6;
+		border-radius: 0.375rem;
+		box-shadow: 0 1.25rem 3.75rem rgb(0 0 0 / 8%);
+		transition: box-shadow 300ms ease, transform 300ms ease;
+	}
+
+	.course-plan-card:hover,
+	.course-plan-card:focus-within {
+		box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 13%);
+		transform: translateY(-0.25rem);
+	}
+
+	.course-plan-card h2,
+	.course-plan-card p {
+		margin: 0;
+	}
+
+	.course-plan-card h2 {
+		color: #292d36;
+		font-size: 1.625rem;
+		font-weight: 600;
+		letter-spacing: -0.03125rem;
+		line-height: 1.875rem;
+		text-align: center;
+	}
+
+	.course-plan-card__label {
+		margin-block: 0.3125rem !important;
+		color: #808291;
+		font-size: 1.125rem;
+		line-height: 1.5rem;
+		text-align: center;
+	}
+
+	.course-plan-card__price-row {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0.5rem;
+		align-items: end;
+		margin-block: 0.875rem;
+		text-align: center;
+	}
+
+	.course-plan-card__price {
+		color: #292d36;
+		font-size: clamp(1.65rem, 2.4vw, 2.35rem);
+		font-weight: 700;
+		letter-spacing: -0.06rem;
+		line-height: 1;
+	}
+
+	.course-plan-card__period {
+		color: #808291;
+		font-size: 0.9375rem;
+		line-height: 1.5rem;
+	}
+
+	.course-plan-card ul {
+		flex: 1;
+		padding: 0;
+		margin: 0 0 1.25rem;
+		list-style: none;
+	}
+
+	.course-plan-card li {
+		display: flex;
+		min-height: 3.25rem;
+		align-items: center;
+		gap: 0.625rem;
+		color: #292d36;
+		font-size: 1.0625rem;
+		font-weight: 500;
+		line-height: 1.45;
+	}
+
+	.course-plan-card li svg {
+		width: 1.25rem;
+		height: 1.25rem;
+		flex: 0 0 auto;
+		fill: none;
+		stroke: #2ebb79;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 2;
+	}
+
+	.course-plan-card__button {
+		display: inline-flex;
+		width: 100%;
+		min-height: 2.875rem;
+		align-items: center;
+		justify-content: center;
+		padding: 0.875rem 1.625rem;
+		margin-top: auto;
+		color: #fff;
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.03125rem;
+		line-height: 1.125rem;
+		text-decoration: none;
+		text-transform: uppercase;
+		background: #292d36;
+		border-radius: 0.25rem;
+		box-shadow: 0 0.3125rem 1.25rem rgb(0 0 0 / 10%);
+		transition: transform 300ms ease, box-shadow 300ms ease, background-color 300ms ease;
+	}
+
+	.course-plan-card__button:hover,
+	.course-plan-card__button:focus-visible {
+		color: #fff;
+		background: #dd6531;
+		box-shadow: 0 0.5rem 1.875rem rgb(0 0 0 / 15%);
+		transform: translateY(-0.1875rem);
+	}
+
+	@media (max-width: 74.999rem) {
+		.course-plan-card { padding: 2.65rem 2.25rem; }
+	}
+
+	@media (max-width: 61.999rem) {
+		.course-plan-card { padding: 3rem; }
+	}
+
+	@media (max-width: 35.999rem) {
+		.course-plan-card { padding: 2.4453125rem 10%; }
+	}
+</style>

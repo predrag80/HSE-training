@@ -1,0 +1,33 @@
+---
+import './other-courses.css';
+import type { Locale } from '../../i18n/config';
+import { getOtherCoursesUiTranslations } from '../../i18n/other-courses-ui';
+import { getAvailablePublicPath } from '../../i18n/routes';
+
+interface Props {
+	readonly locale: Locale;
+	readonly animated?: boolean;
+}
+
+const { locale, animated = false } = Astro.props;
+const copy = getOtherCoursesUiTranslations(locale);
+---
+
+<div class="other-courses-selector__grid">
+	{copy.overview.courses.map((course) => (
+		<a
+			class="other-course-card"
+			href={getAvailablePublicPath(course.href, locale)}
+			data-other-courses-reveal={animated ? 'up' : undefined}
+		>
+			<img src={course.image} width="900" height="800" alt="" loading="lazy" decoding="async" />
+			<div class="other-course-card__shade" aria-hidden="true"></div>
+			<div class="other-course-card__content">
+				<span>{course.details}</span>
+				<h3>{course.title}</h3>
+				<p>{course.text}</p>
+				<strong>{copy.overview.exploreCta} <i aria-hidden="true">→</i></strong>
+			</div>
+		</a>
+	))}
+</div>

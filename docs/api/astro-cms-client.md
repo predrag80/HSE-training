@@ -36,6 +36,7 @@ getCompanyPage(locale?: Locale): Promise<CompanyPageContent>
 getServices(locale?: Locale): Promise<ServiceCollection>
 getReferences(locale?: Locale): Promise<ReferenceCollection>
 getHomepageReferences(locale?: Locale): Promise<readonly Reference[]>
+getLegalPage(pageKey: LegalPageKey, locale?: Locale): Promise<LegalPageContent>
 ```
 
 `getCourses()` returns published Courses in newest-first WordPress date order.
@@ -74,6 +75,10 @@ complete ownership of component structure, images, routes, and motion.
 `getReferences()` returns the canonical testimonial collection.
 `getHomepageReferences()` selects the ordered one-to-four records explicitly
 marked for the Homepage.
+
+`getLegalPage()` consumes one required Privacy Policy, Terms and Conditions, or
+Copyright document in the selected language. It rejects empty section lists,
+incomplete text fields, a mismatched page key, and a cross-language response.
 
 ## Internal Course shape
 
@@ -149,6 +154,12 @@ Reference content uses:
 GET /wp-json/hse/v1/references
 ```
 
+Legal Page content uses:
+
+```text
+GET /wp-json/hse/v1/legal-pages/<privacy|terms|copyright>?lang=<locale>
+```
+
 The Homepage mapper requires contract version 1, the stable `home` page key, at least one
 Hero slide, safe links, and complete HTTP(S) image metadata. WordPress IDs do
 not enter the Astro Homepage model. Raw DTOs and snake_case-to-camelCase mapping
@@ -167,8 +178,8 @@ boolean Homepage selection, safe CTA data, and complete images.
 
 Reference validation requires the requested locale, a canonical key, complete
 plain-text attribution, and boolean Homepage presentation flags. Course,
-Homepage, Company, Service, and Reference mappers reject cross-language
-responses rather than silently falling back.
+Homepage, Company, Service, Reference, and Legal Page mappers reject
+cross-language responses rather than silently falling back.
 
 `CmsError.code` provides these stable categories:
 

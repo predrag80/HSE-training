@@ -2,7 +2,7 @@
 /**
  * Plugin Name: HSE Training Headless
  * Description: Custom headless CMS functionality for the HSE Training platform.
- * Version: 0.14.0
+ * Version: 0.15.0
  * Text Domain: hse-headless
  *
  * @package HSETraining\Headless
@@ -21,6 +21,8 @@ require_once __DIR__ . '/src/Course/CoursePageSettings.php';
 require_once __DIR__ . '/src/Course/CoursePageRestController.php';
 require_once __DIR__ . '/src/Company/CompanyPageSettings.php';
 require_once __DIR__ . '/src/Company/CompanyPageRestController.php';
+require_once __DIR__ . '/src/Legal/LegalPageSettings.php';
+require_once __DIR__ . '/src/Legal/LegalPageRestController.php';
 require_once __DIR__ . '/src/Service/ServicePostType.php';
 require_once __DIR__ . '/src/Service/ServiceMeta.php';
 require_once __DIR__ . '/src/Service/ServiceRepository.php';
@@ -43,6 +45,8 @@ Course\CoursePageSettings::register_hooks();
 Course\CoursePageRestController::register_hooks();
 Company\CompanyPageSettings::register_hooks();
 Company\CompanyPageRestController::register_hooks();
+Legal\LegalPageSettings::register_hooks();
+Legal\LegalPageRestController::register_hooks();
 Service\ServicePostType::register_hooks();
 Service\ServiceMeta::register_hooks();
 Service\ServiceRestController::register_hooks();

@@ -10,7 +10,7 @@ Slide collection, a canonical Company profile, and a Service collection shared
 by the Homepage and Consulting Page. Course promotions and client References
 also feed their Homepage sections from WordPress. WordPress theme rendering is
 disabled so the installation remains a CMS rather than a second public site.
-Homepage, Company, Hero Slide, Service, Course, and Reference content supports
+Homepage, Company, Hero Slide, Service, Course, Reference, and Legal Page content supports
 explicit English and Serbian variants without a third-party translation plugin.
 
 ## Responsibilities
@@ -24,6 +24,7 @@ explicit English and Serbian variants without a third-party translation plugin.
 - Allowlisted `en`/`sr` content locales and locale-isolated Homepage responses
 - Explicit Homepage Course promotion fields and ordering
 - Ordered client References with a Homepage-featured subset
+- Locale-specific Privacy Policy, Terms and Conditions, and Copyright pages
 - Small REST API extensions needed by headless consumers
 - Headless CMS integration
 - Closed, non-indexable WordPress theme frontend
@@ -157,6 +158,25 @@ The contract is documented in
 
 ```sh
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/reference-integration.php
+```
+
+## Legal Pages API
+
+Administrators edit legal copy through **Legal Pages**, then select the page
+and English or Serbian tab. Header fields and up to seven rich-text sections
+are editable; Astro owns routes, layout, typography, and automatic section
+numbering. The public read-only documents are available at:
+
+```text
+/wp-json/hse/v1/legal-pages/privacy?lang=en
+/wp-json/hse/v1/legal-pages/terms?lang=en
+/wp-json/hse/v1/legal-pages/copyright?lang=en
+```
+
+Use `lang=sr` for Serbian content. Run the focused integration check with:
+
+```sh
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/legal-pages-integration.php
 ```
 
 ## Not Responsible For

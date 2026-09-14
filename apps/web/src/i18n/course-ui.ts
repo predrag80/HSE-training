@@ -4,6 +4,11 @@ const courseTranslations = {
 	en: {
 		index: {
 			listLabel: 'Available courses',
+			neboshEyebrow: 'International qualifications',
+			neboshTitle: 'NEBOSH courses',
+			trainingEyebrow: 'Practical professional development',
+			trainingTitle: 'Training',
+			trainingListLabel: 'Available professional training',
 		},
 		card: {
 			eyebrow: 'HSE course',
@@ -103,6 +108,11 @@ const courseTranslations = {
 	sr: {
 		index: {
 			listLabel: 'Dostupni kursevi',
+			neboshEyebrow: 'Međunarodne kvalifikacije',
+			neboshTitle: 'NEBOSH kursevi',
+			trainingEyebrow: 'Praktični profesionalni razvoj',
+			trainingTitle: 'Obuke',
+			trainingListLabel: 'Dostupne stručne obuke',
 		},
 		card: {
 			eyebrow: 'HSE kurs',

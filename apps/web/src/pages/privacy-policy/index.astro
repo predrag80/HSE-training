@@ -1,12 +1,12 @@
 ---
 import LegalPage from '../../components/legal/LegalPage.astro';
-import { getLegalPageContent } from '../../i18n/legal-ui';
+import { getLegalPage } from '../../lib/cms';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const locale = 'en';
-const content = getLegalPageContent(locale, 'privacy');
+const content = await getLegalPage('privacy', locale);
 ---
 
-<BaseLayout title={content.title} description={content.metaDescription} locale={locale}>
+<BaseLayout title={content.meta.title} description={content.meta.description} locale={locale}>
 	<main id="main-content"><LegalPage {...content} /></main>
 </BaseLayout>
