@@ -7,6 +7,8 @@
 
 namespace HSETraining\Headless\Infrastructure;
 
+use HSETraining\Headless\Commerce\CommerceConfiguration;
+
 defined( 'ABSPATH' ) || exit;
 
 final class HeadlessMode {
@@ -32,6 +34,16 @@ final class HeadlessMode {
 
 		if ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
 			return false;
+		}
+
+		if ( CommerceConfiguration::is_enabled() ) {
+			if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
+				return false;
+			}
+
+			if ( function_exists( 'is_checkout' ) && is_checkout() ) {
+				return false;
+			}
 		}
 
 		$pagenow = isset( $GLOBALS['pagenow'] ) ? (string) $GLOBALS['pagenow'] : '';

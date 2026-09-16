@@ -34,6 +34,8 @@ explicit English and Serbian variants without a third-party translation plugin.
 Normal theme requests return HTTP 404 and a minimal non-indexable response.
 WordPress administration, login processing, AJAX, cron, XML-RPC, and REST API
 requests remain available because they do not render the public theme.
+When the explicit staging-only commerce flag is enabled, WooCommerce checkout
+and payment-return requests are the only additional public theme surface.
 
 Run the focused local check with:
 
@@ -190,12 +192,123 @@ Use `lang=sr` for Serbian content. Run the focused integration check with:
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/legal-pages-integration.php
 ```
 
+## SMTP transport
+
+The plugin configures WordPress mail through authenticated SMTP only when all
+required server-owned settings are valid. It never writes SMTP credentials to
+WordPress options or the database. Constants in `wp-config.php` take precedence
+over environment variables with the same names.
+
+Recommended staging and production configuration:
+
+```php
+define( 'HSE_SMTP_HOST', 'mail.hsetraining.rs' );
+define( 'HSE_SMTP_PORT', 587 );
+define( 'HSE_SMTP_SECURE', 'tls' );
+define( 'HSE_SMTP_USERNAME', 'website@hsetraining.rs' );
+define( 'HSE_SMTP_PASSWORD', getenv( 'HSE_SMTP_PASSWORD' ) );
+define( 'HSE_MAIL_FROM', 'website@hsetraining.rs' );
+define( 'HSE_MAIL_TO', 'recipient@example.com' );
+define( 'HSE_CONTACT_ALLOWED_ORIGINS', 'https://hsetraining.rs,https://www.hsetraining.rs,https://staging.hsetraining.rs' );
+```
+
+Define these before WordPress loads `wp-settings.php`. Keep the password only
+in the server environment or an untracked server `wp-config.php`; never add it
+to this repository, a plugin ZIP, or a database export. Port `587` with `tls`
+means SMTP with STARTTLS. Port `465` must use `ssl` instead.
+
+An incomplete configuration is ignored so existing WordPress mail behavior is
+not broken, and a validation warning without secret values is written to the
+PHP error log. Run the mapping and hook checks locally with:
+
+```sh
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/smtp-mailer-integration.php
+```
+
+After the real server-owned values have been configured, verify SMTP
+authentication without sending a message:
+
+```sh
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/smtp-connection-check.php
+```
+
+The command returns only a sanitized success or failure message. It does not
+print credentials, expose the SMTP server response, or create an email.
+
+## Contact email template
+
+Website enquiries have a table-based HTML email template with inline styles,
+a responsive single-column layout, Outlook-specific rendering metadata, and a
+plain-text alternative. The design uses the public HSE Training palette while
+keeping the company identity readable when remote images are blocked.
+
+The renderer sanitizes every submitted value before output. Run its integration
+check with:
+
+```sh
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/contact-email-template-integration.php
+```
+
+The public Astro contact form submits JSON to:
+
+```text
+POST /wp-json/hse/v1/contact
+```
+
+The endpoint validates and bounds every field, accepts only configured public
+site origins (plus localhost during development), silently absorbs a honeypot,
+and permits at most three accepted messages from one client address per ten
+minutes. Delivery failures return generic public messages and server logs
+contain only a generated request ID, never the submitted personal data. The
+recipient is controlled by the server-only `HSE_MAIL_TO` value.
+
+Run the endpoint checks without sending a real message:
+
+```sh
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/contact-rest-integration.php
+```
+
+## Staging WooCommerce evaluation
+
+The temporary WooCommerce/RaiAccept bridge is disabled by default. It may be
+enabled only on the staging CMS by defining the following untracked server
+configuration before WordPress loads `wp-settings.php`:
+
+```php
+define( 'HSE_WOOCOMMERCE_STAGING_BRIDGE', true );
+```
+
+Astro reads a public projection by stable `course_key`; WooCommerce API keys,
+product IDs, and gateway credentials are never returned:
+
+```text
+GET /wp-json/hse/v1/commerce/products/nebosh-igc
+```
+
+The response supplies integer minor-unit price data and a same-host checkout
+initiation URL. That URL resolves `course_key` to the product SKU on the server,
+creates a one-item WooCommerce cart, and redirects to Woo checkout. Run the
+contract check with:
+
+```sh
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/commerce-rest-integration.php
+```
+
+Provision the staging-only IGC product with an explicitly selected sandbox
+price:
+
+```sh
+HSE_IGC_TEST_PRICE=1000.00 wp eval-file wp-content/plugins/hse-headless/scripts/provision-nebosh-igc-product.php
+```
+
+This bridge is for staging gateway validation only. It does not approve
+WooCommerce as the production payment-state authority; see ADR-010.
+
 ## Not Responsible For
 
 - Astro frontend
 - Customer accounts
-- Payments
-- Payment-provider integration
+- Production payments and payment-provider integration
 - Course delivery
 - LMS functionality
 

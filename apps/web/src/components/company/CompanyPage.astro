@@ -2,7 +2,7 @@
 import './company-page.css';
 import type { CompanyPageContent } from '../../types/company';
 import { getCompanyUiTranslations } from '../../i18n/company-ui';
-import { getAvailablePublicPath, getLocalizedCmsHref } from '../../i18n/routes';
+import { getContactFormPath, getLocalizedCtaHref } from '../../i18n/routes';
 import HomeExperts from '../home/HomeExperts.astro';
 import NeboshPartnerBadge from '../nebosh/NeboshPartnerBadge.astro';
 import ClientMarquee from '../shared/ClientMarquee.astro';
@@ -42,7 +42,7 @@ const reasonIcons = [
 		</div>
 		<div class="company-intro__copy" data-company-reveal="children-intro-copy">
 			<p>{content.profile.description}</p>
-			<a href={getLocalizedCmsHref(content.introCta.url, content.locale)}>{content.introCta.label}</a>
+			<a href={getLocalizedCtaHref(content.introCta.url, content.locale)}>{content.introCta.label}</a>
 		</div>
 	</div>
 </section>
@@ -132,7 +132,7 @@ const reasonIcons = [
 		<div class="company-reasons__copy" data-company-reveal="children-from-right">
 			<h2 id="company-reasons-title">{copy.reasonsTitle}</h2>
 			<p>{copy.reasonsText}</p>
-			<a href={getAvailablePublicPath('/contact/', content.locale)}>{copy.reasonsCta}</a>
+			<a href={getContactFormPath(content.locale)}>{copy.reasonsCta}</a>
 		</div>
 	</div>
 </section>

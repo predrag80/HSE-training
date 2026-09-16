@@ -1,6 +1,6 @@
 # CMS Editability Map
 
-Status: reflects `hse-headless` 0.17.0 and the Astro application on 2026-09-14
+Status: reflects `hse-headless` 0.18.0 and the Astro application on 2026-09-15
 
 WordPress owns reviewed editorial content. Astro owns presentation, public
 routes, navigation behavior, and interface copy unless a field is explicitly

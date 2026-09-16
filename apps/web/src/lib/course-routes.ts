@@ -1,6 +1,6 @@
 import type { Course } from '../types/course';
 import { defaultLocale, type Locale } from '../i18n/config';
-import { getLocalizedPath } from '../i18n/routes';
+import { getContactFormPath, getLocalizedPath } from '../i18n/routes';
 
 export const NEBOSH_COURSE_KEYS = {
 	igc: 'nebosh-igc',
@@ -44,7 +44,7 @@ export function getNeboshCourseCardHref(
 ): string {
 	return course.courseKey === NEBOSH_COURSE_KEYS.igc
 		? getCoursePublicPath(course, locale)
-		: getLocalizedPath('/contact/', locale);
+		: getContactFormPath(locale);
 }
 
 export function hasBespokeCoursePage(courseKey: string): boolean {

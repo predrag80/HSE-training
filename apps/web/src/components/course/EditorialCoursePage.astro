@@ -1,6 +1,6 @@
 ---
 import type { Locale } from '../../i18n/config';
-import { getAvailablePublicPath } from '../../i18n/routes';
+import { getAvailablePublicPath, getContactFormPath } from '../../i18n/routes';
 import type { Course } from '../../types/course';
 import OtherCoursesHero from '../other-courses/OtherCoursesHero.astro';
 import CourseDownloads, { type CourseDownload } from './CourseDownloads.astro';
@@ -46,7 +46,7 @@ const eyebrow = course?.pageEyebrow || fallback.eyebrow;
 			<header data-other-courses-reveal="left">
 				<p>{eyebrow}</p>
 				<h2>{description}</h2>
-				<a class="editorial-course__cta" href={getAvailablePublicPath('/contact/', locale)}>{contactCta}</a>
+				<a class="editorial-course__cta" href={getContactFormPath(locale)}>{contactCta}</a>
 			</header>
 			<div class="editorial-course__content" data-other-courses-reveal="right">
 				{course?.descriptionHtml ? <Fragment set:html={course.descriptionHtml} /> : fallback.body.map((paragraph) => <p>{paragraph}</p>)}

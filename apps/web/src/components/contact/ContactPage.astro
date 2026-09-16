@@ -3,6 +3,8 @@ import './contact-page.css';
 import { contactDetails } from '../../lib/contact';
 import type { Locale } from '../../i18n/config';
 import { getContactUiTranslations } from '../../i18n/contact-ui';
+import { getAvailablePublicPath } from '../../i18n/routes';
+import { serverConfig } from '../../lib/config';
 
 interface Props {
 	readonly locale: Locale;
@@ -10,6 +12,8 @@ interface Props {
 
 const { locale } = Astro.props;
 const copy = getContactUiTranslations(locale);
+const privacyPolicyPath = getAvailablePublicPath('/privacy-policy/', locale);
+const contactEndpoint = new URL('/wp-json/hse/v1/contact', serverConfig.wordpressApiUrl).toString();
 
 interface ContactItem {
 	readonly icon: string;
@@ -85,23 +89,37 @@ const contactItems: readonly ContactItem[] = [
 	</div>
 </section>
 
-<section class="contact-form-section" aria-labelledby="contact-form-title">
+<section class="contact-form-section" id="contact-form" aria-labelledby="contact-form-title">
 	<div class="contact-container contact-form-section__inner">
 		<header class="contact-form-section__header" data-contact-reveal="up">
 			<p>{copy.formEyebrow}</p>
 			<h2 id="contact-form-title">{copy.formTitle}</h2>
 		</header>
 
-		<form class="contact-form" method="post" data-contact-form data-success-message={copy.form.success} data-contact-reveal="form">
+		<form
+			class="contact-form"
+			method="post"
+			data-contact-form
+			data-contact-endpoint={contactEndpoint}
+			data-success-message={copy.form.success}
+			data-error-message={copy.form.error}
+			data-rate-limit-message={copy.form.rateLimited}
+			data-sending-message={copy.form.sending}
+			data-contact-reveal="form"
+		>
+			<input type="hidden" name="locale" value={locale} />
+			<label class="contact-form__trap" aria-hidden="true">
+				<span>Company website</span>
+				<input type="text" name="company_website" autocomplete="off" tabindex="-1" />
+			</label>
 			<div class="contact-form__fields">
 				<label><span>{copy.form.nameLabel}</span><input type="text" name="name" placeholder={copy.form.namePlaceholder} autocomplete="name" required /></label>
 				<label><span>{copy.form.emailLabel}</span><input type="email" name="email" placeholder={copy.form.emailPlaceholder} autocomplete="email" required /></label>
-				<label><span>{copy.form.phoneLabel}</span><input type="tel" name="phone" placeholder={copy.form.phonePlaceholder} autocomplete="tel" /></label>
-				<label><span>{copy.form.subjectLabel}</span><input type="text" name="subject" placeholder={copy.form.subjectPlaceholder} /></label>
-				<label class="contact-form__message"><span>{copy.form.messageLabel}</span><textarea name="message" rows="4" placeholder={copy.form.messagePlaceholder}></textarea></label>
+				<label class="contact-form__phone"><span>{copy.form.phoneLabel}</span><input type="tel" name="phone" placeholder={copy.form.phonePlaceholder} autocomplete="tel" /></label>
+				<label class="contact-form__message"><span>{copy.form.messageLabel}</span><textarea name="message" rows="4" placeholder={copy.form.messagePlaceholder} minlength="10" maxlength="5000" required></textarea></label>
 			</div>
 			<div class="contact-form__footer">
-				<p>{copy.form.privacy}</p>
+				<p>{copy.form.privacyPrefix} <a href={privacyPolicyPath}>{copy.form.privacyLink}</a>{copy.form.privacySuffix}</p>
 				<button type="submit">{copy.form.submit}</button>
 			</div>
 			<p class="contact-form__status" role="status" aria-live="polite" data-contact-form-status></p>
@@ -110,6 +128,8 @@ const contactItems: readonly ContactItem[] = [
 </section>
 
 <script>
+	import { sendContactEnquiry, type ContactEnquiry } from '../../lib/contact-form';
+
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	document.querySelectorAll<HTMLElement>('[data-contact-reveal]').forEach((element) => {
 		if (reducedMotion || !('IntersectionObserver' in window)) {
@@ -138,11 +158,41 @@ const contactItems: readonly ContactItem[] = [
 	updateParallax();
 
 	document.querySelectorAll<HTMLFormElement>('[data-contact-form]').forEach((form) => {
-		form.addEventListener('submit', (event) => {
+		form.addEventListener('submit', async (event) => {
 			event.preventDefault();
 			const status = form.querySelector<HTMLElement>('[data-contact-form-status]');
-			if (!form.reportValidity() || !status) return;
-			status.textContent = form.dataset.successMessage ?? '';
+			const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+			const endpoint = form.dataset.contactEndpoint;
+			if (!form.reportValidity() || !status || !submit || !endpoint) return;
+
+			const fields = new FormData(form);
+			const enquiry: ContactEnquiry = {
+				name: String(fields.get('name') ?? ''),
+				email: String(fields.get('email') ?? ''),
+				phone: String(fields.get('phone') ?? ''),
+				message: String(fields.get('message') ?? ''),
+				locale: fields.get('locale') === 'sr' ? 'sr' : 'en',
+				company_website: String(fields.get('company_website') ?? ''),
+			};
+
+			submit.disabled = true;
+			status.dataset.state = 'sending';
+			status.textContent = form.dataset.sendingMessage ?? '';
+			const result = await sendContactEnquiry(endpoint, enquiry);
+
+			if (result === 'success') {
+				form.reset();
+				status.dataset.state = 'success';
+				status.textContent = form.dataset.successMessage ?? '';
+			} else if (result === 'rate-limited') {
+				status.dataset.state = 'error';
+				status.textContent = form.dataset.rateLimitMessage ?? '';
+			} else {
+				status.dataset.state = 'error';
+				status.textContent = form.dataset.errorMessage ?? '';
+			}
+
+			submit.disabled = false;
 		});
 	});
 </script>

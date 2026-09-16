@@ -67,12 +67,28 @@ export function getAvailablePublicPath(pathname: string, locale: Locale): string
 	return getLocalizedPath(pathname, locale);
 }
 
+export function getContactFormPath(locale: Locale): string {
+	return `${getAvailablePublicPath('/contact/', locale)}#contact-form`;
+}
+
 /** Localize a CMS-authored same-site path while preserving query and fragment data. */
 export function getLocalizedCmsHref(href: string, locale: Locale): string {
 	if (!href.startsWith('/') || href.startsWith('//')) return href;
 
 	const url = new URL(href, 'https://hsetraining.local');
 	return `${getAvailablePublicPath(url.pathname, locale)}${url.search}${url.hash}`;
+}
+
+/** Localize a CMS-authored CTA and send Contact-page CTAs directly to the form. */
+export function getLocalizedCtaHref(href: string, locale: Locale): string {
+	if (!href.startsWith('/') || href.startsWith('//')) return href;
+
+	const url = new URL(href, 'https://hsetraining.local');
+	if (getDefaultLocalePath(url.pathname) !== '/contact/') {
+		return getLocalizedCmsHref(href, locale);
+	}
+
+	return `${getAvailablePublicPath('/contact/', locale)}${url.search}#contact-form`;
 }
 
 export function getLanguageAlternates(pathname: string): Record<Locale, string> {

@@ -3,7 +3,7 @@ import ValueIcon from './ValueIcon.astro';
 import './home-about-value.css';
 import type { CompanyProfile } from '../../types/company';
 import type { Locale } from '../../i18n/config';
-import { getLocalizedCmsHref } from '../../i18n/routes';
+import { getLocalizedCmsHref, getLocalizedCtaHref } from '../../i18n/routes';
 import { getUiTranslations } from '../../i18n/ui';
 
 interface Props {
@@ -67,7 +67,7 @@ const copy = getUiTranslations(locale).homepage.about;
 				<p class="about-value__description">{content.description}</p>
 
 				<div class="about-value__actions">
-					<a class="about-value__button" href={getLocalizedCmsHref(content.primaryCta.url, locale)}>{content.primaryCta.label}</a>
+					<a class="about-value__button" href={getLocalizedCtaHref(content.primaryCta.url, locale)}>{content.primaryCta.label}</a>
 					<a class="about-value__text-link" href={getLocalizedCmsHref('/#reference', locale)}>{content.secondaryCta.label}</a>
 				</div>
 

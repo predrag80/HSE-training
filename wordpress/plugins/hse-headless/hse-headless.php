@@ -2,7 +2,7 @@
 /**
  * Plugin Name: HSE Training Headless
  * Description: Custom headless CMS functionality for the HSE Training platform.
- * Version: 0.17.0
+ * Version: 0.19.0
  * Text Domain: hse-headless
  *
  * @package HSETraining\Headless
@@ -39,6 +39,13 @@ require_once __DIR__ . '/src/Homepage/HomepageSettings.php';
 require_once __DIR__ . '/src/Homepage/HomepageRestController.php';
 require_once __DIR__ . '/src/Homepage/HomepageMigration.php';
 require_once __DIR__ . '/src/Infrastructure/HeadlessMode.php';
+require_once __DIR__ . '/src/Infrastructure/SmtpMailer.php';
+require_once __DIR__ . '/src/Contact/ContactEmailTemplate.php';
+require_once __DIR__ . '/src/Contact/ContactRestController.php';
+require_once __DIR__ . '/src/Commerce/CommerceConfiguration.php';
+require_once __DIR__ . '/src/Commerce/CommerceProductRepository.php';
+require_once __DIR__ . '/src/Commerce/CommerceRestController.php';
+require_once __DIR__ . '/src/Commerce/CommerceCheckout.php';
 
 Course\CoursePostType::register_hooks();
 Training\TrainingPostType::register_hooks();
@@ -65,3 +72,7 @@ Homepage\HomepageMigration::register_hooks();
 Content\ContentLocale::register_hooks();
 Content\ContentLocaleMigration::register_hooks();
 Infrastructure\HeadlessMode::register_hooks();
+Infrastructure\SmtpMailer::register_hooks();
+Contact\ContactRestController::register_hooks();
+Commerce\CommerceRestController::register_hooks();
+Commerce\CommerceCheckout::register_hooks();

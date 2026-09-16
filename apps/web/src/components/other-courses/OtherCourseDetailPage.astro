@@ -4,7 +4,7 @@ import OtherCoursesHero from './OtherCoursesHero.astro';
 import OtherCoursesMotion from './OtherCoursesMotion.astro';
 import type { Locale } from '../../i18n/config';
 import { getOtherCoursesUiTranslations } from '../../i18n/other-courses-ui';
-import { getAvailablePublicPath } from '../../i18n/routes';
+import { getContactFormPath } from '../../i18n/routes';
 import CourseDownloads, { type CourseDownload } from '../course/CourseDownloads.astro';
 
 interface Fact {
@@ -72,7 +72,7 @@ const common = getOtherCoursesUiTranslations(locale).common;
 			<p class="other-courses-kicker">{introKicker}</p>
 			<h2>{introTitle}</h2>
 			{introHtml ? <Fragment set:html={introHtml} /> : intro.map((paragraph) => <p>{paragraph}</p>)}
-			<a class="other-courses-button" href={getAvailablePublicPath('/contact/', locale)}>{common.enquire}</a>
+			<a class="other-courses-button" href={getContactFormPath(locale)}>{common.enquire}</a>
 		</div>
 	</div>
 </section>
@@ -114,7 +114,7 @@ const common = getOtherCoursesUiTranslations(locale).common;
 	<div class="other-courses-container" data-other-courses-reveal="up">
 		<p>{common.datesText}</p>
 		<h2>{common.readyTitle}</h2>
-		<a href={getAvailablePublicPath('/contact/', locale)}>{common.contactCta} <span aria-hidden="true">→</span></a>
+		<a href={getContactFormPath(locale)}>{common.contactCta} <span aria-hidden="true">→</span></a>
 	</div>
 </section>
 

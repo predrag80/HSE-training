@@ -9,10 +9,12 @@ const contactUi = {
 		formEyebrow: 'Contact us', formTitle: 'How can we help you?',
 		form: {
 			nameLabel: 'Your name', namePlaceholder: 'Your name*', emailLabel: 'Your email address', emailPlaceholder: 'Your email address*',
-			phoneLabel: 'Your phone', phonePlaceholder: 'Your phone', subjectLabel: 'Your subject', subjectPlaceholder: 'Your subject',
+			phoneLabel: 'Your phone', phonePlaceholder: 'Your phone',
 			messageLabel: 'Your message', messagePlaceholder: 'Your message', submit: 'Send message',
-			privacy: 'We are committed to protecting your privacy. We will never collect information about you without your explicit consent.',
-			success: 'Thank you. Your message is ready to be sent.',
+			privacyPrefix: 'By sending this message, you confirm that you have read our',
+			privacyLink: 'Privacy Policy', privacySuffix: '.',
+			sending: 'Sending your message…', success: 'Thank you. Your message has been sent successfully.',
+			error: 'Your message could not be sent. Please try again later.', rateLimited: 'Too many messages were sent. Please wait and try again.',
 		},
 	},
 	sr: {
@@ -23,10 +25,12 @@ const contactUi = {
 		formEyebrow: 'Kontaktirajte nas', formTitle: 'Kako možemo da vam pomognemo?',
 		form: {
 			nameLabel: 'Vaše ime', namePlaceholder: 'Vaše ime*', emailLabel: 'Vaša e-mail adresa', emailPlaceholder: 'Vaša e-mail adresa*',
-			phoneLabel: 'Vaš telefon', phonePlaceholder: 'Vaš telefon', subjectLabel: 'Naslov poruke', subjectPlaceholder: 'Naslov poruke',
+			phoneLabel: 'Vaš telefon', phonePlaceholder: 'Vaš telefon',
 			messageLabel: 'Vaša poruka', messagePlaceholder: 'Vaša poruka', submit: 'Pošaljite poruku',
-			privacy: 'Posvećeni smo zaštiti vaše privatnosti. Nikada nećemo prikupljati podatke o vama bez vaše izričite saglasnosti.',
-			success: 'Hvala. Vaša poruka je spremna za slanje.',
+			privacyPrefix: 'Slanjem poruke potvrđujete da ste pročitali našu',
+			privacyLink: 'Politiku privatnosti', privacySuffix: '.',
+			sending: 'Poruka se šalje…', success: 'Hvala. Vaša poruka je uspešno poslata.',
+			error: 'Poruka nije mogla da bude poslata. Pokušajte ponovo kasnije.', rateLimited: 'Poslato je previše poruka. Sačekajte i pokušajte ponovo.',
 		},
 	},
 } as const;

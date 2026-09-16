@@ -6,6 +6,8 @@ import {
 	getLocaleFromPathname,
 	getLocalizedPath,
 	getLocalizedCmsHref,
+	getContactFormPath,
+	getLocalizedCtaHref,
 } from './routes';
 
 describe('locale routes', () => {
@@ -64,5 +66,18 @@ describe('locale routes', () => {
 		expect(getLocalizedCmsHref('/company/#about', 'sr')).toBe('/sr/company/#about');
 		expect(getLocalizedCmsHref('/contact/?course=nebosh#form', 'sr')).toBe('/sr/contact/?course=nebosh#form');
 		expect(getLocalizedCmsHref('https://example.com/', 'sr')).toBe('https://example.com/');
+	});
+
+	it('routes Contact CTAs directly to the localized form', () => {
+		expect(getContactFormPath('en')).toBe('/contact/#contact-form');
+		expect(getContactFormPath('sr')).toBe('/sr/contact/#contact-form');
+		expect(getLocalizedCtaHref('/contact/', 'en')).toBe('/contact/#contact-form');
+		expect(getLocalizedCtaHref('/sr/contact/?course=nebosh#old-anchor', 'sr')).toBe(
+			'/sr/contact/?course=nebosh#contact-form',
+		);
+		expect(getLocalizedCtaHref('/company/#about', 'sr')).toBe('/sr/company/#about');
+		expect(getLocalizedCtaHref('https://example.com/contact/', 'sr')).toBe(
+			'https://example.com/contact/',
+		);
 	});
 });

@@ -3,7 +3,7 @@ import './nebosh-pages.css';
 import type { Course } from '../../types/course';
 import type { NeboshOverviewPageContent } from '../../types/course-page';
 import type { Locale } from '../../i18n/config';
-import { getAvailablePublicPath } from '../../i18n/routes';
+import { getAvailablePublicPath, getContactFormPath } from '../../i18n/routes';
 import { getCourseUiTranslations } from '../../i18n/course-ui';
 import { getCoursePublicPath } from '../../lib/course-routes';
 import NeboshHero from './NeboshHero.astro';
@@ -45,7 +45,7 @@ const { hero, strengths, intro, courseSelection, testimonial } = content;
 			<p class="nebosh-kicker">{intro.kicker}</p>
 			<h2>{intro.title}</h2>
 			{intro.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
-			<a class="nebosh-button" href={getAvailablePublicPath('/contact/', locale)}>{intro.ctaLabel}</a>
+			<a class="nebosh-button" href={getContactFormPath(locale)}>{intro.ctaLabel}</a>
 		</div>
 		<div class="nebosh-overview-intro__visual" data-nebosh-reveal="right">
 			<img src="/images/nebosh-overview-feature.webp" width="570" height="561" alt={intro.imageAlt} />

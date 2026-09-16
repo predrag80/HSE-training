@@ -1,16 +1,18 @@
 ---
 import CourseIndexPage from '../../../components/course/CourseIndexPage.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { getCoursesLandingPage, getHomepageCourses, getTrainingCourses } from '../../../lib/cms';
+import { getCoursesLandingPage, getHomepageCourses, getOptionalCommerceProduct, getTrainingCourses } from '../../../lib/cms';
+import { NEBOSH_COURSE_KEYS } from '../../../lib/course-routes';
 
 const locale = 'sr';
-const [courses, trainingCourses, content] = await Promise.all([
+const [courses, trainingCourses, content, commerceProduct] = await Promise.all([
 	getHomepageCourses(locale),
 	getTrainingCourses(locale),
 	getCoursesLandingPage(locale),
+	getOptionalCommerceProduct(NEBOSH_COURSE_KEYS.igc),
 ]);
 ---
 
 <BaseLayout title={content.meta.title} description={content.meta.description} locale={locale}>
-	<CourseIndexPage {courses} {trainingCourses} {locale} {content} />
+	<CourseIndexPage {courses} {trainingCourses} {locale} {content} {commerceProduct} />
 </BaseLayout>

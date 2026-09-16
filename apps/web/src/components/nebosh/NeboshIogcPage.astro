@@ -2,7 +2,7 @@
 import './nebosh-pages.css';
 import type { Course } from '../../types/course';
 import type { Locale } from '../../i18n/config';
-import { getAvailablePublicPath } from '../../i18n/routes';
+import { getContactFormPath } from '../../i18n/routes';
 import { getCourseUiTranslations } from '../../i18n/course-ui';
 import NeboshHero from './NeboshHero.astro';
 import NeboshMotion from './NeboshMotion.astro';
@@ -31,7 +31,7 @@ const heroImage = course?.featuredImageUrl ?? '/images/nebosh-iogc-hero.jpg';
 			{iogc.statusParagraphs.map((paragraph) => <p>{paragraph}</p>)}
 			<p>{iogc.deadlinePrefix} <strong>{iogc.deadline}</strong>. {iogc.deadlineSuffix}</p>
 			<div class="iogc-status__links">
-				<a class="nebosh-text-link" href={getAvailablePublicPath('/contact/', locale)}>{iogc.contactCta} <span aria-hidden="true">→</span></a>
+				<a class="nebosh-text-link" href={getContactFormPath(locale)}>{iogc.contactCta} <span aria-hidden="true">→</span></a>
 				<a class="nebosh-text-link" href="https://www.nebosh.org.uk/qualifications/international-oil-and-gas-certificate/" target="_blank" rel="noreferrer">{iogc.officialCta} <span aria-hidden="true">↗</span></a>
 			</div>
 		</div>
@@ -82,7 +82,7 @@ const heroImage = course?.featuredImageUrl ?? '/images/nebosh-iogc-hero.jpg';
 		<div class="iogc-audience__grid">
 			{iogc.audiences.map((audience, index) => <article data-nebosh-reveal="up"><span>0{index + 1}</span><h3>{audience.title}</h3><p>{audience.text}</p></article>)}
 		</div>
-		<p class="nebosh-inline-cta">{iogc.inlineCta} <a href={getAvailablePublicPath('/contact/', locale)}>{iogc.inlineLink}</a></p>
+		<p class="nebosh-inline-cta">{iogc.inlineCta} <a href={getContactFormPath(locale)}>{iogc.inlineLink}</a></p>
 	</div>
 </section>
 

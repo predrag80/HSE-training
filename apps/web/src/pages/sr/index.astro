@@ -8,12 +8,14 @@ import HomePricing from '../../components/home/HomePricing.astro';
 import HomeReference from '../../components/home/HomeReference.astro';
 import HomeServices from '../../components/home/HomeServices.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getHomepage, getHomepageCourses, getHomepageReferenceSection } from '../../lib/cms';
+import { getHomepage, getHomepageCourses, getHomepageReferenceSection, getOptionalCommerceProduct } from '../../lib/cms';
+import { NEBOSH_COURSE_KEYS } from '../../lib/course-routes';
 
-const [homepage, homepageCourses, homepageReferences] = await Promise.all([
+const [homepage, homepageCourses, homepageReferences, commerceProduct] = await Promise.all([
 	getHomepage('sr'),
 	getHomepageCourses('sr'),
 	getHomepageReferenceSection('sr'),
+	getOptionalCommerceProduct(NEBOSH_COURSE_KEYS.igc),
 ]);
 ---
 
@@ -26,7 +28,7 @@ const [homepage, homepageCourses, homepageReferences] = await Promise.all([
 		<HomeHero content={homepage.hero} locale="sr" />
 		<HomeAboutValue content={homepage.about} locale="sr" />
 		<HomeServices services={homepage.featuredServices} locale="sr" />
-		<HomePricing courses={homepageCourses} locale="sr" />
+		<HomePricing courses={homepageCourses} locale="sr" {commerceProduct} />
 		<HomeClients locale="sr" />
 		<HomeReference featuredReferences={homepageReferences.featured} additionalReferences={homepageReferences.additional} locale="sr" />
 		<HomeExperts experts={homepage.about.team} locale="sr" />

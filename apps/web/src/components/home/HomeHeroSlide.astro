@@ -1,7 +1,7 @@
 ---
 import type { HomepageHeroImage } from '../../types/homepage';
 import type { Locale } from '../../i18n/config';
-import { getLocalizedCmsHref } from '../../i18n/routes';
+import { getLocalizedCtaHref } from '../../i18n/routes';
 
 interface Props {
 	index: number;
@@ -75,11 +75,11 @@ const title = `${leadingTitle} ${emphasizedTitle}`;
 			</div>
 
 			<div class="home-hero-slide__action">
-				<a href={getLocalizedCmsHref(primaryCtaUrl, locale)}>{primaryCtaLabel}</a>
+				<a href={getLocalizedCtaHref(primaryCtaUrl, locale)}>{primaryCtaLabel}</a>
 			</div>
 
 			<div class="home-hero-slide__message">
-				<p>{messagePrefix} <a href={getLocalizedCmsHref(messageLinkUrl, locale)}>{messageLinkLabel}</a></p>
+				<p>{messagePrefix} <a href={getLocalizedCtaHref(messageLinkUrl, locale)}>{messageLinkLabel}</a></p>
 			</div>
 		</div>
 	</div>

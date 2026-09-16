@@ -37,8 +37,8 @@ describe('Course public routes', () => {
 		expect(getNeboshCourseCardHref(course(NEBOSH_COURSE_KEYS.igc, 'ignored-slug'))).toBe(
 			'/nebosh-international-general-certificate-in-occupational-health-and-safety/',
 		);
-		expect(getNeboshCourseCardHref(course(NEBOSH_COURSE_KEYS.eaw, 'ignored-slug'))).toBe('/contact/');
-		expect(getNeboshCourseCardHref(course(NEBOSH_COURSE_KEYS.iogc, 'ignored-slug'), 'sr')).toBe('/sr/contact/');
+		expect(getNeboshCourseCardHref(course(NEBOSH_COURSE_KEYS.eaw, 'ignored-slug'))).toBe('/contact/#contact-form');
+		expect(getNeboshCourseCardHref(course(NEBOSH_COURSE_KEYS.iogc, 'ignored-slug'), 'sr')).toBe('/sr/contact/#contact-form');
 	});
 
 	it('uses the generic dynamic route for courses without a bespoke page', () => {

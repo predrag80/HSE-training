@@ -1,4 +1,5 @@
 export { getCompanyPage } from './company';
+export { formatCommercePrice, getOptionalCommerceProduct } from './commerce';
 export { getCoursesLandingPage, getNeboshOverviewPage, getTrainingOverviewPage } from './course-pages';
 export { getCourseByKey, getCourseBySlug, getCourses, getHomepageCourses, getTrainingCourseByKey, getTrainingCourses, getTrainings } from './courses';
 export { getHomepage } from './homepage';
@@ -8,6 +9,7 @@ export { getServices } from './services';
 export { CmsError, isCmsError } from './errors';
 export type { CmsErrorCode } from './errors';
 export type { Course } from '../../types/course';
+export type { CommerceProduct } from '../../types/commerce';
 export type { CoursesLandingPageContent, NeboshOverviewPageContent, TrainingOverviewPageContent } from '../../types/course-page';
 export type { CompanyPageContent, CompanyProfile } from '../../types/company';
 export type { Homepage, HomepageHero, HomepageHeroSlide } from '../../types/homepage';
