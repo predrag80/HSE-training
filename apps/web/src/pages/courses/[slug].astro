@@ -1,7 +1,7 @@
 ---
 import CourseDetailPage from '../../components/course/CourseDetailPage.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCourses, type Course } from '../../lib/cms';
+import { getCourses, getOptionalCommerceProduct, type Course } from '../../lib/cms';
 import {
 	createLocalizedGenericCourseStaticPaths,
 	getCoursePageMetadata,
@@ -21,9 +21,10 @@ export async function getStaticPaths() {
 
 const locale = 'en';
 const { course, languageAlternates } = Astro.props;
+const commerceProduct = await getOptionalCommerceProduct(course.courseKey, locale);
 const metadata = getCoursePageMetadata(course);
 ---
 
 <BaseLayout title={metadata.title} description={metadata.description} {locale} {languageAlternates}>
-	<CourseDetailPage {course} {locale} />
+	<CourseDetailPage {course} {locale} {commerceProduct} />
 </BaseLayout>

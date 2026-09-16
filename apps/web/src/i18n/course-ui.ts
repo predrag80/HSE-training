@@ -13,7 +13,7 @@ const courseTranslations = {
 		card: {
 			eyebrow: 'HSE course',
 			view: 'View course',
-			addToBasket: 'Add to basket',
+			buyNow: 'Buy now',
 			contactUs: 'Contact us',
 			imageAltPrefix: 'Course image for',
 		},
@@ -119,7 +119,7 @@ const courseTranslations = {
 		card: {
 			eyebrow: 'HSE kurs',
 			view: 'Pogledajte kurs',
-			addToBasket: 'Dodaj u korpu',
+			buyNow: 'Kupi sada',
 			contactUs: 'Kontaktirajte nas',
 			imageAltPrefix: 'Slika kursa',
 		},

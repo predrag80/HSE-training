@@ -56,12 +56,18 @@ try {
 
 	$registered_meta = get_registered_meta_keys( 'post', CoursePostType::POST_TYPE );
 	hse_course_test_assert( isset( $registered_meta[ ContentLocale::META_KEY ] ), 'Course content language is registered.' );
-	foreach ( array( CourseMeta::COURSE_KEY, CourseMeta::SHORT_DESCRIPTION, CourseMeta::VISIBLE_PRICE, CourseMeta::PAGE_EYEBROW ) as $meta_key ) {
+	foreach ( array( CourseMeta::COURSE_KEY, CourseMeta::SHORT_DESCRIPTION, CourseMeta::VISIBLE_PRICE, CourseMeta::PAGE_EYEBROW, CourseMeta::ONLINE_PRICE ) as $meta_key ) {
 		$meta_args = isset( $registered_meta[ $meta_key ] ) ? $registered_meta[ $meta_key ] : array();
 		hse_course_test_assert( 'string' === ( $meta_args['type'] ?? null ), sprintf( '%s is registered as a string.', $meta_key ) );
 		hse_course_test_assert( true === ( $meta_args['single'] ?? null ), sprintf( '%s is registered as a scalar value.', $meta_key ) );
 		hse_course_test_assert( false !== ( $meta_args['show_in_rest'] ?? false ), sprintf( '%s is exposed through core REST meta.', $meta_key ) );
 	}
+	$purchase_meta = isset( $registered_meta[ CourseMeta::ONLINE_PURCHASE_ENABLED ] ) ? $registered_meta[ CourseMeta::ONLINE_PURCHASE_ENABLED ] : array();
+	hse_course_test_assert( 'boolean' === ( $purchase_meta['type'] ?? null ), 'Online purchase availability is registered as a boolean.' );
+	hse_course_test_assert( true === ( $purchase_meta['single'] ?? null ), 'Online purchase availability is registered as a scalar value.' );
+	hse_course_test_assert( false !== ( $purchase_meta['show_in_rest'] ?? false ), 'Online purchase availability is exposed through core REST meta.' );
+	hse_course_test_assert( '49.50' === CourseMeta::sanitize_online_price( '49,5' ), 'Online price accepts a decimal comma and stores two decimals.' );
+	hse_course_test_assert( '' === CourseMeta::sanitize_online_price( '0' ), 'Online price rejects zero.' );
 	hse_course_test_assert( false === CourseMeta::can_edit_meta( false, CourseMeta::COURSE_KEY, 0 ), 'Anonymous users cannot edit Course metadata.' );
 
 	$keyless_id = wp_insert_post(

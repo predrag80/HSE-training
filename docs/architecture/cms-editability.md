@@ -1,6 +1,6 @@
 # CMS Editability Map
 
-Status: reflects `hse-headless` 0.18.0 and the Astro application on 2026-09-15
+Status: reflects `hse-headless` 0.23.1 and the Astro application on 2026-09-16
 
 WordPress owns reviewed editorial content. Astro owns presentation, public
 routes, navigation behavior, and interface copy unless a field is explicitly
@@ -13,14 +13,21 @@ listed below.
 | Homepage hero | Up to five localized slides: title fragments, primary CTA, supporting link, image, order, and stable slide key. |
 | Shared company profile | About eyebrow, headline, description, two images, CTA labels and URLs, signature, three value statements, and five team-member names, roles, and photos. This content is shared by Homepage and Company Page. |
 | Company Page | Localized hero title/eyebrow and intro CTA in addition to the shared company profile. |
-| Courses | The three localized NEBOSH records: title, slug, rich description, short description, display-only price, page eyebrow, featured image, order, stable `course_key`, card label/CTA, and Homepage visibility. |
+| Courses | The three localized NEBOSH records: title, slug, rich description, short description, display-only price, page eyebrow, featured image, order, stable `course_key`, card label/CTA, Homepage visibility, online-purchase checkbox, and authoritative Woo checkout price. |
 | Trainings | Custom HSE Training, Banksman / Slinger, and Train the Trainer are managed separately under **Trainings** with localized title, slug, rich description, short description, display-only price, page eyebrow, featured image, order, stable `course_key`, and card CTA. |
 | Courses landing | Localized SEO fields, hero eyebrow/title/introduction, NEBOSH and Training group headings/list labels, and empty-state copy. |
 | NEBOSH overview | Localized SEO and hero copy, four benefit items, intro copy, course-selection labels, CTA labels, and testimonial. |
 | Training overview | Localized SEO fields, hero copy, course-selection heading, and card CTA fallback. |
 | Consulting services | Localized service title, labels, short and detailed descriptions, CTA, image, order, stable key, and Homepage visibility. |
 | References | Localized testimonial, author, role/organisation, order, stable key, Homepage visibility, and Homepage accent selection. |
-| Legal pages | Privacy Policy, Terms and Conditions, and Copyright in English and Serbian: SEO fields, hero copy, last-updated text, and up to seven rich-text sections. |
+| Legal pages | Privacy Policy, Purchase Terms, and Copyright in English and Serbian: SEO fields, hero copy, last-updated text, and up to seven rich-text sections. The 0.23.1 migration supplies an e-commerce draft while preserving the previous Terms and Privacy values for rollback. |
+
+During the temporary ADR-010 staging evaluation, WooCommerce **Products** are
+not a second editorial source. Each published Course `course_key` is mirrored
+automatically into one hidden product. Editors continue to change Course
+content and purchase availability under **Courses**. Checked Courses receive
+their CMS checkout price in WooCommerce; unchecked Courses remain unavailable
+for purchase. The current content enables only IGC.
 
 ## Partly editable in WordPress
 

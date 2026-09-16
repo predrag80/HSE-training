@@ -276,6 +276,7 @@ configuration before WordPress loads `wp-settings.php`:
 
 ```php
 define( 'HSE_WOOCOMMERCE_STAGING_BRIDGE', true );
+define( 'HSE_PUBLIC_SITE_URL', 'https://staging.hsetraining.rs' );
 ```
 
 Astro reads a public projection by stable `course_key`; WooCommerce API keys,
@@ -292,13 +293,77 @@ contract check with:
 
 ```sh
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/commerce-rest-integration.php
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/commerce-presentation-integration.php
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/commerce-product-sync-integration.php
 ```
 
-Provision the staging-only IGC product with an explicitly selected sandbox
-price:
+Astro appends `lang=en` or `lang=sr` to checkout initiation. The plugin keeps
+that allowlisted locale in the Woo session, an HTTP-only cookie, and the order
+so checkout and the gateway return use the same reviewed English or
+Serbian-Latin copy. Checkout and the order-received endpoint render inside a
+plugin-owned, non-indexable HSE shell and use the classic Woo checkout renderer;
+WooCommerce and RaiAccept core files remain untouched. Confirmation copy comes
+from the Woo order status and does not treat a browser return as proof of
+payment.
+
+`HSE_PUBLIC_SITE_URL` owns checkout links back to Astro. Set it to
+`https://staging.hsetraining.rs` on staging and `https://hsetraining.rs` in
+production. Local WordPress defaults to `http://localhost:4321`; other
+unconfigured environments default to the production origin.
+
+Published **Courses** are the editorial source for a derived, hidden
+WooCommerce catalogue. A Course save automatically synchronizes the product
+whose SKU equals `course_key`; English content populates the standard product
+fields and both English and Serbian content are retained in private product
+metadata. Run the idempotent bulk synchronization after first deployment:
+
+```sh
+wp eval-file wp-content/plugins/hse-headless/scripts/sync-course-products.php
+```
+
+Each Course has **Available for online purchase** and **Online price** fields.
+When enabled with a valid positive price, the price is synchronized to the
+hidden WooCommerce product and Astro renders a Buy now CTA that proceeds
+directly to checkout. When
+disabled, the derived product has no checkout price and Astro renders Contact
+us. The setting is shared between the English and Serbian records for the same
+`course_key`. The separate display-only Course price is never promoted to a
+checkout amount.
+
+The current evaluation uses RSD with two decimal places, in line with the
+bank-supplied Internet-sales-site instructions:
+
+```sh
+wp option update woocommerce_currency RSD
+wp option update woocommerce_price_num_decimals 2
+```
+
+The global Astro footer and the plugin-owned checkout shell use the official
+bank-provided Raiffeisen, card-scheme and 3-D Secure assets. Purchase Terms and
+Privacy Policy are migrated once in English and Serbian; the previous option
+values are retained with the `_pre_ecommerce_20260916` suffix. The legal copy is
+an implementation draft and must be approved before production launch.
+
+Woo customer emails cover successful/processing, pending/held, completed,
+failed, cancelled and refunded outcomes. After WordPress reports a successful
+send, the plugin stores only the notification identifier and UTC timestamp on
+the order as operational evidence. The email palette can be aligned to the HSE
+checkout with:
+
+```sh
+wp option update woocommerce_email_base_color '#292d36'
+wp option update woocommerce_email_background_color '#f7f7f7'
+wp option update woocommerce_email_body_background_color '#ffffff'
+wp option update woocommerce_email_text_color '#292d36'
+```
+
+The current staging IGC can be enabled with the idempotent provisioning script;
+future changes should be made through the Course editor, then synchronized in
+bulk after first deployment:
 
 ```sh
 HSE_IGC_TEST_PRICE=1000.00 wp eval-file wp-content/plugins/hse-headless/scripts/provision-nebosh-igc-product.php
+wp eval-file wp-content/plugins/hse-headless/scripts/sync-course-products.php
 ```
 
 This bridge is for staging gateway validation only. It does not approve

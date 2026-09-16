@@ -1,6 +1,6 @@
 <?php
 /**
- * Create or update the staging NEBOSH IGC WooCommerce product.
+ * Enable the staging IGC Course and synchronize its derived Woo product.
  *
  * Run with:
  * HSE_IGC_TEST_PRICE=1000.00 wp eval-file wp-content/plugins/hse-headless/scripts/provision-nebosh-igc-product.php
@@ -27,33 +27,37 @@ if ( false === $price || ! is_numeric( $price ) || (float) $price <= 0 ) {
 }
 
 $course_key = 'nebosh-igc';
-$product_id = wc_get_product_id_by_sku( $course_key );
-$product    = $product_id ? wc_get_product( $product_id ) : new WC_Product_Simple();
-
-if ( ! $product instanceof WC_Product_Simple ) {
-	WP_CLI::error( 'The existing nebosh-igc SKU is not a simple WooCommerce product.' );
+$course_ids = get_posts(
+	array(
+		'post_type'      => \HSETraining\Headless\Course\CoursePostType::POST_TYPE,
+		'post_status'    => array_values( get_post_stati() ),
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+		'meta_key'       => \HSETraining\Headless\Course\CourseMeta::COURSE_KEY,
+		'meta_value'     => $course_key,
+		'no_found_rows'  => true,
+	)
+);
+if ( ! $course_ids ) {
+	WP_CLI::error( 'No Course record exists for nebosh-igc.' );
 }
 
-$product->set_name( 'NEBOSH International General Certificate in Occupational Health and Safety' );
-$product->set_slug( 'nebosh-international-general-certificate' );
-$product->set_sku( $course_key );
-$product->set_status( 'publish' );
-$product->set_catalog_visibility( 'hidden' );
-$product->set_virtual( true );
-$product->set_sold_individually( true );
-$product->set_manage_stock( false );
-$product->set_tax_status( 'none' );
-$product->set_regular_price( wc_format_decimal( $price ) );
-$product->set_price( wc_format_decimal( $price ) );
-$product->set_short_description( 'Sandbox checkout product for the NEBOSH IGC course.' );
-$saved_id = $product->save();
-update_post_meta( $saved_id, '_hse_course_key', $course_key );
+$formatted_price = \HSETraining\Headless\Course\CourseMeta::sanitize_online_price( $price );
+foreach ( $course_ids as $course_id ) {
+	update_post_meta( $course_id, \HSETraining\Headless\Course\CourseMeta::ONLINE_PURCHASE_ENABLED, '1' );
+	update_post_meta( $course_id, \HSETraining\Headless\Course\CourseMeta::ONLINE_PRICE, $formatted_price );
+}
+
+$product = \HSETraining\Headless\Commerce\CommerceProductSync::sync_course_key( $course_key );
+if ( is_wp_error( $product ) || ! $product ) {
+	WP_CLI::error( is_wp_error( $product ) ? $product->get_error_message() : 'IGC product synchronization failed.' );
+}
 
 WP_CLI::success(
 	sprintf(
-		'Provisioned %s at %s %s (product ID retained inside WordPress).',
+		'Enabled and synchronized %s at %s %s (product ID retained inside WordPress).',
 		$course_key,
-		wc_format_decimal( $price ),
+		$formatted_price,
 		get_woocommerce_currency()
 	)
 );

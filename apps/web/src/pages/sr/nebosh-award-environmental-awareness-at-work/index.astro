@@ -5,10 +5,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { getEditorialCourseUi } from '../../../i18n/editorial-course-ui';
 import { NEBOSH_COURSE_KEYS } from '../../../lib/course-routes';
 import { loadRequiredNeboshCourse } from '../../../lib/nebosh-course-content';
+import { getOptionalCommerceProduct } from '../../../lib/cms';
 
 const locale = 'sr';
 const copy = getEditorialCourseUi(locale);
 const course = await loadRequiredNeboshCourse(NEBOSH_COURSE_KEYS.eaw, locale);
+const commerceProduct = await getOptionalCommerceProduct(NEBOSH_COURSE_KEYS.eaw, locale);
 const downloads = [{
 	label: 'NEBOSH Environmental Awareness at Work – brošura',
 	href: '/downloads/nebosh-eaw-english.pdf',
@@ -18,7 +20,7 @@ const downloads = [{
 
 <BaseLayout title={`${course.title} | HSE Training`} description={course.shortDescription} locale={locale}>
 	<main id="main-content">
-		<EditorialCoursePage {course} fallback={copy.eaw} {locale} backHref="/nebosh/" backLabel={copy.backToNebosh} contentLabel={copy.contentLabel} contactCta={copy.contactCta} heroImage="/images/nebosh-overview-feature.webp" {downloads} />
+		<EditorialCoursePage {course} fallback={copy.eaw} {locale} backHref="/nebosh/" backLabel={copy.backToNebosh} contentLabel={copy.contentLabel} contactCta={copy.contactCta} heroImage="/images/nebosh-overview-feature.webp" {downloads} {commerceProduct} />
 		<NeboshPartnerBadge {locale} />
 	</main>
 </BaseLayout>

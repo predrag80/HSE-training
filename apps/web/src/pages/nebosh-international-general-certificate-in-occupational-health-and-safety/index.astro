@@ -10,7 +10,7 @@ const locale = 'en';
 const copy = getCourseUiTranslations(locale).nebosh.igc;
 const [course, commerceProduct] = await Promise.all([
 	loadRequiredNeboshCourse(NEBOSH_COURSE_KEYS.igc, locale),
-	getOptionalCommerceProduct(NEBOSH_COURSE_KEYS.igc),
+	getOptionalCommerceProduct(NEBOSH_COURSE_KEYS.igc, locale),
 ]);
 const title = `${course?.title ?? copy.fallbackTitle} | HSE Training`;
 const description = course?.shortDescription ?? copy.fallbackDescription;

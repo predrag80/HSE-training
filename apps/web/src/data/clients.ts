@@ -22,4 +22,7 @@ export const clients: readonly Client[] = [
 	{ name: 'GOPA International Energy Consultants', logo: '/images/clients/gopa.svg' },
 	{ name: 'MOL Serbia', logo: '/images/clients/mol.svg' },
 	{ name: 'Vinstrol', logo: '/images/clients/vinstrol.webp' },
+	{ name: 'Rio Tinto', logo: '/images/clients/rio-tinto.svg' },
+	{ name: 'Santos', logo: '/images/clients/santos.svg' },
+	{ name: 'Siemens', logo: '/images/clients/siemens.svg' },
 ] as const;

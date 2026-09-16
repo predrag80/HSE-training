@@ -49,7 +49,7 @@ try {
 	hse_commerce_test_assert( $test_key === ( $data['course_key'] ?? null ), 'Commerce lookup preserves course_key.' );
 	$expected_minor = (int) round( 1000 * ( 10 ** wc_get_price_decimals() ) );
 	hse_commerce_test_assert( $expected_minor === ( $data['price_minor'] ?? null ), 'Commerce price is returned in integer minor units.' );
-	hse_commerce_test_assert( true === ( $data['purchasable'] ?? null ), 'Published in-stock product is purchasable.' );
+	hse_commerce_test_assert( false === ( $data['purchasable'] ?? null ), 'A Woo product without an explicitly enabled Course is not exposed as purchasable.' );
 	hse_commerce_test_assert( ! array_key_exists( 'product_id', $data ), 'WordPress product IDs do not cross the public boundary.' );
 	hse_commerce_test_assert(
 		false !== strpos( (string) ( $data['checkout_url'] ?? '' ), rawurlencode( $test_key ) ),

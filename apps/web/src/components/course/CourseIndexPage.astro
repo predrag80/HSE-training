@@ -4,7 +4,9 @@ import type { CommerceProduct } from '../../types/commerce';
 import type { CoursesLandingPageContent } from '../../types/course-page';
 import type { Locale } from '../../i18n/config';
 import { getUiTranslations } from '../../i18n/ui';
-import { getCoursePublicPath, getNeboshCourseCardHref } from '../../lib/course-routes';
+import { getCourseUiTranslations } from '../../i18n/course-ui';
+import { getContactFormPath } from '../../i18n/routes';
+import { getCoursePublicPath } from '../../lib/course-routes';
 import { formatCommercePrice } from '../../lib/cms';
 import Container from '../ui/Container.astro';
 import Section from '../ui/Section.astro';
@@ -16,11 +18,12 @@ interface Props {
 	trainingCourses: readonly Course[];
 	locale: Locale;
 	content: CoursesLandingPageContent;
-	commerceProduct?: CommerceProduct | null;
+	commerceProducts?: readonly CommerceProduct[];
 }
 
-const { courses, trainingCourses, locale, content, commerceProduct = null } = Astro.props;
+const { courses, trainingCourses, locale, content, commerceProducts = [] } = Astro.props;
 const pricingCopy = getUiTranslations(locale).homepage.pricing;
+const courseCopy = getCourseUiTranslations(locale);
 ---
 
 <main id="main-content">
@@ -42,9 +45,9 @@ const pricingCopy = getUiTranslations(locale).homepage.pricing;
 				</header>
 				<ul class="course-grid" aria-label={content.groups.nebosh.listLabel}>
 					{courses.map((course) => {
-						const purchasableProduct = commerceProduct?.courseKey === course.courseKey && commerceProduct.purchasable
-							? commerceProduct
-							: null;
+						const purchasableProduct = commerceProducts.find((product) => (
+							product.courseKey === course.courseKey && product.purchasable
+						)) ?? null;
 						return (
 							<li>
 								<CoursePlanCard
@@ -53,8 +56,8 @@ const pricingCopy = getUiTranslations(locale).homepage.pricing;
 									price={purchasableProduct ? formatCommercePrice(purchasableProduct, locale) : (course.visiblePrice ?? pricingCopy.priceOnRequest)}
 									feeAvailability={pricingCopy.feeAvailability}
 									summary={course.shortDescription}
-									href={purchasableProduct?.checkoutUrl ?? getNeboshCourseCardHref(course, locale)}
-									ctaLabel={course.homepageCtaLabel}
+									href={purchasableProduct?.checkoutUrl ?? getContactFormPath(locale)}
+									ctaLabel={purchasableProduct ? courseCopy.card.buyNow : courseCopy.card.contactUs}
 								/>
 							</li>
 						);

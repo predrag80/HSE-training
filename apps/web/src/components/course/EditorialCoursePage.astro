@@ -2,6 +2,9 @@
 import type { Locale } from '../../i18n/config';
 import { getAvailablePublicPath, getContactFormPath } from '../../i18n/routes';
 import type { Course } from '../../types/course';
+import type { CommerceProduct } from '../../types/commerce';
+import { getCourseUiTranslations } from '../../i18n/course-ui';
+import { formatCommercePrice } from '../../lib/cms';
 import OtherCoursesHero from '../other-courses/OtherCoursesHero.astro';
 import CourseDownloads, { type CourseDownload } from './CourseDownloads.astro';
 import CourseVideos, { type CourseVideoSection } from './CourseVideos.astro';
@@ -26,12 +29,15 @@ interface Props {
 	readonly heroImage: string;
 	readonly downloads?: readonly CourseDownload[];
 	readonly videoSection?: CourseVideoSection;
+	readonly commerceProduct?: CommerceProduct | null;
 }
 
 const {
 	course, fallback, locale, backHref, backLabel, contentLabel, contactCta,
 	heroImage, downloads = [], videoSection,
+	commerceProduct = null,
 } = Astro.props;
+const courseUi = getCourseUiTranslations(locale);
 const title = course?.title || fallback.title;
 const description = course?.shortDescription || fallback.shortDescription;
 const eyebrow = course?.pageEyebrow || fallback.eyebrow;
@@ -46,7 +52,10 @@ const eyebrow = course?.pageEyebrow || fallback.eyebrow;
 			<header data-other-courses-reveal="left">
 				<p>{eyebrow}</p>
 				<h2>{description}</h2>
-				<a class="editorial-course__cta" href={getContactFormPath(locale)}>{contactCta}</a>
+				{commerceProduct?.purchasable && <strong class="editorial-course__price">{formatCommercePrice(commerceProduct, locale)}</strong>}
+				<a class="editorial-course__cta" href={commerceProduct?.purchasable ? commerceProduct.checkoutUrl : getContactFormPath(locale)}>
+					{commerceProduct?.purchasable ? courseUi.card.buyNow : contactCta}
+				</a>
 			</header>
 			<div class="editorial-course__content" data-other-courses-reveal="right">
 				{course?.descriptionHtml ? <Fragment set:html={course.descriptionHtml} /> : fallback.body.map((paragraph) => <p>{paragraph}</p>)}

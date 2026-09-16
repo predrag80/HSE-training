@@ -10,6 +10,9 @@ export const contactDetails = {
 	emailHref: 'mailto:info@hsetraining.rs',
 	vatNumber: '108205616',
 	registrationNumber: '20952288',
+	activityCode: '7022',
+	website: 'hsetraining.rs',
+	websiteHref: 'https://hsetraining.rs/',
 	mapsEmbedUrl:
 		'https://www.google.com/maps?q=Bra%C4%87e%20Radovanovi%C4%87%2017%2F5%2C%2011000%20Belgrade%2C%20Serbia&output=embed',
 	mapsExternalUrl:

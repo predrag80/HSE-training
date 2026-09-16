@@ -3,19 +3,20 @@ import type { Course } from '../../types/course';
 import type { CommerceProduct } from '../../types/commerce';
 import type { Locale } from '../../i18n/config';
 import { getUiTranslations } from '../../i18n/ui';
-import { getAvailablePublicPath } from '../../i18n/routes';
-import { getNeboshCourseCardHref } from '../../lib/course-routes';
+import { getCourseUiTranslations } from '../../i18n/course-ui';
+import { getAvailablePublicPath, getContactFormPath } from '../../i18n/routes';
 import { formatCommercePrice } from '../../lib/cms';
 import './home-pricing.css';
 
 interface Props {
 	readonly courses: readonly Course[];
 	readonly locale: Locale;
-	readonly commerceProduct?: CommerceProduct | null;
+	readonly commerceProducts?: readonly CommerceProduct[];
 }
 
-const { courses, locale, commerceProduct = null } = Astro.props;
+const { courses, locale, commerceProducts = [] } = Astro.props;
 const copy = getUiTranslations(locale).homepage.pricing;
+const courseCopy = getCourseUiTranslations(locale);
 ---
 
 <section class="home-pricing" aria-labelledby="home-pricing-title" data-home-pricing>
@@ -43,9 +44,9 @@ const copy = getUiTranslations(locale).homepage.pricing;
 		<div class="pricing-plans" id="pricing-plans" data-pricing-reveal="plans">
 			{
 				courses.map((course) => {
-					const purchasableProduct = commerceProduct?.courseKey === course.courseKey && commerceProduct.purchasable
-						? commerceProduct
-						: null;
+					const purchasableProduct = commerceProducts.find((product) => (
+						product.courseKey === course.courseKey && product.purchasable
+					)) ?? null;
 					return (
 						<article class="pricing-plan">
 							<h3>{course.title}</h3>
@@ -62,8 +63,8 @@ const copy = getUiTranslations(locale).homepage.pricing;
 									<span>{course.shortDescription}</span>
 								</li>
 							</ul>
-							<a class="pricing-plan__button" href={purchasableProduct?.checkoutUrl ?? getNeboshCourseCardHref(course, locale)}>
-								{course.homepageCtaLabel}
+							<a class="pricing-plan__button" href={purchasableProduct?.checkoutUrl ?? getContactFormPath(locale)}>
+								{purchasableProduct ? courseCopy.card.buyNow : courseCopy.card.contactUs}
 							</a>
 						</article>
 					);

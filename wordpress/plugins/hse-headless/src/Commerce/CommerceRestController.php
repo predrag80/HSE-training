@@ -75,7 +75,9 @@ final class CommerceRestController {
 				'price_minor'      => (int) round( (float) $price * ( 10 ** $decimals ) ),
 				'currency'         => $currency,
 				'currency_decimals' => $decimals,
-				'purchasable'      => $product->is_purchasable() && $product->is_in_stock(),
+				'purchasable'      => CommerceProductSync::is_online_sales_course( $course_key )
+					&& $product->is_purchasable()
+					&& $product->is_in_stock(),
 				'checkout_url'     => esc_url_raw(
 					add_query_arg( CommerceCheckout::QUERY_VAR, $course_key, home_url( '/' ) )
 				),

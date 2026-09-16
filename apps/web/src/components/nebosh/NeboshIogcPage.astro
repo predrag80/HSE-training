@@ -1,19 +1,23 @@
 ---
 import './nebosh-pages.css';
 import type { Course } from '../../types/course';
+import type { CommerceProduct } from '../../types/commerce';
 import type { Locale } from '../../i18n/config';
 import { getContactFormPath } from '../../i18n/routes';
 import { getCourseUiTranslations } from '../../i18n/course-ui';
+import { formatCommercePrice } from '../../lib/cms';
 import NeboshHero from './NeboshHero.astro';
 import NeboshMotion from './NeboshMotion.astro';
 
 interface Props {
 	course?: Course | null;
 	locale: Locale;
+	commerceProduct?: CommerceProduct | null;
 }
 
-const { course = null, locale } = Astro.props;
-const copy = getCourseUiTranslations(locale).nebosh;
+const { course = null, locale, commerceProduct = null } = Astro.props;
+const courseUi = getCourseUiTranslations(locale);
+const copy = courseUi.nebosh;
 const iogc = copy.iogc;
 const courseTitle = course?.title ?? iogc.fallbackTitle;
 const heroImage = course?.featuredImageUrl ?? '/images/nebosh-iogc-hero.jpg';
@@ -30,8 +34,13 @@ const heroImage = course?.featuredImageUrl ?? '/images/nebosh-iogc-hero.jpg';
 		<div data-nebosh-reveal="right">
 			{iogc.statusParagraphs.map((paragraph) => <p>{paragraph}</p>)}
 			<p>{iogc.deadlinePrefix} <strong>{iogc.deadline}</strong>. {iogc.deadlineSuffix}</p>
+			{commerceProduct?.purchasable && (
+				<p class="nebosh-course-price"><span>{copy.igc.priceLabel}</span><strong>{formatCommercePrice(commerceProduct, locale)}</strong></p>
+			)}
 			<div class="iogc-status__links">
-				<a class="nebosh-text-link" href={getContactFormPath(locale)}>{iogc.contactCta} <span aria-hidden="true">→</span></a>
+				<a class="nebosh-text-link" href={commerceProduct?.purchasable ? commerceProduct.checkoutUrl : getContactFormPath(locale)}>
+					{commerceProduct?.purchasable ? courseUi.card.buyNow : iogc.contactCta} <span aria-hidden="true">→</span>
+				</a>
 				<a class="nebosh-text-link" href="https://www.nebosh.org.uk/qualifications/international-oil-and-gas-certificate/" target="_blank" rel="noreferrer">{iogc.officialCta} <span aria-hidden="true">↗</span></a>
 			</div>
 		</div>

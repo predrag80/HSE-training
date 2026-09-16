@@ -1,5 +1,5 @@
 export { getCompanyPage } from './company';
-export { formatCommercePrice, getOptionalCommerceProduct } from './commerce';
+export { formatCommercePrice, getOptionalCommerceProduct, getOptionalCommerceProducts } from './commerce';
 export { getCoursesLandingPage, getNeboshOverviewPage, getTrainingOverviewPage } from './course-pages';
 export { getCourseByKey, getCourseBySlug, getCourses, getHomepageCourses, getTrainingCourseByKey, getTrainingCourses, getTrainings } from './courses';
 export { getHomepage } from './homepage';

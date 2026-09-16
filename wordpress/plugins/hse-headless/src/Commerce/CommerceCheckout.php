@@ -42,7 +42,10 @@ final class CommerceCheckout {
 		}
 
 		$product = CommerceProductRepository::get_by_course_key( $course_key );
-		if ( is_wp_error( $product ) || ! $product->is_purchasable() || ! $product->is_in_stock() ) {
+		if ( is_wp_error( $product )
+			|| ! CommerceProductSync::is_online_sales_course( $course_key )
+			|| ! $product->is_purchasable()
+			|| ! $product->is_in_stock() ) {
 			self::stop( is_wp_error( $product ) ? (int) $product->get_error_data()['status'] : 409 );
 		}
 
@@ -51,12 +54,21 @@ final class CommerceCheckout {
 		}
 
 		wc_load_cart();
+		$locale = CommerceLocale::capture(
+			isset( $_GET[ CommerceLocale::QUERY_VAR ] )
+				? sanitize_key( wp_unslash( $_GET[ CommerceLocale::QUERY_VAR ] ) )
+				: 'en'
+		);
 		WC()->cart->empty_cart();
 		if ( false === WC()->cart->add_to_cart( $product->get_id(), 1 ) ) {
 			self::stop( 409 );
 		}
 
-		wp_safe_redirect( wc_get_checkout_url(), 302, 'HSE Training' );
+		wp_safe_redirect(
+			add_query_arg( CommerceLocale::QUERY_VAR, $locale, wc_get_checkout_url() ),
+			302,
+			'HSE Training'
+		);
 		exit;
 	}
 

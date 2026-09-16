@@ -94,6 +94,7 @@
 
 .contact-details__registration {
 	display: flex;
+	flex-wrap: wrap;
 	justify-content: center;
 	gap: 2rem;
 	padding-top: 2.75rem;
@@ -102,6 +103,7 @@
 }
 
 .contact-details__registration strong { color: #292d36; }
+.contact-details__registration a { color: inherit; text-underline-offset: 0.2em; }
 
 .contact-detail {
 	padding-inline: 0.9375rem;

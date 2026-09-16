@@ -36,7 +36,7 @@ function isCommerceProductDto(value: unknown): value is CommerceProductDto {
 		&& typeof dto.checkout_url === 'string';
 }
 
-function mapCommerceProduct(value: unknown, expectedCourseKey: string): CommerceProduct {
+function mapCommerceProduct(value: unknown, expectedCourseKey: string, locale: Locale): CommerceProduct {
 	if (!isCommerceProductDto(value) || value.course_key !== expectedCourseKey) {
 		throw new CmsError('invalid-response', 'CMS returned an invalid Commerce product.');
 	}
@@ -50,6 +50,7 @@ function mapCommerceProduct(value: unknown, expectedCourseKey: string): Commerce
 	if (!['http:', 'https:'].includes(checkoutUrl.protocol)) {
 		throw new CmsError('invalid-response', 'CMS returned an unsupported Commerce checkout URL.');
 	}
+	checkoutUrl.searchParams.set('lang', locale);
 
 	return {
 		schemaVersion: value.schema_version,
@@ -67,7 +68,7 @@ function mapCommerceProduct(value: unknown, expectedCourseKey: string): Commerce
  * Read a staging commerce projection. A missing route is an intentional signal
  * that the environment has not enabled the temporary WooCommerce bridge.
  */
-export async function getOptionalCommerceProduct(courseKey: string): Promise<CommerceProduct | null> {
+export async function getOptionalCommerceProduct(courseKey: string, locale: Locale = 'en'): Promise<CommerceProduct | null> {
 	if (!isCanonicalCourseKey(courseKey)) {
 		throw new CmsError('invalid-query', 'Commerce course_key is invalid.');
 	}
@@ -76,11 +77,23 @@ export async function getOptionalCommerceProduct(courseKey: string): Promise<Com
 		return mapCommerceProduct(
 			await fetchCmsJson(`/wp-json/hse/v1/commerce/products/${courseKey}`),
 			courseKey,
+			locale,
 		);
 	} catch (error) {
 		if (isCmsError(error) && error.code === 'http' && error.status === 404) return null;
 		throw error;
 	}
+}
+
+/** Read commerce projections for a set of Course keys without duplicating requests. */
+export async function getOptionalCommerceProducts(
+	courseKeys: readonly string[],
+	locale: Locale = 'en',
+): Promise<readonly CommerceProduct[]> {
+	const uniqueKeys = [...new Set(courseKeys)];
+	const products = await Promise.all(uniqueKeys.map((courseKey) => getOptionalCommerceProduct(courseKey, locale)));
+
+	return products.filter((product): product is CommerceProduct => product !== null);
 }
 
 /** Format integer minor units without trusting preformatted CMS markup. */

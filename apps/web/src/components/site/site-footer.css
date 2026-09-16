@@ -59,6 +59,7 @@
 
 .site-footer address { display: flex; flex-direction: column; font-style: normal; }
 .site-footer address p { width: 75%; margin-bottom: 0.9375rem; }
+.site-footer address p + p { margin-top: -0.375rem; font-size: 0.86rem; line-height: 1.45; }
 .site-footer address a { display: flex; align-items: center; }
 .site-footer address svg { width: 1.125rem; height: 1.125rem; flex: 0 0 auto; margin-right: 0.625rem; fill: #292d36; }
 
@@ -105,6 +106,24 @@
 }
 .site-footer__newsletter-form button svg { width: 1.125rem; fill: currentColor; }
 
+.site-footer__payments {
+	position: relative;
+	width: min(76.25rem, calc(100% - 3.125rem));
+	padding: 1.75rem 0.9375rem 1.5rem;
+	margin-inline: auto;
+	border-top: 0.0625rem solid #e4e4e4;
+}
+.site-footer__payments > h2 { margin-bottom: 1rem; text-align: center; }
+.site-footer__payment-groups { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 2rem; align-items: center; }
+.site-footer__payment-group { min-width: 0; text-align: center; }
+.site-footer__payment-group > p { margin-bottom: 0.6rem; color: #808291; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; line-height: 1.25; text-transform: uppercase; }
+.site-footer__payment-group a { display: inline-flex; align-items: center; justify-content: center; }
+.site-footer__payment-bank img { display: block; width: min(13rem, 100%); height: auto; }
+.site-footer__payment-logos { display: flex; min-height: 4.5rem; align-items: center; justify-content: center; gap: 1rem; }
+.site-footer__payment-logos img { display: block; object-fit: contain; }
+.site-footer__payment-logos--cards img { width: auto; max-width: 5.5rem; height: 2rem; }
+.site-footer__payment-logos--secure img { width: auto; max-width: 6rem; height: 4.5rem; }
+
 .site-footer__separator { height: 1.9375rem; padding: 0 0.9375rem 1.875rem; }
 .site-footer__separator span { display: block; width: 100%; height: 0.0625rem; background: #e4e4e4; }
 .site-footer__bottom { display: flex; min-height: 4.125rem; align-items: center; padding-bottom: 1.875rem; font-size: 1rem; }
@@ -133,7 +152,8 @@
 @media (max-width: 74.999rem) {
 	.site-footer__main,
 	.site-footer__separator,
-	.site-footer__bottom { width: 60rem; }
+	.site-footer__bottom,
+	.site-footer__payments { width: 60rem; }
 	.site-footer__main { padding-block: 4.2rem 3rem; }
 	.site-footer__about { margin-right: 0; }
 	.site-footer__newsletter { width: 33.3333%; }
@@ -144,7 +164,10 @@
 @media (max-width: 61.999rem) {
 	.site-footer__main,
 	.site-footer__separator,
-	.site-footer__bottom { width: 45rem; }
+	.site-footer__bottom,
+	.site-footer__payments { width: 45rem; }
+	.site-footer__payment-groups { grid-template-columns: 1fr 1fr; }
+	.site-footer__payment-group:last-child { grid-column: 1 / -1; }
 	.site-footer__main { flex-wrap: wrap; padding-block: 3.15rem 2.25rem; }
 	.site-footer__about { width: 100%; align-items: center; margin-bottom: 2.0625rem; text-align: center; }
 	.site-footer__logo { margin-bottom: 1.25rem; }
@@ -165,7 +188,11 @@
 @media (max-width: 47.999rem) {
 	.site-footer__main,
 	.site-footer__separator,
-	.site-footer__bottom { width: 100%; }
+	.site-footer__bottom,
+	.site-footer__payments { width: 100%; }
+	.site-footer__payment-groups { grid-template-columns: 1fr; gap: 1.5rem; }
+	.site-footer__payment-group:last-child { grid-column: auto; }
+	.site-footer__payment-logos { flex-wrap: wrap; }
 	.site-footer__main { padding-block: 3.125rem 1.875rem; }
 	.site-footer__about { align-items: flex-start; text-align: left; }
 	.site-footer__logo { margin-bottom: 0.9375rem; }

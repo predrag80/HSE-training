@@ -49,14 +49,14 @@ const downloads = locale === 'sr'
 			<p class="nebosh-kicker">{igc.introKicker}</p>
 			<h2>{igc.introTitle}</h2>
 			<p>{courseSummary}</p>
-			{(commerceProduct || course?.visiblePrice) && (
+			{(commerceProduct?.purchasable || course?.visiblePrice) && (
 				<p class="nebosh-course-price">
 					<span>{igc.priceLabel}</span>
-					<strong>{commerceProduct ? formatCommercePrice(commerceProduct, locale) : course?.visiblePrice}</strong>
+					<strong>{commerceProduct?.purchasable ? formatCommercePrice(commerceProduct, locale) : course?.visiblePrice}</strong>
 				</p>
 			)}
 			{commerceProduct?.purchasable && (
-				<a class="nebosh-button" href={commerceProduct.checkoutUrl}>{course?.homepageCtaLabel ?? courseUi.card.addToBasket}</a>
+				<a class="nebosh-button" href={commerceProduct.checkoutUrl}>{courseUi.card.buyNow}</a>
 			)}
 			<ul class="nebosh-icon-list">
 				{igc.highlights.map((highlight) => <li><span aria-hidden="true">✓</span><div><strong>{highlight.title}</strong><small>{highlight.text}</small></div></li>)}

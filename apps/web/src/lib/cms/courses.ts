@@ -66,7 +66,7 @@ function createHomepageCourseFallback(
 		homepageLabel: locale === 'sr' ? 'NEBOSH kvalifikacija' : 'NEBOSH qualification',
 		homepageCtaLabel:
 			courseKey === NEBOSH_COURSE_KEYS.igc
-				? courseCopy.card.addToBasket
+				? courseCopy.card.buyNow
 				: courseCopy.card.contactUs,
 		featuredOnHomepage: false,
 		status: 'publish',

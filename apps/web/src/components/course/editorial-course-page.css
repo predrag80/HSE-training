@@ -8,6 +8,7 @@
 .editorial-course__content p { margin: 0 0 1.35rem; }
 .editorial-course__content h2, .editorial-course__content h3 { margin: 2rem 0 0.75rem; color: #292d36; }
 .editorial-course__content ul, .editorial-course__content ol { padding-left: 1.25rem; }
+.editorial-course__price { display: block; margin-top: 1.5rem; color: #dd6531; font-size: clamp(1.6rem, 3vw, 2.3rem); }
 .editorial-course__cta { display: inline-flex; min-height: 3.5rem; align-items: center; margin-top: 2rem; padding: 0.8rem 1.8rem; color: #fff; background: #292d36; border: 2px solid #292d36; border-radius: 0.25rem; font-size: 0.82rem; font-weight: 600; text-decoration: none; text-transform: uppercase; transition: color 250ms ease, background 250ms ease, transform 250ms ease; }
 .editorial-course__cta:hover { color: #292d36; background: transparent; transform: translateY(-0.15rem); }
 @media (max-width: 47.999rem) {

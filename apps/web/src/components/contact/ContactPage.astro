@@ -72,6 +72,8 @@ const contactItems: readonly ContactItem[] = [
 	<div class="contact-container contact-details__registration" data-contact-reveal="up">
 		<span>{copy.vatLabel}: <strong>{contactDetails.vatNumber}</strong></span>
 		<span>{copy.registrationLabel}: <strong>{contactDetails.registrationNumber}</strong></span>
+		<span>{copy.activityLabel}: <strong>{contactDetails.activityCode} — {copy.activityDescription}</strong></span>
+		<span>{copy.websiteLabel}: <strong><a href={contactDetails.websiteHref}>{contactDetails.website}</a></strong></span>
 	</div>
 </section>
 

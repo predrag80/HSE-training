@@ -16,10 +16,12 @@ defined( 'ABSPATH' ) || exit;
  * Owns the HSE-specific fields attached to Course posts.
  */
 final class CourseMeta {
-	public const COURSE_KEY        = 'course_key';
-	public const SHORT_DESCRIPTION = 'short_description';
-	public const VISIBLE_PRICE     = 'visible_price';
-	public const PAGE_EYEBROW      = 'page_eyebrow';
+	public const COURSE_KEY              = 'course_key';
+	public const SHORT_DESCRIPTION       = 'short_description';
+	public const VISIBLE_PRICE           = 'visible_price';
+	public const PAGE_EYEBROW            = 'page_eyebrow';
+	public const ONLINE_PURCHASE_ENABLED = 'online_purchase_enabled';
+	public const ONLINE_PRICE            = 'online_price';
 
 	private const LOCKED_COURSE_KEY = '_hse_locked_course_key';
 	private const NONCE_ACTION      = 'hse_save_course_details';
@@ -51,6 +53,7 @@ final class CourseMeta {
 		add_action( 'transition_post_status', array( self::class, 'lock_key_on_publish' ), 10, 3 );
 		add_action( 'added_post_meta', array( self::class, 'lock_key_after_meta_write' ), 10, 4 );
 		add_action( 'updated_post_meta', array( self::class, 'lock_key_after_meta_write' ), 10, 4 );
+		add_action( 'rest_after_insert_' . CoursePostType::POST_TYPE, array( self::class, 'share_rest_commerce_settings' ), 20, 3 );
 
 		add_filter( 'wp_insert_post_data', array( self::class, 'require_key_for_publish' ), 10, 4 );
 		add_filter( 'add_post_metadata', array( self::class, 'guard_course_key_add' ), 10, 5 );
@@ -165,6 +168,42 @@ final class CourseMeta {
 					)
 				)
 			);
+
+			if ( CoursePostType::POST_TYPE === $post_type ) {
+				register_post_meta(
+					$post_type,
+					self::ONLINE_PURCHASE_ENABLED,
+					array(
+						'type'              => 'boolean',
+						'single'            => true,
+						'label'             => __( 'Available for online purchase', 'hse-headless' ),
+						'description'       => __( 'Allow this Course to be purchased through WooCommerce.', 'hse-headless' ),
+						'sanitize_callback' => array( self::class, 'sanitize_checkbox' ),
+						'auth_callback'     => array( self::class, 'can_edit_meta' ),
+						'revisions_enabled' => true,
+						'show_in_rest'      => true,
+					)
+				);
+
+				register_post_meta(
+					$post_type,
+					self::ONLINE_PRICE,
+					array_merge(
+						$common_args,
+						array(
+							'label'             => __( 'Online price', 'hse-headless' ),
+							'description'       => __( 'Authoritative WooCommerce price in the configured shop currency.', 'hse-headless' ),
+							'sanitize_callback' => array( self::class, 'sanitize_online_price' ),
+							'show_in_rest'      => array(
+								'schema' => array(
+									'type'    => 'string',
+									'pattern' => '^(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$',
+								),
+							),
+						)
+					)
+				);
+			}
 		}
 	}
 
@@ -212,6 +251,25 @@ final class CourseMeta {
 		return self::sanitize_bounded_text( $value, self::MAX_PAGE_EYEBROW_LENGTH, false );
 	}
 
+	/** Normalize a checkbox value for registered boolean Course metadata. */
+	public static function sanitize_checkbox( $value ): bool {
+		return rest_sanitize_boolean( $value );
+	}
+
+	/** Normalize a positive shop-currency price with at most two decimals. */
+	public static function sanitize_online_price( $value ): string {
+		if ( ! is_scalar( $value ) ) {
+			return '';
+		}
+
+		$value = str_replace( ',', '.', trim( (string) $value ) );
+		if ( 1 !== preg_match( '/^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,2})?$/', $value ) || (float) $value <= 0 ) {
+			return '';
+		}
+
+		return number_format( (float) $value, 2, '.', '' );
+	}
+
 	/**
 	 * Authorize changes to registered Course metadata.
 	 *
@@ -250,11 +308,13 @@ final class CourseMeta {
 	 * @param \WP_Post $post Course post.
 	 */
 	public static function render_meta_box( $post ): void {
-		$course_key        = get_post_meta( $post->ID, self::COURSE_KEY, true );
-		$short_description = get_post_meta( $post->ID, self::SHORT_DESCRIPTION, true );
-		$visible_price     = get_post_meta( $post->ID, self::VISIBLE_PRICE, true );
-		$page_eyebrow      = get_post_meta( $post->ID, self::PAGE_EYEBROW, true );
-		$is_locked         = '' !== get_post_meta( $post->ID, self::LOCKED_COURSE_KEY, true );
+		$course_key             = get_post_meta( $post->ID, self::COURSE_KEY, true );
+		$short_description      = get_post_meta( $post->ID, self::SHORT_DESCRIPTION, true );
+		$visible_price          = get_post_meta( $post->ID, self::VISIBLE_PRICE, true );
+		$page_eyebrow           = get_post_meta( $post->ID, self::PAGE_EYEBROW, true );
+		$online_purchase_enabled = (bool) get_post_meta( $post->ID, self::ONLINE_PURCHASE_ENABLED, true );
+		$online_price            = get_post_meta( $post->ID, self::ONLINE_PRICE, true );
+		$is_locked               = '' !== get_post_meta( $post->ID, self::LOCKED_COURSE_KEY, true );
 
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME );
 		ContentLocale::render_editor_field( $post->ID );
@@ -287,6 +347,34 @@ final class CourseMeta {
 			<input class="widefat" id="hse-page-eyebrow" name="hse_page_eyebrow" type="text" maxlength="180" value="<?php echo esc_attr( $page_eyebrow ); ?>">
 			<span class="description"><?php esc_html_e( 'Optional short label above the title on a bespoke Course page.', 'hse-headless' ); ?></span>
 		</p>
+		<?php if ( CoursePostType::POST_TYPE === $post->post_type ) : ?>
+			<hr>
+			<p>
+				<label for="hse-online-purchase-enabled">
+					<input id="hse-online-purchase-enabled" name="hse_online_purchase_enabled" type="checkbox" value="1" <?php checked( $online_purchase_enabled ); ?>>
+					<strong><?php esc_html_e( 'Available for online purchase', 'hse-headless' ); ?></strong>
+				</label>
+				<br><span class="description"><?php esc_html_e( 'When enabled, the Course price below is synchronized to its hidden WooCommerce product. When disabled, the product has no checkout price and the website uses Contact us.', 'hse-headless' ); ?></span>
+			</p>
+			<p>
+				<label for="hse-online-price"><strong><?php esc_html_e( 'Online price', 'hse-headless' ); ?></strong></label><br>
+				<input class="widefat" id="hse-online-price" name="hse_online_price" type="number" min="0.01" step="0.01" inputmode="decimal" value="<?php echo esc_attr( $online_price ); ?>" <?php disabled( ! $online_purchase_enabled ); ?>>
+				<span class="description"><?php esc_html_e( 'Numeric checkout price in the WooCommerce currency (currently RSD). This setting is shared by the English and Serbian Course records.', 'hse-headless' ); ?></span>
+			</p>
+			<script>
+				(() => {
+					const checkbox = document.getElementById('hse-online-purchase-enabled');
+					const price = document.getElementById('hse-online-price');
+					if (!checkbox || !price) return;
+					const update = () => {
+						price.disabled = !checkbox.checked;
+						price.setAttribute('aria-disabled', checkbox.checked ? 'false' : 'true');
+					};
+					checkbox.addEventListener('change', update);
+					update();
+				})();
+			</script>
+		<?php endif; ?>
 		<?php
 	}
 
@@ -335,6 +423,19 @@ final class CourseMeta {
 		update_post_meta( $post_id, self::SHORT_DESCRIPTION, $short_description );
 		update_post_meta( $post_id, self::VISIBLE_PRICE, $visible_price );
 		update_post_meta( $post_id, self::PAGE_EYEBROW, $page_eyebrow );
+
+		if ( CoursePostType::POST_TYPE === $post->post_type ) {
+			$online_purchase_enabled = isset( $_POST['hse_online_purchase_enabled'] );
+			$online_price = isset( $_POST['hse_online_price'] ) ? self::sanitize_online_price( wp_unslash( $_POST['hse_online_price'] ) ) : '';
+			if ( $online_purchase_enabled && '' === $online_price ) {
+				$online_purchase_enabled = false;
+				self::$admin_error_code = 'hse_course_online_price_required';
+			}
+
+			update_post_meta( $post_id, self::ONLINE_PURCHASE_ENABLED, $online_purchase_enabled ? '1' : '0' );
+			update_post_meta( $post_id, self::ONLINE_PRICE, $online_price );
+			self::share_commerce_settings( $post_id, get_post_meta( $post_id, self::COURSE_KEY, true ) );
+		}
 
 		if ( 'publish' === $post->post_status && '' === get_post_meta( $post_id, self::COURSE_KEY, true ) ) {
 			self::$admin_error_code = 'hse_course_key_required';
@@ -514,6 +615,23 @@ final class CourseMeta {
 			}
 		}
 
+		if ( CoursePostType::POST_TYPE === get_post_type( $post_id ) || CoursePostType::POST_TYPE === ( $prepared_post->post_type ?? '' ) ) {
+			$enabled = is_array( $meta ) && array_key_exists( self::ONLINE_PURCHASE_ENABLED, $meta )
+				? self::sanitize_checkbox( $meta[ self::ONLINE_PURCHASE_ENABLED ] )
+				: (bool) get_post_meta( $post_id, self::ONLINE_PURCHASE_ENABLED, true );
+			$price = is_array( $meta ) && array_key_exists( self::ONLINE_PRICE, $meta )
+				? self::sanitize_online_price( $meta[ self::ONLINE_PRICE ] )
+				: self::sanitize_online_price( get_post_meta( $post_id, self::ONLINE_PRICE, true ) );
+
+			if ( $enabled && '' === $price ) {
+				return new \WP_Error(
+					'hse_course_online_price_required',
+					__( 'A valid online price is required when online purchase is enabled.', 'hse-headless' ),
+					array( 'status' => 400 )
+				);
+			}
+		}
+
 		return $prepared_post;
 	}
 
@@ -642,6 +760,7 @@ final class CourseMeta {
 			'hse_course_key_immutable' => __( 'Course key was not changed because it became permanent when this Course was first published.', 'hse-headless' ),
 			'hse_content_locale_invalid' => __( 'Course was saved as a draft because its content language is invalid.', 'hse-headless' ),
 			'hse_content_locale_immutable' => __( 'Course language cannot change after first publication.', 'hse-headless' ),
+			'hse_course_online_price_required' => __( 'Online purchase was disabled because a valid price greater than zero is required.', 'hse-headless' ),
 		);
 
 		if ( isset( $messages[ $error_code ] ) ) {
@@ -690,6 +809,44 @@ final class CourseMeta {
 		$course_key = get_post_meta( $post_id, self::COURSE_KEY, true );
 		if ( '' !== $course_key && '' === get_post_meta( $post_id, self::LOCKED_COURSE_KEY, true ) ) {
 			add_post_meta( $post_id, self::LOCKED_COURSE_KEY, $course_key, true );
+		}
+	}
+
+	/** Share commerce settings after the REST controller has persisted Course metadata. */
+	public static function share_rest_commerce_settings( $post, $request, $creating ): void {
+		unset( $request, $creating );
+		if ( ! $post instanceof \WP_Post || CoursePostType::POST_TYPE !== $post->post_type ) {
+			return;
+		}
+
+		self::share_commerce_settings( $post->ID, get_post_meta( $post->ID, self::COURSE_KEY, true ) );
+	}
+
+	/** Keep purchase availability and price identical on both language records. */
+	private static function share_commerce_settings( int $source_id, string $course_key ): void {
+		$course_key = self::sanitize_course_key( $course_key );
+		if ( '' === $course_key ) {
+			return;
+		}
+
+		$enabled = (bool) get_post_meta( $source_id, self::ONLINE_PURCHASE_ENABLED, true );
+		$price   = self::sanitize_online_price( get_post_meta( $source_id, self::ONLINE_PRICE, true ) );
+		$ids     = get_posts(
+			array(
+				'post_type'      => CoursePostType::POST_TYPE,
+				'post_status'    => array_values( get_post_stati() ),
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'post__not_in'   => array( $source_id ),
+				'meta_key'       => self::COURSE_KEY,
+				'meta_value'     => $course_key,
+				'no_found_rows'  => true,
+			)
+		);
+
+		foreach ( $ids as $post_id ) {
+			update_post_meta( $post_id, self::ONLINE_PURCHASE_ENABLED, $enabled ? '1' : '0' );
+			update_post_meta( $post_id, self::ONLINE_PRICE, $price );
 		}
 	}
 

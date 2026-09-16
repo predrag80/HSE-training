@@ -1,8 +1,10 @@
 ---
 import type { Course } from '../../types/course';
+import type { CommerceProduct } from '../../types/commerce';
 import type { Locale } from '../../i18n/config';
-import { getLocalizedPath } from '../../i18n/routes';
+import { getContactFormPath, getLocalizedPath } from '../../i18n/routes';
 import { getCourseUiTranslations } from '../../i18n/course-ui';
+import { formatCommercePrice } from '../../lib/cms';
 import Button from '../ui/Button.astro';
 import Container from '../ui/Container.astro';
 import Eyebrow from '../ui/Eyebrow.astro';
@@ -11,10 +13,12 @@ import Section from '../ui/Section.astro';
 interface Props {
 	course: Course;
 	locale: Locale;
+	commerceProduct?: CommerceProduct | null;
 }
 
-const { course, locale } = Astro.props;
-const copy = getCourseUiTranslations(locale).generic;
+const { course, locale, commerceProduct = null } = Astro.props;
+const courseUi = getCourseUiTranslations(locale);
+const copy = courseUi.generic;
 const heroClass = course.featuredImageUrl ? 'course-hero course-hero--with-image' : 'course-hero';
 ---
 
@@ -29,8 +33,14 @@ const heroClass = course.featuredImageUrl ? 'course-hero course-hero--with-image
 						<Eyebrow>{copy.eyebrow}</Eyebrow>
 						<h1>{course.title}</h1>
 						<p class="course-hero__summary">{course.shortDescription}</p>
-						{course.visiblePrice && <p class="course-hero__price">{course.visiblePrice}</p>}
-						<div class="course-hero__actions"><Button href="#enrollment-information">{copy.enroll}</Button></div>
+						{(commerceProduct?.purchasable || course.visiblePrice) && (
+							<p class="course-hero__price">{commerceProduct?.purchasable ? formatCommercePrice(commerceProduct, locale) : course.visiblePrice}</p>
+						)}
+						<div class="course-hero__actions">
+							<Button href={commerceProduct?.purchasable ? commerceProduct.checkoutUrl : getContactFormPath(locale)}>
+								{commerceProduct?.purchasable ? courseUi.card.buyNow : courseUi.card.contactUs}
+							</Button>
+						</div>
 					</div>
 
 					{

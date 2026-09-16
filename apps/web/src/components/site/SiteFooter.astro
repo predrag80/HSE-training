@@ -48,6 +48,8 @@ const currentYear = new Date().getFullYear();
 			<h2>{copy.getInTouch}</h2>
 			<address>
 				<p>{contactDetails.streetAddress}, {contactDetails.locality}</p>
+				<p>{copy.registeredActivity}</p>
+				<a href={contactDetails.websiteHref}>{contactDetails.website}</a>
 				<a href={contactDetails.phoneHref}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7.1 1h-3a3 3 0 0 0-3 3.27 23 23 0 0 0 3.22 9.12 23 23 0 0 0 6.3 6.3 23 23 0 0 0 9.11 3.22 3 3 0 0 0 3.27-3v-3a3 3 0 0 0-2.31-2.92l-3.57-.84a3 3 0 0 0-2.84.79l-1.26 1.26a18 18 0 0 1-4.23-4.23l1.27-1.27a3 3 0 0 0 .78-2.83L10 3.31A3 3 0 0 0 7.1 1Z" /></svg><span>{contactDetails.phone}</span></a>
 				<a href={contactDetails.emailHref}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 3a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H4a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3h16Zm1 4.92-8.43 5.9a1 1 0 0 1-1.14 0L3 7.92V18a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V7.92ZM4 5a1 1 0 0 0-.89.55L12 11.78l8.89-6.23A1 1 0 0 0 20 5H4Z" /></svg><span>{contactDetails.email}</span></a>
 			</address>
@@ -59,6 +61,38 @@ const currentYear = new Date().getFullYear();
 			<a class="site-footer__enquiry" href={getContactFormPath(locale)}>{copy.contactUs} <span aria-hidden="true">→</span></a>
 		</div>
 	</div>
+
+	<section class="site-footer__payments" aria-labelledby="site-footer-payment-title">
+		<h2 id="site-footer-payment-title">{copy.paymentSecurity}</h2>
+		<div class="site-footer__payment-groups">
+			<div class="site-footer__payment-group site-footer__payment-bank">
+				<p>{copy.bankProvider}</p>
+				<a href="https://www.raiffeisenbank.rs/" target="_blank" rel="noreferrer" aria-label="Raiffeisen Bank">
+					<img src="/images/payments/raiffeisen-bank.png" width="640" height="111" alt="Raiffeisen Bank" />
+				</a>
+			</div>
+			<div class="site-footer__payment-group">
+				<p>{copy.acceptedCards}</p>
+				<div class="site-footer__payment-logos site-footer__payment-logos--cards">
+					<img src="/images/payments/visa.png" width="320" height="103" alt="Visa" />
+					<img src="/images/payments/mastercard.png" width="127" height="90" alt="Mastercard" />
+					<img src="/images/payments/maestro.png" width="150" height="42" alt="Maestro" />
+					<img src="/images/payments/dinacard.png" width="320" height="148" alt="DinaCard" />
+				</div>
+			</div>
+			<div class="site-footer__payment-group">
+				<p>{copy.secureAuthentication}</p>
+				<div class="site-footer__payment-logos site-footer__payment-logos--secure">
+					<a href="https://rs.visa.com/run-your-business/small-business-tools/payment-technology/visa-secure.html" target="_blank" rel="noreferrer" aria-label="Visa Secure">
+						<img src="/images/payments/visa-secure.png" width="198" height="198" alt="Visa Secure" />
+					</a>
+					<a href="https://www.mastercard.rs/sr-rs/korisnici/podrska/sigurnost-i-zastita/identity-check.html" target="_blank" rel="noreferrer" aria-label="Mastercard Identity Check">
+						<img src="/images/payments/mastercard-identity-check.png" width="320" height="239" alt="Mastercard Identity Check" />
+					</a>
+				</div>
+			</div>
+		</div>
+	</section>
 
 	<div class="site-footer__separator"><span></span></div>
 
