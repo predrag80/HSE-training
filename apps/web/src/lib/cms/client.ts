@@ -2,6 +2,7 @@ import { serverConfig } from '../config';
 import { CmsError } from './errors';
 
 const CMS_TIMEOUT_MS = 10_000;
+const CMS_USER_AGENT = 'Mozilla/5.0 (compatible; HSETrainingBuild/1.0; +https://hsetraining.rs)';
 
 function createCmsUrl(path: string, query: Readonly<Record<string, string>>): URL {
 	let cmsBaseUrl: URL;
@@ -31,7 +32,10 @@ export async function fetchCmsJson(
 
 	try {
 		response = await fetch(url, {
-			headers: { Accept: 'application/json' },
+			headers: {
+				Accept: 'application/json',
+				'User-Agent': CMS_USER_AGENT,
+			},
 			signal: AbortSignal.timeout(CMS_TIMEOUT_MS),
 		});
 	} catch (cause) {

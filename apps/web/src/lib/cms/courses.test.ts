@@ -63,12 +63,17 @@ describe('getCourses', () => {
 		]);
 
 		const requestedUrl = new URL(String(fetchMock.mock.calls[0]?.[0]));
+		const requestInit = fetchMock.mock.calls[0]?.[1] as RequestInit | undefined;
 		expect(requestedUrl.pathname).toBe('/wp-json/wp/v2/courses');
 		expect(requestedUrl.searchParams.get('_embed')).toBe('wp:featuredmedia');
 		expect(requestedUrl.searchParams.get('per_page')).toBe('100');
 		expect(requestedUrl.searchParams.get('orderby')).toBe('date');
 		expect(requestedUrl.searchParams.get('order')).toBe('desc');
 		expect(requestedUrl.searchParams.get('lang')).toBe('en');
+		expect(requestInit?.headers).toMatchObject({
+			Accept: 'application/json',
+			'User-Agent': expect.stringContaining('HSETrainingBuild/1.0'),
+		});
 	});
 
 	it('returns an empty array when WordPress has no published Courses', async () => {
