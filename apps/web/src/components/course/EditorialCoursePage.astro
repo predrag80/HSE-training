@@ -4,7 +4,7 @@ import { getAvailablePublicPath, getContactFormPath } from '../../i18n/routes';
 import type { Course } from '../../types/course';
 import type { CommerceProduct } from '../../types/commerce';
 import { getCourseUiTranslations } from '../../i18n/course-ui';
-import { formatCommercePrice } from '../../lib/cms';
+import { formatCommercePriceWithReference } from '../../lib/cms';
 import OtherCoursesHero from '../other-courses/OtherCoursesHero.astro';
 import CourseDownloads, { type CourseDownload } from './CourseDownloads.astro';
 import CourseVideos, { type CourseVideoSection } from './CourseVideos.astro';
@@ -52,7 +52,7 @@ const eyebrow = course?.pageEyebrow || fallback.eyebrow;
 			<header data-other-courses-reveal="left">
 				<p>{eyebrow}</p>
 				<h2>{description}</h2>
-				{commerceProduct?.purchasable && <strong class="editorial-course__price">{formatCommercePrice(commerceProduct, locale)}</strong>}
+				{commerceProduct?.purchasable && <strong class="editorial-course__price">{formatCommercePriceWithReference(commerceProduct, course?.visiblePrice ?? null, locale)}</strong>}
 				<a class="editorial-course__cta" href={commerceProduct?.purchasable ? commerceProduct.checkoutUrl : getContactFormPath(locale)}>
 					{commerceProduct?.purchasable ? courseUi.card.buyNow : contactCta}
 				</a>

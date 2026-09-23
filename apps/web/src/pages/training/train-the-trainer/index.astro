@@ -12,5 +12,5 @@ const facts = copy.facts.map((fact, index) => index === 1 ? { ...fact, value: co
 ---
 
 <BaseLayout title={`${course.title} | HSE Training`} description={course.shortDescription} locale={locale}>
-	<main id="main-content"><OtherCourseDetailPage title={course.title} eyebrow={course.pageEyebrow ?? copy.eyebrow} heroImage={course.featuredImageUrl ?? '/images/consulting-hero-02.webp'} featureImage="/images/consulting-about-01.webp" introKicker={copy.introKicker} introTitle={copy.introTitle} intro={copy.intro} introHtml={course.descriptionHtml} {facts} outcomesTitle={copy.outcomesTitle} outcomesIntro={copy.outcomesIntro} outcomes={copy.outcomes} audienceTitle={copy.audienceTitle} audience={copy.audience} {locale} /></main>
+	<main id="main-content"><OtherCourseDetailPage title={course.title} eyebrow={course.pageEyebrow ?? copy.eyebrow} heroImage={course.featuredImageUrl ?? '/images/consulting-hero-02.webp'} featureImage="/images/train-the-trainer-practical.webp" introKicker={copy.introKicker} introTitle={copy.introTitle} intro={copy.intro} introHtml={course.descriptionHtml} {facts} outcomesTitle={copy.outcomesTitle} outcomesIntro={copy.outcomesIntro} outcomes={copy.outcomes} audienceTitle={copy.audienceTitle} audience={copy.audience} {locale} /></main>
 </BaseLayout>

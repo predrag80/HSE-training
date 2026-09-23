@@ -10,7 +10,7 @@ import NeboshHero from './NeboshHero.astro';
 import NeboshMotion from './NeboshMotion.astro';
 import NeboshPartnerBadge from './NeboshPartnerBadge.astro';
 import CourseDownloads from '../course/CourseDownloads.astro';
-import { formatCommercePrice } from '../../lib/cms';
+import { formatCommercePriceWithReference } from '../../lib/cms';
 
 interface Props {
 	course?: Course | null;
@@ -52,7 +52,7 @@ const downloads = locale === 'sr'
 			{(commerceProduct?.purchasable || course?.visiblePrice) && (
 				<p class="nebosh-course-price">
 					<span>{igc.priceLabel}</span>
-					<strong>{commerceProduct?.purchasable ? formatCommercePrice(commerceProduct, locale) : course?.visiblePrice}</strong>
+					<strong>{commerceProduct?.purchasable ? formatCommercePriceWithReference(commerceProduct, course?.visiblePrice ?? null, locale) : course?.visiblePrice}</strong>
 				</p>
 			)}
 			{commerceProduct?.purchasable && (

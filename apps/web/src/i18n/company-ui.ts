@@ -14,7 +14,7 @@ const companyUi = {
 			{ year: 2025, title: 'Going Digital', text: 'Successfully launched our online training platform.' },
 		],
 		timelineImageAlt: 'HSE Training team celebrating a milestone',
-		agencyImageAlt: 'Business consultant working at a desk',
+		agencyImageAlt: 'HSE professionals discussing site safety and operational planning',
 		agencyTitle: 'Professional HSE training and consulting.',
 		agencyText: 'We help organisations improve health and safety knowledge, working practices and management systems through practical training and expert support.',
 		agencyPoints: [
@@ -67,7 +67,7 @@ const companyUi = {
 			{ year: 2025, title: 'Digitalni razvoj', text: 'Uspešno smo pokrenuli platformu za onlajn obuke.' },
 		],
 		timelineImageAlt: 'HSE Training tim obeležava važan trenutak',
-		agencyImageAlt: 'Poslovni konsultant radi za stolom',
+		agencyImageAlt: 'HSE stručnjaci razgovaraju o bezbednosti na lokaciji i operativnom planiranju',
 		agencyTitle: 'Profesionalne HSE obuke i konsalting.',
 		agencyText: 'Pomažemo organizacijama da unaprede znanje, radne prakse i sisteme upravljanja kroz praktične obuke i stručnu podršku.',
 		agencyPoints: [

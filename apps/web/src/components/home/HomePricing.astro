@@ -5,7 +5,7 @@ import type { Locale } from '../../i18n/config';
 import { getUiTranslations } from '../../i18n/ui';
 import { getCourseUiTranslations } from '../../i18n/course-ui';
 import { getAvailablePublicPath, getContactFormPath } from '../../i18n/routes';
-import { formatCommercePrice } from '../../lib/cms';
+import { formatCommercePriceCompact, getCommerceReferencePrice } from '../../lib/cms';
 import './home-pricing.css';
 
 interface Props {
@@ -47,15 +47,25 @@ const courseCopy = getCourseUiTranslations(locale);
 					const purchasableProduct = commerceProducts.find((product) => (
 						product.courseKey === course.courseKey && product.purchasable
 					)) ?? null;
+					const referencePrice = locale === 'en' && purchasableProduct
+						? getCommerceReferencePrice(course.visiblePrice)
+						: null;
 					return (
-						<article class="pricing-plan">
-							<h3>{course.title}</h3>
-							<p class="pricing-plan__users">{course.homepageLabel}</p>
+						<article class:list={['pricing-plan', { 'pricing-plan--purchasable': purchasableProduct }]}>
+							<div class="pricing-plan__heading">
+								<h3>{course.title}</h3>
+								<p class="pricing-plan__users">{course.homepageLabel}</p>
+							</div>
 							<div class="pricing-plan__price-row">
+								<p class="pricing-plan__price-label">{purchasableProduct ? copy.payableOnline : copy.feeAvailability}</p>
 								<p class="pricing-plan__price pricing-plan__price--text">
-									{purchasableProduct ? formatCommercePrice(purchasableProduct, locale) : course.visiblePrice}
+									{purchasableProduct ? formatCommercePriceCompact(purchasableProduct, locale) : course.visiblePrice}
 								</p>
-								<p class="pricing-plan__period">{copy.feeAvailability}</p>
+								{referencePrice && (
+									<p class="pricing-plan__reference">
+										<strong>{referencePrice}</strong>
+									</p>
+								)}
 							</div>
 							<ul>
 								<li>

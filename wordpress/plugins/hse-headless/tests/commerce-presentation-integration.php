@@ -106,6 +106,14 @@ hse_commerce_presentation_test_assert(
 	'Cancelled payment outcomes enable a customer email notification.'
 );
 hse_commerce_presentation_test_assert(
+	false === CommerceCustomerEmail::disable_processing_order_email( true ),
+	'Customer processing emails are disabled so the successful flow sends only the completed receipt.'
+);
+hse_commerce_presentation_test_assert(
+	CommerceCustomerEmail::DEFAULT_ADMIN_EMAIL === CommerceCustomerEmail::new_order_recipient( 'admin@hsetraining.test' ),
+	'Merchant new-order notifications replace imported placeholder recipients.'
+);
+hse_commerce_presentation_test_assert(
 	'RSD' === CommercePresentation::localize_currency_symbol( 'рсд', 'RSD' ),
 	'RSD prices use an unambiguous Latin currency code.'
 );
@@ -114,6 +122,49 @@ $email_order = wc_create_order();
 if ( is_wp_error( $email_order ) ) {
 	hse_commerce_presentation_test_assert( false, 'A temporary order can be created for email-evidence checks.' );
 } else {
+	$email_order->update_meta_data( CommerceLocale::ORDER_META, 'sr' );
+	$email_order->save();
+	hse_commerce_presentation_test_assert(
+		'Potvrda o plaćanju za porudžbinu #' . $email_order->get_order_number() === CommerceCustomerEmail::completed_order_subject( 'Fallback', $email_order ),
+		'Completed receipt subject follows the Serbian order locale.'
+	);
+	hse_commerce_presentation_test_assert(
+		'Potvrda o plaćanju' === CommerceCustomerEmail::completed_order_heading( 'Fallback', $email_order ),
+		'Completed receipt heading follows the Serbian order locale.'
+	);
+	hse_commerce_presentation_test_assert(
+		'Ukupno plaćeno' === ( CommerceCustomerEmail::receipt_copy( 'sr' )['total_paid'] ?? '' ),
+		'Serbian receipt labels are available without relying on the administrator locale.'
+	);
+	$receipt_template = CommerceCustomerEmail::locate_completed_order_template(
+		'/tmp/fallback.php',
+		'emails/customer-completed-order.php'
+	);
+	hse_commerce_presentation_test_assert(
+		is_readable( $receipt_template ) && false !== strpos( $receipt_template, 'hse-headless/templates/emails/customer-completed-order.php' ),
+		'The plugin-owned completed receipt template is selected.'
+	);
+	$completed_email = WC()->mailer()->get_emails()['WC_Email_Customer_Completed_Order'] ?? null;
+	if ( $completed_email ) {
+		$receipt_html = wc_get_template_html(
+			'emails/customer-completed-order.php',
+			array(
+				'order'              => $email_order,
+				'email_heading'      => CommerceCustomerEmail::completed_order_heading( '', $email_order ),
+				'additional_content' => '',
+				'sent_to_admin'      => false,
+				'plain_text'         => false,
+				'email'              => $completed_email,
+			)
+		);
+		hse_commerce_presentation_test_assert(
+			false !== strpos( $receipt_html, 'PLAĆANJE PRIMLJENO' ) && false !== strpos( $receipt_html, 'Ukupno plaćeno' ),
+			'The Serbian completed receipt renders its payment status and total labels.'
+		);
+	} else {
+		hse_commerce_presentation_test_assert( false, 'WooCommerce completed-order email is available for receipt rendering.' );
+	}
+
 	$email = (object) array( 'object' => $email_order );
 	CommerceCustomerEmail::record_email_delivery( true, 'customer_failed_order', $email );
 	$email_order = wc_get_order( $email_order->get_id() );

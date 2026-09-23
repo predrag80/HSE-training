@@ -208,7 +208,8 @@ define( 'HSE_SMTP_SECURE', 'tls' );
 define( 'HSE_SMTP_USERNAME', 'website@hsetraining.rs' );
 define( 'HSE_SMTP_PASSWORD', getenv( 'HSE_SMTP_PASSWORD' ) );
 define( 'HSE_MAIL_FROM', 'website@hsetraining.rs' );
-define( 'HSE_MAIL_TO', 'recipient@example.com' );
+define( 'HSE_MAIL_TO', 'info@hsetraining.rs' );
+define( 'HSE_COMMERCE_ADMIN_EMAIL', 'info@hsetraining.rs' );
 define( 'HSE_CONTACT_ALLOWED_ORIGINS', 'https://hsetraining.rs,https://www.hsetraining.rs,https://staging.hsetraining.rs' );
 ```
 
@@ -328,7 +329,10 @@ directly to checkout. When
 disabled, the derived product has no checkout price and Astro renders Contact
 us. The setting is shared between the English and Serbian records for the same
 `course_key`. The separate display-only Course price is never promoted to a
-checkout amount.
+checkout amount. For a purchasable Course, Astro may show that display-only
+value beside the authoritative checkout amount as a clearly labelled reference
+price. This supports a dual RSD/foreign-currency presentation without allowing
+the foreign-currency value to reach WooCommerce or the payment gateway.
 
 The current evaluation uses RSD with two decimal places, in line with the
 bank-supplied Internet-sales-site instructions:
@@ -344,11 +348,20 @@ Privacy Policy are migrated once in English and Serbian; the previous option
 values are retained with the `_pre_ecommerce_20260916` suffix. The legal copy is
 an implementation draft and must be approved before production launch.
 
-Woo customer emails cover successful/processing, pending/held, completed,
-failed, cancelled and refunded outcomes. After WordPress reports a successful
-send, the plugin stores only the notification identifier and UTC timestamp on
-the order as operational evidence. The email palette can be aligned to the HSE
-checkout with:
+The successful customer flow suppresses WooCommerce's intermediate processing
+email and sends the final completed-order payment receipt only. Pending,
+failed, cancelled and refunded outcomes keep their own notifications. The
+completed receipt is rendered by plugin-owned HTML and plain-text templates;
+its subject, body, Course title and labels use the `en` or `sr` locale stored on
+the order. It includes the customer billing details, payment method, order
+number and date, line items, subtotal, total paid, payment status and HSE
+contact details. Merchant new-order notifications use
+`HSE_COMMERCE_ADMIN_EMAIL` when it contains a valid address and otherwise fall
+back to `info@hsetraining.rs`, so an imported WordPress administrator address
+cannot become the recipient. After WordPress reports a successful send, the
+plugin stores only the notification identifier and UTC timestamp on the order
+as operational evidence. The email palette can be aligned to the HSE checkout
+with:
 
 ```sh
 wp option update woocommerce_email_base_color '#292d36'
@@ -362,7 +375,7 @@ future changes should be made through the Course editor, then synchronized in
 bulk after first deployment:
 
 ```sh
-HSE_IGC_TEST_PRICE=1000.00 wp eval-file wp-content/plugins/hse-headless/scripts/provision-nebosh-igc-product.php
+HSE_IGC_TEST_PRICE=117000.00 wp eval-file wp-content/plugins/hse-headless/scripts/provision-nebosh-igc-product.php
 wp eval-file wp-content/plugins/hse-headless/scripts/sync-course-products.php
 ```
 

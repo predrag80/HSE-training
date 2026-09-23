@@ -52,6 +52,7 @@ const translations = {
 				allCourses: 'All courses',
 				priceOnRequest: 'Price on request',
 				feeAvailability: 'Current course fee and availability',
+				payableOnline: 'Payable online',
 				promises: ['Recognised qualifications', 'Practical HSE knowledge', 'Flexible delivery options'],
 			},
 			clients: {
@@ -157,6 +158,7 @@ const translations = {
 				allCourses: 'Svi kursevi',
 				priceOnRequest: 'Cena na upit',
 				feeAvailability: 'Aktuelna cena i dostupnost kursa',
+				payableOnline: 'Za plaćanje online',
 				promises: ['Priznate kvalifikacije', 'Praktično HSE znanje', 'Fleksibilni načini realizacije'],
 			},
 			clients: {

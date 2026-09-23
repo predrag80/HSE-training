@@ -4,7 +4,7 @@ import type { CommerceProduct } from '../../types/commerce';
 import type { Locale } from '../../i18n/config';
 import { getContactFormPath, getLocalizedPath } from '../../i18n/routes';
 import { getCourseUiTranslations } from '../../i18n/course-ui';
-import { formatCommercePrice } from '../../lib/cms';
+import { formatCommercePriceWithReference } from '../../lib/cms';
 import Button from '../ui/Button.astro';
 import Container from '../ui/Container.astro';
 import Eyebrow from '../ui/Eyebrow.astro';
@@ -34,7 +34,7 @@ const heroClass = course.featuredImageUrl ? 'course-hero course-hero--with-image
 						<h1>{course.title}</h1>
 						<p class="course-hero__summary">{course.shortDescription}</p>
 						{(commerceProduct?.purchasable || course.visiblePrice) && (
-							<p class="course-hero__price">{commerceProduct?.purchasable ? formatCommercePrice(commerceProduct, locale) : course.visiblePrice}</p>
+							<p class="course-hero__price">{commerceProduct?.purchasable ? formatCommercePriceWithReference(commerceProduct, course.visiblePrice, locale) : course.visiblePrice}</p>
 						)}
 						<div class="course-hero__actions">
 							<Button href={commerceProduct?.purchasable ? commerceProduct.checkoutUrl : getContactFormPath(locale)}>

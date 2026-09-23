@@ -105,3 +105,39 @@ export function formatCommercePrice(product: CommerceProduct, locale: Locale): s
 		maximumFractionDigits: product.currencyDecimals,
 	}).format(product.priceMinor / (10 ** product.currencyDecimals));
 }
+
+/** Keep whole-number marketing prices compact while preserving non-zero minor units. */
+export function formatCommercePriceCompact(product: CommerceProduct, locale: Locale): string {
+	const price = product.priceMinor / (10 ** product.currencyDecimals);
+	const decimals = Number.isInteger(price) ? 0 : product.currencyDecimals;
+
+	return new Intl.NumberFormat(locale === 'sr' ? 'sr-Latn-RS' : 'en-GB', {
+		style: 'currency',
+		currency: product.currency,
+		minimumFractionDigits: decimals,
+		maximumFractionDigits: decimals,
+	}).format(price);
+}
+
+/** Accept only a numeric, explicitly foreign-currency editorial reference. */
+export function getCommerceReferencePrice(referencePrice: string | null): string | null {
+	const reference = referencePrice?.trim();
+	if (!reference || !/[0-9]/.test(reference) || !/(?:EUR|€|USD|\$|GBP|£)/i.test(reference)) return null;
+
+	return reference;
+}
+
+/** Show the mandatory RSD checkout amount together with an editorial foreign-currency reference. */
+export function formatCommercePriceWithReference(
+	product: CommerceProduct,
+	referencePrice: string | null,
+	locale: Locale,
+): string {
+	const checkoutPrice = formatCommercePrice(product, locale);
+	if (locale !== 'en') return checkoutPrice;
+
+	const reference = getCommerceReferencePrice(referencePrice);
+	if (!reference) return checkoutPrice;
+
+	return `${checkoutPrice} · ${reference}`;
+}

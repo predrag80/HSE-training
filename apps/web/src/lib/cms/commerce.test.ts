@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../config', () => ({ serverConfig: { wordpressApiUrl: 'https://cms.example.test' } }));
 
-import { formatCommercePrice, getOptionalCommerceProduct, getOptionalCommerceProducts } from './commerce';
+import { formatCommercePrice, formatCommercePriceCompact, formatCommercePriceWithReference, getCommerceReferencePrice, getOptionalCommerceProduct, getOptionalCommerceProducts } from './commerce';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -108,5 +108,27 @@ describe('formatCommercePrice', () => {
 		expect(formatCommercePrice(product, 'en')).toContain('1,000.00');
 		expect(formatCommercePrice(product, 'sr')).toContain('1.000,00');
 		expect(formatCommercePrice(product, 'en')).toContain('€');
+	});
+
+	it('adds a localized editorial reference price without changing the checkout currency', () => {
+		const product = {
+			schemaVersion: 1 as const,
+			courseKey: 'nebosh-igc',
+			name: 'NEBOSH IGC',
+			priceMinor: 11650000,
+			currency: 'RSD',
+			currencyDecimals: 2,
+			purchasable: true,
+			checkoutUrl: 'https://cms.example.test/',
+		};
+
+		expect(formatCommercePriceWithReference(product, '€995', 'en')).toBe(`${formatCommercePrice(product, 'en')} · €995`);
+		expect(formatCommercePriceWithReference(product, '995 EUR', 'sr')).toBe(formatCommercePrice(product, 'sr'));
+		expect(formatCommercePriceWithReference(product, null, 'en')).toBe(formatCommercePrice(product, 'en'));
+		expect(formatCommercePriceWithReference(product, 'Price on request', 'en')).toBe(formatCommercePrice(product, 'en'));
+		expect(formatCommercePriceCompact(product, 'en')).not.toContain('.00');
+		expect(formatCommercePriceCompact(product, 'sr')).not.toContain(',00');
+		expect(getCommerceReferencePrice('€995')).toBe('€995');
+		expect(getCommerceReferencePrice('Price on request')).toBeNull();
 	});
 });

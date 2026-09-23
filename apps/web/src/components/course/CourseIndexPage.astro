@@ -7,7 +7,7 @@ import { getUiTranslations } from '../../i18n/ui';
 import { getCourseUiTranslations } from '../../i18n/course-ui';
 import { getContactFormPath } from '../../i18n/routes';
 import { getCoursePublicPath } from '../../lib/course-routes';
-import { formatCommercePrice } from '../../lib/cms';
+import { formatCommercePriceWithReference } from '../../lib/cms';
 import Container from '../ui/Container.astro';
 import Section from '../ui/Section.astro';
 import SectionHeading from '../ui/SectionHeading.astro';
@@ -53,7 +53,7 @@ const courseCopy = getCourseUiTranslations(locale);
 								<CoursePlanCard
 									title={course.title}
 									label={course.homepageLabel}
-									price={purchasableProduct ? formatCommercePrice(purchasableProduct, locale) : (course.visiblePrice ?? pricingCopy.priceOnRequest)}
+									price={purchasableProduct ? formatCommercePriceWithReference(purchasableProduct, course.visiblePrice, locale) : (course.visiblePrice ?? pricingCopy.priceOnRequest)}
 									feeAvailability={pricingCopy.feeAvailability}
 									summary={course.shortDescription}
 									href={purchasableProduct?.checkoutUrl ?? getContactFormPath(locale)}
