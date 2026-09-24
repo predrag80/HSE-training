@@ -14,6 +14,10 @@
 	text-transform: uppercase;
 }
 
+.other-courses-heading > p {
+	text-align: center;
+}
+
 .other-courses-hero {
 	--other-courses-hero-shift: 0px;
 	position: relative;

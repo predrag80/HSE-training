@@ -164,7 +164,8 @@
 .expert-card figcaption span {
 	color: #808291;
 	font-size: 1.0625rem;
-	line-height: 1.875rem;
+	line-height: 1.4;
+	text-align: center;
 }
 
 [data-experts-reveal='header'] {
