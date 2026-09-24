@@ -139,7 +139,7 @@ describe('mapWordPressHomepage', () => {
 				team: [
 					{ memberKey: 'ana-springfield', name: 'Ana Springfield', role: 'Director', image: null },
 					{ memberKey: 'john-springfield', name: 'John Springfield', role: 'Director of Operations', image: null },
-					{ memberKey: 'biljana-stojanovic', name: 'Biljana Stojanovic', role: 'Financial Director', image: null },
+					{ memberKey: 'biljana-stojanovic', name: 'Biljana Stojanovic', role: 'Strategic Tax & Financial Consultant', image: null },
 					{ memberKey: 'kristina-atanaskovic', name: 'Kristina Atanaskovic', role: 'Consultant', image: null },
 					{ memberKey: 'marija-blagojevic', name: 'Marija Blagojevic', role: 'Consultant', image: null },
 				],

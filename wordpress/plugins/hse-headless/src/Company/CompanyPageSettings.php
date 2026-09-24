@@ -420,7 +420,7 @@ final class CompanyPageSettings {
 			'team_john_name'     => 'John Springfield',
 			'team_john_role'     => $is_serbian ? 'Direktor operacija' : 'Director of Operations',
 			'team_biljana_name'  => 'Biljana Stojanovic',
-			'team_biljana_role'  => $is_serbian ? 'Finansijska direktorka' : 'Financial Director',
+			'team_biljana_role'  => $is_serbian ? 'Strateški poreski i finansijski konsultant' : 'Strategic Tax & Financial Consultant',
 			'team_kristina_name' => 'Kristina Atanaskovic',
 			'team_kristina_role' => $is_serbian ? 'Konsultantkinja' : 'Consultant',
 			'team_marija_name'   => 'Marija Blagojevic',

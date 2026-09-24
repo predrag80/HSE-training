@@ -40,6 +40,21 @@ describe('Company CMS mappers', () => {
 		});
 	});
 
+	it('uses Biljana\'s strategic tax and finance role in both locale fallbacks', () => {
+		expect(mapWordPressCompanyProfile(profile, 'en').team).toContainEqual(
+			expect.objectContaining({
+				memberKey: 'biljana-stojanovic',
+				role: 'Strategic Tax & Financial Consultant',
+			}),
+		);
+		expect(mapWordPressCompanyProfile(profile, 'sr').team).toContainEqual(
+			expect.objectContaining({
+				memberKey: 'biljana-stojanovic',
+				role: 'Strateški poreski i finansijski konsultant',
+			}),
+		);
+	});
+
 	it('maps the dedicated Company Page document', () => {
 			expect(mapWordPressCompanyPage(companyPage)).toMatchObject({
 			schemaVersion: 1,

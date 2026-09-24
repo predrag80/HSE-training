@@ -123,7 +123,7 @@ function defaultTeam(locale: Locale): readonly CompanyTeamMember[] {
 	return [
 		{ memberKey: 'ana-springfield', name: 'Ana Springfield', role: locale === 'sr' ? 'Direktorka' : 'Director', image: null },
 		{ memberKey: 'john-springfield', name: 'John Springfield', role: locale === 'sr' ? 'Direktor operacija' : 'Director of Operations', image: null },
-		{ memberKey: 'biljana-stojanovic', name: 'Biljana Stojanovic', role: locale === 'sr' ? 'Finansijska direktorka' : 'Financial Director', image: null },
+		{ memberKey: 'biljana-stojanovic', name: 'Biljana Stojanovic', role: locale === 'sr' ? 'Strateški poreski i finansijski konsultant' : 'Strategic Tax & Financial Consultant', image: null },
 		{ memberKey: 'kristina-atanaskovic', name: 'Kristina Atanaskovic', role: locale === 'sr' ? 'Konsultantkinja' : 'Consultant', image: null },
 		{ memberKey: 'marija-blagojevic', name: 'Marija Blagojevic', role: locale === 'sr' ? 'Konsultantkinja' : 'Consultant', image: null },
 	];
