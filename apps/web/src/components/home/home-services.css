@@ -19,6 +19,8 @@
 }
 
 .home-services__eyebrow {
+	width: 100%;
+	max-width: none;
 	margin-bottom: 0.3125rem;
 	color: var(--color-accent);
 	font-size: 1rem;
