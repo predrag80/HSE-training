@@ -29,6 +29,9 @@ final class CommerceCustomerEmail {
 		add_filter( 'woocommerce_email_subject_customer_completed_order', array( self::class, 'completed_order_subject' ), 20, 3 );
 		add_filter( 'woocommerce_email_heading_customer_completed_order', array( self::class, 'completed_order_heading' ), 20, 3 );
 		add_filter( 'woocommerce_email_additional_content_customer_completed_order', array( self::class, 'remove_completed_order_additional_content' ), 20, 3 );
+		add_filter( 'woocommerce_email_subject_new_order', array( self::class, 'merchant_order_subject' ), 20, 3 );
+		add_filter( 'woocommerce_email_heading_new_order', array( self::class, 'merchant_order_heading' ), 20, 3 );
+		add_filter( 'woocommerce_email_additional_content_new_order', array( self::class, 'remove_merchant_order_additional_content' ), 20, 3 );
 		add_filter( 'woocommerce_locate_template', array( self::class, 'locate_completed_order_template' ), 20, 3 );
 		add_action( 'woocommerce_email_sent', array( self::class, 'record_email_delivery' ), 20, 3 );
 	}
@@ -86,7 +89,33 @@ final class CommerceCustomerEmail {
 		return CommerceConfiguration::is_enabled() ? '' : ( is_scalar( $content ) ? (string) $content : '' );
 	}
 
-	/** Use plugin-owned, update-safe HTML and plain-text completed receipt templates. */
+	/** Give the merchant notification a useful, branded subject. */
+	public static function merchant_order_subject( $subject, $order = null, $email = null ): string {
+		unset( $email );
+		if ( ! CommerceConfiguration::is_enabled() || ! self::is_order( $order ) ) {
+			return is_scalar( $subject ) ? (string) $subject : '';
+		}
+
+		return sprintf( 'Nova porudžbina #%s - HSE Training', $order->get_order_number() );
+	}
+
+	/** Use a concise heading inside the merchant notification. */
+	public static function merchant_order_heading( $heading, $order = null, $email = null ): string {
+		unset( $email );
+		if ( ! CommerceConfiguration::is_enabled() || ! self::is_order( $order ) ) {
+			return is_scalar( $heading ) ? (string) $heading : '';
+		}
+
+		return 'Nova porudžbina';
+	}
+
+	/** The plugin-owned merchant template contains all required closing copy. */
+	public static function remove_merchant_order_additional_content( $content, $order = null, $email = null ): string {
+		unset( $order, $email );
+		return CommerceConfiguration::is_enabled() ? '' : ( is_scalar( $content ) ? (string) $content : '' );
+	}
+
+	/** Use plugin-owned, update-safe HTML and plain-text order email templates. */
 	public static function locate_completed_order_template( $template, $template_name, $template_path = '' ): string {
 		unset( $template_path );
 		if ( ! CommerceConfiguration::is_enabled() || ! is_string( $template_name ) ) {
@@ -96,6 +125,8 @@ final class CommerceCustomerEmail {
 		$owned = array(
 			'emails/customer-completed-order.php',
 			'emails/plain/customer-completed-order.php',
+			'emails/admin-new-order.php',
+			'emails/plain/admin-new-order.php',
 		);
 		if ( ! in_array( $template_name, $owned, true ) ) {
 			return is_string( $template ) ? $template : '';
@@ -119,9 +150,10 @@ final class CommerceCustomerEmail {
 		if ( 'sr' === CommerceLocale::sanitize( $locale ) ) {
 			return array(
 				'company'          => 'HSE TRAINING D.O.O.',
-				'tagline'          => 'Profesionalne HSE obuke i konsultantske usluge',
+				'tagline'          => 'Bezbednost, zdravlje i profesionalne obuke',
+				'preheader'        => 'Vaša potvrda o uspešnom plaćanju i porudžbini.',
 				'thanks'           => 'Hvala na kupovini',
-				'intro'            => 'Vaše plaćanje je uspešno potvrđeno. U nastavku su podaci o porudžbini i plaćanju.',
+				'intro'            => 'Ova potvrda potvrđuje vaše plaćanje i porudžbinu za: %s.',
 				'billed_to'        => 'Podaci kupca',
 				'payment_details'  => 'Detalji plaćanja',
 				'payment_method'   => 'Način plaćanja',
@@ -133,17 +165,20 @@ final class CommerceCustomerEmail {
 				'subtotal'         => 'Međuzbir',
 				'total_paid'       => 'Ukupno plaćeno',
 				'payment_received' => 'PLAĆANJE PRIMLJENO',
-				'next_steps'       => 'Uskoro ćemo vam poslati dodatne informacije o kursu. Ako imate pitanja, odgovorite na ovaj email ili nam pišite na info@hsetraining.rs.',
+				'closing_heading'  => 'Radujemo se što ćemo vas podržati tokom vašeg NEBOSH usavršavanja.',
+				'next_steps'       => 'Hvala što ste izabrali HSE Training D.O.O. za svoje profesionalne obuke iz bezbednosti i zdravlja na radu.',
 				'website'          => 'hsetraining.rs',
 				'email'            => 'info@hsetraining.rs',
+				'country'          => 'Srbija',
 			);
 		}
 
 		return array(
 			'company'          => 'HSE TRAINING D.O.O.',
-			'tagline'          => 'Professional HSE training and consultancy',
+			'tagline'          => 'Health, Safety & Professional Training',
+			'preheader'        => 'Your payment and order confirmation from HSE Training.',
 			'thanks'           => 'Thank you for your purchase',
-			'intro'            => 'Your payment has been confirmed successfully. Your order and payment details are shown below.',
+			'intro'            => 'This receipt confirms your payment and order for: %s.',
 			'billed_to'        => 'Billed to',
 			'payment_details'  => 'Payment details',
 			'payment_method'   => 'Payment method',
@@ -155,9 +190,42 @@ final class CommerceCustomerEmail {
 			'subtotal'         => 'Subtotal',
 			'total_paid'       => 'Total paid',
 			'payment_received' => 'PAYMENT RECEIVED',
-			'next_steps'       => 'We will send further course information shortly. If you have any questions, reply to this email or contact info@hsetraining.rs.',
+			'closing_heading'  => 'We look forward to supporting you throughout your NEBOSH journey.',
+			'next_steps'       => 'Thank you for choosing HSE Training D.O.O. for your professional health and safety training.',
 			'website'          => 'hsetraining.rs',
 			'email'            => 'info@hsetraining.rs',
+			'country'          => 'Serbia',
+		);
+	}
+
+	/** Return seller-facing labels for the branded new-order notification. */
+	public static function merchant_copy(): array {
+		return array(
+			'company'             => 'HSE TRAINING D.O.O.',
+			'tagline'             => 'Health, Safety & Professional Training',
+			'preheader'           => 'Nova WooCommerce porudžbina je primljena.',
+			'title'               => 'Primljena je nova porudžbina',
+			'intro'               => 'U nastavku su podaci potrebni za proveru uplate i dalju obradu prijave na kurs.',
+			'customer'            => 'Podaci kupca',
+			'order_details'       => 'Detalji porudžbine',
+			'payment_method'      => 'Način plaćanja',
+			'order_number'        => 'Broj porudžbine',
+			'order_date'          => 'Datum porudžbine',
+			'order_status'        => 'Status',
+			'order_language'      => 'Jezik kupovine',
+			'transaction_id'      => 'ID transakcije',
+			'description'         => 'Opis',
+			'quantity'            => 'Kol.',
+			'amount'              => 'Iznos',
+			'subtotal'            => 'Međuzbir',
+			'total'               => 'Ukupno',
+			'payment_confirmed'   => 'PLAĆANJE POTVRĐENO',
+			'order_received'      => 'PORUDŽBINA PRIMLJENA',
+			'view_order'          => 'OTVORI PORUDŽBINU',
+			'language_en'         => 'Engleski',
+			'language_sr'         => 'Srpski',
+			'website'             => 'hsetraining.rs',
+			'email'               => self::DEFAULT_ADMIN_EMAIL,
 		);
 	}
 

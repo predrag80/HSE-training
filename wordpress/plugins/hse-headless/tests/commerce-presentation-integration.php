@@ -210,6 +210,11 @@ hse_commerce_presentation_test_assert(
 	'Merchant new-order notifications replace imported placeholder recipients.'
 );
 hse_commerce_presentation_test_assert(
+	'HSE TRAINING D.O.O.' === ( CommerceCustomerEmail::merchant_copy()['company'] ?? '' )
+		&& 'OTVORI PORUDŽBINU' === ( CommerceCustomerEmail::merchant_copy()['view_order'] ?? '' ),
+	'Merchant notification copy contains the HSE identity and order action.'
+);
+hse_commerce_presentation_test_assert(
 	'RSD' === CommercePresentation::localize_currency_symbol( 'рсд', 'RSD' ),
 	'RSD prices use an unambiguous Latin currency code.'
 );
@@ -232,6 +237,11 @@ if ( is_wp_error( $email_order ) ) {
 		'Completed receipt heading follows the Serbian order locale.'
 	);
 	hse_commerce_presentation_test_assert(
+		'Nova porudžbina #' . $email_order->get_order_number() . ' - HSE Training' === CommerceCustomerEmail::merchant_order_subject( 'Fallback', $email_order )
+			&& 'Nova porudžbina' === CommerceCustomerEmail::merchant_order_heading( 'Fallback', $email_order ),
+		'Merchant subject and heading identify the new order.'
+	);
+	hse_commerce_presentation_test_assert(
 		'Ukupno plaćeno' === ( CommerceCustomerEmail::receipt_copy( 'sr' )['total_paid'] ?? '' ),
 		'Serbian receipt labels are available without relying on the administrator locale.'
 	);
@@ -242,6 +252,14 @@ if ( is_wp_error( $email_order ) ) {
 	hse_commerce_presentation_test_assert(
 		is_readable( $receipt_template ) && false !== strpos( $receipt_template, 'hse-headless/templates/emails/customer-completed-order.php' ),
 		'The plugin-owned completed receipt template is selected.'
+	);
+	$merchant_template = CommerceCustomerEmail::locate_completed_order_template(
+		'/tmp/fallback.php',
+		'emails/admin-new-order.php'
+	);
+	hse_commerce_presentation_test_assert(
+		is_readable( $merchant_template ) && false !== strpos( $merchant_template, 'hse-headless/templates/emails/admin-new-order.php' ),
+		'The plugin-owned merchant new-order template is selected.'
 	);
 	$completed_email = WC()->mailer()->get_emails()['WC_Email_Customer_Completed_Order'] ?? null;
 	if ( $completed_email ) {
@@ -260,11 +278,38 @@ if ( is_wp_error( $email_order ) ) {
 			false !== strpos( $receipt_html, 'PLAĆANJE PRIMLJENO' )
 				&& false !== strpos( $receipt_html, 'Ukupno plaćeno' )
 				&& false !== strpos( $receipt_html, '123456789' )
-				&& false !== strpos( $receipt_html, '12345678' ),
+				&& false !== strpos( $receipt_html, '12345678' )
+				&& false !== strpos( $receipt_html, '<!doctype html>' )
+				&& false !== strpos( $receipt_html, '<!--[if mso]>' ),
 			'The Serbian completed receipt renders payment and legal-entity details.'
 		);
 	} else {
 		hse_commerce_presentation_test_assert( false, 'WooCommerce completed-order email is available for receipt rendering.' );
+	}
+
+	$new_order_email = WC()->mailer()->get_emails()['WC_Email_New_Order'] ?? null;
+	if ( $new_order_email ) {
+		$merchant_html = wc_get_template_html(
+			'emails/admin-new-order.php',
+			array(
+				'order'              => $email_order,
+				'email_heading'      => CommerceCustomerEmail::merchant_order_heading( '', $email_order ),
+				'additional_content' => '',
+				'sent_to_admin'      => true,
+				'plain_text'         => false,
+				'email'              => $new_order_email,
+			)
+		);
+		hse_commerce_presentation_test_assert(
+			false !== strpos( $merchant_html, 'Primljena je nova porudžbina' )
+				&& false !== strpos( $merchant_html, 'Podaci kupca' )
+				&& false !== strpos( $merchant_html, 'OTVORI PORUDŽBINU' )
+				&& false !== strpos( $merchant_html, '123456789' )
+				&& false !== strpos( $merchant_html, '<!doctype html>' ),
+			'The merchant email renders the branded order summary and customer details.'
+		);
+	} else {
+		hse_commerce_presentation_test_assert( false, 'WooCommerce new-order merchant email is available for rendering.' );
 	}
 
 	$email = (object) array( 'object' => $email_order );

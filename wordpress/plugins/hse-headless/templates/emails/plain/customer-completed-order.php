@@ -18,6 +18,13 @@ $billing        = trim( wp_strip_all_tags( str_replace( '<br/>', "\n", $order->g
 $payment_method = $order->get_payment_method_title();
 $price_args     = array( 'currency' => $order->get_currency() );
 $buyer_details  = CommercePresentation::order_buyer_details( $order, $locale );
+$item_names     = array();
+
+foreach ( $order->get_items( 'line_item' ) as $receipt_item ) {
+	$item_names[] = CommerceCustomerEmail::localized_item_name( $receipt_item, $locale );
+}
+
+$item_summary = $item_names ? implode( ', ', $item_names ) : '-';
 
 echo esc_html( $copy['company'] ) . "\n";
 echo esc_html( $copy['tagline'] ) . "\n\n";
@@ -25,7 +32,7 @@ echo esc_html( $email_heading ) . "\n";
 echo '#' . esc_html( $order->get_order_number() ) . ' · ' . esc_html( $order_date ) . "\n";
 echo str_repeat( '=', 48 ) . "\n\n";
 echo esc_html( $copy['thanks'] ) . "\n";
-echo esc_html( $copy['intro'] ) . "\n\n";
+echo esc_html( sprintf( $copy['intro'], $item_summary ) ) . "\n\n";
 
 echo esc_html( $copy['billed_to'] ) . "\n";
 echo ( $billing ? esc_html( $billing ) : '-' ) . "\n";
@@ -55,5 +62,6 @@ foreach ( $order->get_items( 'line_item' ) as $item ) {
 echo "\n" . esc_html( $copy['subtotal'] ) . ': ' . esc_html( wp_strip_all_tags( wc_price( $order->get_subtotal(), $price_args ) ) ) . "\n";
 echo esc_html( $copy['total_paid'] ) . ': ' . esc_html( wp_strip_all_tags( $order->get_formatted_order_total() ) ) . "\n\n";
 echo esc_html( $copy['payment_received'] ) . "\n\n";
+echo esc_html( $copy['closing_heading'] ) . "\n";
 echo esc_html( $copy['next_steps'] ) . "\n\n";
-echo esc_html( $copy['company'] ) . ' · ' . esc_html( $copy['website'] ) . ' · ' . esc_html( $copy['email'] ) . "\n";
+echo esc_html( $copy['company'] ) . ' · ' . esc_html( $copy['country'] ) . ' · ' . esc_html( $copy['website'] ) . ' · ' . esc_html( $copy['email'] ) . "\n";

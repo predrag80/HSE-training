@@ -372,13 +372,15 @@ completed receipt is rendered by plugin-owned HTML and plain-text templates;
 its subject, body, Course title and labels use the `en` or `sr` locale stored on
 the order. It includes the customer billing details, payment method, order
 number and date, line items, subtotal, total paid, payment status and HSE
-contact details. Merchant new-order notifications use
-`HSE_COMMERCE_ADMIN_EMAIL` when it contains a valid address and otherwise fall
-back to `info@hsetraining.rs`, so an imported WordPress administrator address
-cannot become the recipient. After WordPress reports a successful send, the
-plugin stores only the notification identifier and UTC timestamp on the order
-as operational evidence. The email palette can be aligned to the HSE checkout
-with:
+contact details. Merchant new-order notifications use their own branded HTML
+and plain-text templates with customer identity, payment and transaction data,
+line items, total, checkout language, current order status and a direct link to
+the WooCommerce order. They use `HSE_COMMERCE_ADMIN_EMAIL` when it contains a
+valid address and otherwise fall back to `info@hsetraining.rs`, so an imported
+WordPress administrator address cannot become the recipient. After WordPress
+reports a successful send, the plugin stores only the customer notification
+identifier and UTC timestamp on the order as operational evidence. The email
+palette can be aligned to the HSE checkout with:
 
 ```sh
 wp option update woocommerce_email_base_color '#292d36'
