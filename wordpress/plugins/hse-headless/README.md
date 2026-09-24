@@ -361,6 +361,10 @@ Privacy Policy are migrated once in English and Serbian; the previous option
 values are retained with the `_pre_ecommerce_20260916` suffix. The legal copy is
 an implementation draft and must be approved before production launch.
 
+The checkout and confirmation shell packages the same transparent HSE Training
+wordmark used by the Astro header, so it does not depend on an Astro public
+asset URL or retain the earlier plugin-only logo treatment.
+
 The successful customer flow suppresses WooCommerce's intermediate processing
 email and sends the final completed-order payment receipt only. Pending,
 failed, cancelled and refunded outcomes keep their own notifications. The

@@ -92,9 +92,7 @@ body.hse-commerce {
 
 .hse-commerce__brand {
 	display: block;
-	width: min(12.5rem, 48vw);
-	padding: 0.45rem 0.6rem;
-	background: var(--hse-ink);
+	width: min(15.4rem, 57.2vw);
 }
 
 .hse-commerce__brand img {
@@ -540,7 +538,7 @@ body.hse-commerce {
 	.hse-commerce__payment-group:last-child { grid-column: auto; }
 	.hse-commerce__payment-logos { flex-wrap: wrap; }
 	.hse-commerce__header-inner { min-height: 5.5rem; }
-	.hse-commerce__brand { width: 10.5rem; }
+	.hse-commerce__brand { width: 12.65rem; }
 	.hse-commerce__secure { width: 8.75rem; min-width: 0; justify-content: flex-end; font-size: 0.7rem; line-height: 1.35; text-align: right; }
 	.hse-commerce__secure span { max-width: 6.8rem; white-space: normal; }
 	.hse-commerce__hero { grid-template-columns: 1fr; align-items: start; }
