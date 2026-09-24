@@ -15,6 +15,24 @@ final class CommercePresentation {
 	public const COMPANY_TAX_ID_META     = '_hse_company_tax_id';
 	public const COMPANY_REG_NUMBER_META = '_hse_company_registration_number';
 
+	private const VALIDATION_COPY_KEYS = array(
+		'' => array(
+			'The following problems were found:' => 'validation_summary',
+			'%s is a required field.' => 'validation_required',
+			"'%s' is not a valid country code." => 'validation_country',
+			'%1$s is not valid. You can look up the correct Eircode <a target="_blank" href="%2$s">here</a>.' => 'validation_eircode',
+			'%s is not a valid postcode / ZIP.' => 'validation_postcode',
+			'%s is not a valid phone number.' => 'validation_phone',
+			'%s is not a valid email address.' => 'validation_email',
+			'%1$s is not valid. Please enter one of the following: %2$s' => 'validation_state',
+			'Please enter an address to continue.' => 'validation_address',
+		),
+		'checkout-validation' => array(
+			'Billing %s'  => 'validation_billing_field',
+			'Shipping %s' => 'validation_shipping_field',
+		),
+	);
+
 	private const COPY = array(
 		'en' => array(
 			'page_title'            => 'Secure checkout',
@@ -58,6 +76,17 @@ final class CommercePresentation {
 			'registration_required'  => 'Enter the company registration number.',
 			'tax_id_invalid'         => 'Enter a valid tax identification number.',
 			'registration_invalid'   => 'Enter a valid company registration number.',
+			'validation_summary'      => 'The following problems were found:',
+			'validation_required'     => '%s is a required field.',
+			'validation_country'      => "'%s' is not a valid country code.",
+			'validation_eircode'      => '%1$s is not valid. You can look up the correct Eircode <a target="_blank" href="%2$s">here</a>.',
+			'validation_postcode'     => '%s is not a valid postcode / ZIP.',
+			'validation_phone'        => '%s is not a valid phone number.',
+			'validation_email'        => '%s is not a valid email address.',
+			'validation_state'        => '%1$s is not valid. Please enter one of the following: %2$s',
+			'validation_address'      => 'Please enter an address to continue.',
+			'validation_billing_field' => 'Billing %s',
+			'validation_shipping_field' => 'Shipping %s',
 			'country'               => 'Country / Region',
 			'address'               => 'Street address',
 			'address_placeholder'   => 'House number and street name',
@@ -136,6 +165,17 @@ final class CommercePresentation {
 			'registration_required'  => 'Unesite matični broj.',
 			'tax_id_invalid'         => 'Unesite ispravan PIB.',
 			'registration_invalid'   => 'Unesite ispravan matični broj.',
+			'validation_summary'      => 'Pronađeni su sledeći problemi:',
+			'validation_required'     => 'Polje %s je obavezno.',
+			'validation_country'      => '„%s“ nije ispravan kod države.',
+			'validation_eircode'      => '%1$s nije ispravno. Ispravan Eircode možete pronaći <a target="_blank" href="%2$s">ovde</a>.',
+			'validation_postcode'     => '%s nije ispravan poštanski broj.',
+			'validation_phone'        => '%s nije ispravan broj telefona.',
+			'validation_email'        => '%s nije ispravna email adresa.',
+			'validation_state'        => '%1$s nije ispravno. Unesite jednu od sledećih vrednosti: %2$s',
+			'validation_address'      => 'Unesite adresu da biste nastavili.',
+			'validation_billing_field' => '%s',
+			'validation_shipping_field' => 'Adresa za dostavu — %s',
 			'country'               => 'Država / region',
 			'address'               => 'Adresa',
 			'address_placeholder'   => 'Ulica i broj',
@@ -204,6 +244,7 @@ final class CommercePresentation {
 		add_filter( 'woocommerce_currency_symbol', array( self::class, 'localize_currency_symbol' ), 20, 2 );
 		add_filter( 'wc_price_args', array( self::class, 'localize_price_format' ), 20, 1 );
 		add_filter( 'gettext', array( self::class, 'translate_checkout_string' ), 20, 3 );
+		add_filter( 'gettext_with_context', array( self::class, 'translate_checkout_context_string' ), 20, 4 );
 	}
 
 	/** The explicitly enabled checkout must not be obscured by Woo store visibility. */
@@ -752,7 +793,32 @@ JS;
 			'Pay'             => 'pay',
 			'Cancel'          => 'cancel',
 		);
-		return isset( $strings[ $text ] ) ? self::copy( $strings[ $text ] ) : $translation;
+		if ( isset( $strings[ $text ] ) ) {
+			return self::copy( $strings[ $text ] );
+		}
+
+		return isset( self::VALIDATION_COPY_KEYS[''][ $text ] )
+			? self::localized_validation_text( (string) $text, '', CommerceLocale::current() )
+			: $translation;
+	}
+
+	/** Translate Woo checkout validation prefixes that use gettext context. */
+	public static function translate_checkout_context_string( $translation, $text, $context, $domain ) {
+		if (
+			'woocommerce' !== $domain
+			|| ! self::is_checkout_request()
+			|| ! isset( self::VALIDATION_COPY_KEYS[ $context ][ $text ] )
+		) {
+			return $translation;
+		}
+
+		return self::localized_validation_text( (string) $text, (string) $context, CommerceLocale::current() );
+	}
+
+	/** Return a deterministic validation translation for tests and gettext filters. */
+	public static function localized_validation_text( string $text, string $context, string $locale ): string {
+		$key = self::VALIDATION_COPY_KEYS[ $context ][ $text ] ?? '';
+		return '' !== $key ? self::copy_for_locale( $key, $locale ) : $text;
 	}
 
 	/** Map Woo statuses to honest customer-facing confirmation states. */

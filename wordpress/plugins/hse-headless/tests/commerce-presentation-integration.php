@@ -127,6 +127,18 @@ hse_commerce_presentation_test_assert(
 	array() === CommercePresentation::validate_buyer_data( array( 'billing_customer_type' => 'individual' ) ),
 	'Individual checkout does not require company identifiers.'
 );
+hse_commerce_presentation_test_assert(
+	'Pronađeni su sledeći problemi:' === CommercePresentation::localized_validation_text( 'The following problems were found:', '', 'sr' )
+		&& 'Polje %s je obavezno.' === CommercePresentation::localized_validation_text( '%s is a required field.', '', 'sr' )
+		&& '%s' === CommercePresentation::localized_validation_text( 'Billing %s', 'checkout-validation', 'sr' ),
+	'Serbian checkout validation summary, required notice, and billing prefix are localized.'
+);
+hse_commerce_presentation_test_assert(
+	'%s nije ispravna email adresa.' === CommercePresentation::localized_validation_text( '%s is not a valid email address.', '', 'sr' )
+		&& '%s nije ispravan broj telefona.' === CommercePresentation::localized_validation_text( '%s is not a valid phone number.', '', 'sr' )
+		&& '%s nije ispravan poštanski broj.' === CommercePresentation::localized_validation_text( '%s is not a valid postcode / ZIP.', '', 'sr' ),
+	'Serbian email, phone, and postcode validation messages are localized.'
+);
 $missing_company = CommercePresentation::validate_buyer_data(
 	array(
 		'billing_customer_type' => 'company',

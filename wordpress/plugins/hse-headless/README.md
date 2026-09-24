@@ -350,6 +350,11 @@ merchant notification, and localized completed-order receipt. Serbian company
 identifiers require a nine-digit PIB and eight-digit registration number;
 foreign identifiers accept a bounded alphanumeric format.
 
+Checkout validation summaries and field errors follow the selected checkout
+language. Serbian sessions localize required-field, email, phone, postcode,
+country and region validation messages instead of falling back to the
+WooCommerce English strings.
+
 The global Astro footer and the plugin-owned checkout shell use the official
 bank-provided Raiffeisen, card-scheme and 3-D Secure assets. Purchase Terms and
 Privacy Policy are migrated once in English and Serbian; the previous option
