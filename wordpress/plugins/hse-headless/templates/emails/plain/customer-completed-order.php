@@ -6,6 +6,7 @@
  */
 
 use HSETraining\Headless\Commerce\CommerceCustomerEmail;
+use HSETraining\Headless\Commerce\CommercePresentation;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -16,6 +17,7 @@ $order_date     = $created ? $created->date_i18n( 'sr' === $locale ? 'd.m.Y.' : 
 $billing        = trim( wp_strip_all_tags( str_replace( '<br/>', "\n", $order->get_formatted_billing_address() ) ) );
 $payment_method = $order->get_payment_method_title();
 $price_args     = array( 'currency' => $order->get_currency() );
+$buyer_details  = CommercePresentation::order_buyer_details( $order, $locale );
 
 echo esc_html( $copy['company'] ) . "\n";
 echo esc_html( $copy['tagline'] ) . "\n\n";
@@ -32,6 +34,9 @@ if ( $order->get_billing_email() ) {
 }
 if ( $order->get_billing_phone() ) {
 	echo esc_html( $order->get_billing_phone() ) . "\n";
+}
+foreach ( $buyer_details as $detail ) {
+	echo esc_html( $detail['label'] ) . ': ' . esc_html( $detail['value'] ) . "\n";
 }
 
 echo "\n" . esc_html( $copy['payment_details'] ) . "\n";

@@ -342,6 +342,14 @@ wp option update woocommerce_currency RSD
 wp option update woocommerce_price_num_decimals 2
 ```
 
+Checkout asks whether the customer is an individual or a legal entity. Company
+name, tax identification number (PIB), and company registration number become
+required only for a legal entity. The selection is validated server-side,
+stored on the WooCommerce order, and included in the administrator order view,
+merchant notification, and localized completed-order receipt. Serbian company
+identifiers require a nine-digit PIB and eight-digit registration number;
+foreign identifiers accept a bounded alphanumeric format.
+
 The global Astro footer and the plugin-owned checkout shell use the official
 bank-provided Raiffeisen, card-scheme and 3-D Secure assets. Purchase Terms and
 Privacy Policy are migrated once in English and Serbian; the previous option

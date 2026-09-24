@@ -29,9 +29,26 @@ function hse_commerce_presentation_test_assert( $condition, $message ) {
 /** Minimal order collaborator for locale persistence checks. */
 final class HseCommercePresentationTestOrder {
 	public $meta = array();
+	public $billing_company = '';
 
 	public function update_meta_data( $key, $value ) {
 		$this->meta[ $key ] = $value;
+	}
+
+	public function get_meta( $key ) {
+		return $this->meta[ $key ] ?? '';
+	}
+
+	public function delete_meta_data( $key ) {
+		unset( $this->meta[ $key ] );
+	}
+
+	public function set_billing_company( $value ) {
+		$this->billing_company = $value;
+	}
+
+	public function get_billing_company() {
+		return $this->billing_company;
 	}
 }
 
@@ -102,6 +119,73 @@ hse_commerce_presentation_test_assert(
 CommerceLocale::capture( 'en' );
 
 hse_commerce_presentation_test_assert(
+	'individual' === CommercePresentation::sanitize_buyer_type( 'unexpected' )
+		&& 'company' === CommercePresentation::sanitize_buyer_type( 'company' ),
+	'Checkout buyer type is restricted to individual or company.'
+);
+hse_commerce_presentation_test_assert(
+	array() === CommercePresentation::validate_buyer_data( array( 'billing_customer_type' => 'individual' ) ),
+	'Individual checkout does not require company identifiers.'
+);
+$missing_company = CommercePresentation::validate_buyer_data(
+	array(
+		'billing_customer_type' => 'company',
+		'billing_country'       => 'RS',
+	)
+);
+hse_commerce_presentation_test_assert(
+	3 === count( $missing_company ),
+	'Legal-entity checkout requires company name, PIB, and registration number.'
+);
+$invalid_serbian_company = CommercePresentation::validate_buyer_data(
+	array(
+		'billing_customer_type'        => 'company',
+		'billing_company'              => 'Primer DOO',
+		'billing_country'              => 'RS',
+		'billing_pib'                  => '123',
+		'billing_registration_number'  => '456',
+	)
+);
+hse_commerce_presentation_test_assert(
+	isset( $invalid_serbian_company['billing_pib_invalid'], $invalid_serbian_company['billing_registration_number_invalid'] ),
+	'Serbian legal entities require a nine-digit PIB and eight-digit registration number.'
+);
+$valid_company_data = array(
+	'billing_customer_type'        => 'company',
+	'billing_company'              => 'Primer DOO',
+	'billing_country'              => 'RS',
+	'billing_pib'                  => '123456789',
+	'billing_registration_number'  => '12345678',
+);
+hse_commerce_presentation_test_assert(
+	array() === CommercePresentation::validate_buyer_data( $valid_company_data ),
+	'Complete Serbian legal-entity data passes validation.'
+);
+$buyer_order = new HseCommercePresentationTestOrder();
+CommercePresentation::save_buyer_fields( $buyer_order, $valid_company_data );
+$buyer_details = CommercePresentation::order_buyer_details( $buyer_order, 'en' );
+hse_commerce_presentation_test_assert(
+	'Legal entity / Company' === ( $buyer_details['buyer_type']['value'] ?? '' )
+		&& '123456789' === ( $buyer_details['company_tax_id']['value'] ?? '' )
+		&& '12345678' === ( $buyer_details['company_registration_number']['value'] ?? '' ),
+	'Legal-entity identity is normalized for order and email presentation.'
+);
+$legacy_company_order                  = new HseCommercePresentationTestOrder();
+$legacy_company_order->billing_company = 'Existing Company DOO';
+$legacy_company_details                = CommercePresentation::order_buyer_details( $legacy_company_order, 'en' );
+hse_commerce_presentation_test_assert(
+	'Legal entity / Company' === ( $legacy_company_details['buyer_type']['value'] ?? '' ),
+	'Existing orders with a company name remain identified as legal entities.'
+);
+CommercePresentation::save_buyer_fields( $buyer_order, array( 'billing_customer_type' => 'individual' ) );
+hse_commerce_presentation_test_assert(
+	'' === $buyer_order->billing_company
+		&& ! isset( $buyer_order->meta[ CommercePresentation::COMPANY_TAX_ID_META ] )
+		&& ! isset( $buyer_order->meta[ CommercePresentation::COMPANY_REG_NUMBER_META ] ),
+	'Individual checkout clears stale company-only order data.'
+);
+
+hse_commerce_presentation_test_assert(
 	true === CommerceCustomerEmail::enable_cancelled_order_email( false ),
 	'Cancelled payment outcomes enable a customer email notification.'
 );
@@ -123,6 +207,9 @@ if ( is_wp_error( $email_order ) ) {
 	hse_commerce_presentation_test_assert( false, 'A temporary order can be created for email-evidence checks.' );
 } else {
 	$email_order->update_meta_data( CommerceLocale::ORDER_META, 'sr' );
+	$email_order->update_meta_data( CommercePresentation::BUYER_TYPE_META, 'company' );
+	$email_order->update_meta_data( CommercePresentation::COMPANY_TAX_ID_META, '123456789' );
+	$email_order->update_meta_data( CommercePresentation::COMPANY_REG_NUMBER_META, '12345678' );
 	$email_order->save();
 	hse_commerce_presentation_test_assert(
 		'Potvrda o plaćanju za porudžbinu #' . $email_order->get_order_number() === CommerceCustomerEmail::completed_order_subject( 'Fallback', $email_order ),
@@ -158,8 +245,11 @@ if ( is_wp_error( $email_order ) ) {
 			)
 		);
 		hse_commerce_presentation_test_assert(
-			false !== strpos( $receipt_html, 'PLAĆANJE PRIMLJENO' ) && false !== strpos( $receipt_html, 'Ukupno plaćeno' ),
-			'The Serbian completed receipt renders its payment status and total labels.'
+			false !== strpos( $receipt_html, 'PLAĆANJE PRIMLJENO' )
+				&& false !== strpos( $receipt_html, 'Ukupno plaćeno' )
+				&& false !== strpos( $receipt_html, '123456789' )
+				&& false !== strpos( $receipt_html, '12345678' ),
+			'The Serbian completed receipt renders payment and legal-entity details.'
 		);
 	} else {
 		hse_commerce_presentation_test_assert( false, 'WooCommerce completed-order email is available for receipt rendering.' );

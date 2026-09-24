@@ -6,6 +6,7 @@
  */
 
 use HSETraining\Headless\Commerce\CommerceCustomerEmail;
+use HSETraining\Headless\Commerce\CommercePresentation;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -17,6 +18,7 @@ $currency    = $order->get_currency();
 $billing     = $order->get_formatted_billing_address();
 $billing_mail = $order->get_billing_email();
 $billing_phone = $order->get_billing_phone();
+$buyer_details = CommercePresentation::order_buyer_details( $order, $locale );
 $payment_method = $order->get_payment_method_title();
 $price_args  = array( 'currency' => $currency );
 
@@ -47,6 +49,7 @@ do_action( 'woocommerce_email_header', $email_heading, $email );
 				<?php echo $billing ? wp_kses_post( $billing ) : '&mdash;'; ?>
 				<?php if ( $billing_mail ) : ?><br><?php echo esc_html( $billing_mail ); ?><?php endif; ?>
 				<?php if ( $billing_phone ) : ?><br><?php echo esc_html( $billing_phone ); ?><?php endif; ?>
+				<?php foreach ( $buyer_details as $detail ) : ?><br><strong><?php echo esc_html( $detail['label'] ); ?>:</strong> <?php echo esc_html( $detail['value'] ); ?><?php endforeach; ?>
 			</p>
 		</td>
 		<td width="4%" style="font-size:1px;line-height:1px;">&nbsp;</td>

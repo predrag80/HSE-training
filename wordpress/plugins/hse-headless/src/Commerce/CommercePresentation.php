@@ -11,6 +11,10 @@ defined( 'ABSPATH' ) || exit;
 
 /** Owns the temporary checkout shell without modifying WooCommerce templates. */
 final class CommercePresentation {
+	public const BUYER_TYPE_META         = '_hse_buyer_type';
+	public const COMPANY_TAX_ID_META     = '_hse_company_tax_id';
+	public const COMPANY_REG_NUMBER_META = '_hse_company_registration_number';
+
 	private const COPY = array(
 		'en' => array(
 			'page_title'            => 'Secure checkout',
@@ -27,6 +31,9 @@ final class CommercePresentation {
 			'terms'                 => 'Purchase Terms',
 			'place_order'           => 'Continue to secure payment',
 			'billing_details'       => 'Billing details',
+			'buyer_type'            => 'Customer type',
+			'buyer_individual'      => 'Individual',
+			'buyer_company'         => 'Legal entity / Company',
 			'order_review'          => 'Order summary',
 			'additional_information' => 'Additional information',
 			'product'               => 'Course',
@@ -44,6 +51,13 @@ final class CommercePresentation {
 			'first_name'            => 'First name',
 			'last_name'             => 'Last name',
 			'company'               => 'Company name',
+			'tax_id'                => 'Tax identification number (PIB)',
+			'registration_number'    => 'Company registration number',
+			'company_required'       => 'Enter the company name.',
+			'tax_id_required'        => 'Enter the tax identification number.',
+			'registration_required'  => 'Enter the company registration number.',
+			'tax_id_invalid'         => 'Enter a valid tax identification number.',
+			'registration_invalid'   => 'Enter a valid company registration number.',
 			'country'               => 'Country / Region',
 			'address'               => 'Street address',
 			'address_placeholder'   => 'House number and street name',
@@ -95,6 +109,9 @@ final class CommercePresentation {
 			'terms'                 => 'Uslovi kupovine',
 			'place_order'           => 'Nastavite na bezbedno plaćanje',
 			'billing_details'       => 'Podaci o kupcu',
+			'buyer_type'            => 'Tip kupca',
+			'buyer_individual'      => 'Fizičko lice',
+			'buyer_company'         => 'Pravno lice',
 			'order_review'          => 'Pregled porudžbine',
 			'additional_information' => 'Dodatne informacije',
 			'product'               => 'Kurs',
@@ -112,6 +129,13 @@ final class CommercePresentation {
 			'first_name'            => 'Ime',
 			'last_name'             => 'Prezime',
 			'company'               => 'Naziv kompanije',
+			'tax_id'                => 'PIB',
+			'registration_number'    => 'Matični broj',
+			'company_required'       => 'Unesite naziv kompanije.',
+			'tax_id_required'        => 'Unesite PIB.',
+			'registration_required'  => 'Unesite matični broj.',
+			'tax_id_invalid'         => 'Unesite ispravan PIB.',
+			'registration_invalid'   => 'Unesite ispravan matični broj.',
 			'country'               => 'Država / region',
 			'address'               => 'Adresa',
 			'address_placeholder'   => 'Ulica i broj',
@@ -160,6 +184,10 @@ final class CommercePresentation {
 		add_filter( 'body_class', array( self::class, 'body_classes' ) );
 		add_filter( 'document_title_parts', array( self::class, 'document_title' ) );
 		add_filter( 'woocommerce_checkout_fields', array( self::class, 'localize_checkout_fields' ), 20 );
+		add_action( 'woocommerce_after_checkout_validation', array( self::class, 'validate_buyer_fields' ), 20, 2 );
+		add_action( 'woocommerce_checkout_create_order', array( self::class, 'save_buyer_fields' ), 20, 2 );
+		add_action( 'woocommerce_admin_order_data_after_billing_address', array( self::class, 'render_admin_buyer_details' ) );
+		add_filter( 'woocommerce_email_customer_details_fields', array( self::class, 'email_customer_details_fields' ), 20, 3 );
 		add_filter( 'woocommerce_default_address_fields', array( self::class, 'localize_address_fields' ), 20 );
 		add_filter( 'woocommerce_get_country_locale', array( self::class, 'localize_country_locale' ), 20 );
 		add_filter( 'woocommerce_order_button_text', array( self::class, 'order_button_text' ) );
@@ -197,7 +225,12 @@ final class CommercePresentation {
 
 	/** Return one escaped-at-output copy value for the current language. */
 	public static function copy( string $key ): string {
-		$locale = CommerceLocale::current();
+		return self::copy_for_locale( $key, CommerceLocale::current() );
+	}
+
+	/** Return one copy value for an explicit allowlisted language. */
+	public static function copy_for_locale( string $key, string $locale ): string {
+		$locale = CommerceLocale::sanitize( $locale );
 		return isset( self::COPY[ $locale ][ $key ] ) ? self::COPY[ $locale ][ $key ] : '';
 	}
 
@@ -239,7 +272,34 @@ final class CommercePresentation {
 		}
 
 		$plugin_url = plugin_dir_url( dirname( __DIR__, 2 ) . '/hse-headless.php' );
-		wp_enqueue_style( 'hse-commerce', $plugin_url . 'assets/commerce.css', array( 'woocommerce-layout', 'woocommerce-general' ), '0.23.1' );
+		wp_enqueue_style( 'hse-commerce', $plugin_url . 'assets/commerce.css', array( 'woocommerce-layout', 'woocommerce-general' ), '0.25.0' );
+
+		$buyer_fields_script = <<<'JS'
+(function () {
+	function updateCompanyFields() {
+		var selected = document.querySelector('input[name="billing_customer_type"]:checked');
+		var isCompany = selected && selected.value === 'company';
+		['billing_company_field', 'billing_pib_field', 'billing_registration_number_field'].forEach(function (id) {
+			var row = document.getElementById(id);
+			if (!row) return;
+			row.hidden = !isCompany;
+			row.setAttribute('aria-hidden', isCompany ? 'false' : 'true');
+			var input = row.querySelector('input');
+			if (input) {
+				input.required = Boolean(isCompany);
+				input.setAttribute('aria-required', isCompany ? 'true' : 'false');
+			}
+		});
+	}
+
+	document.addEventListener('DOMContentLoaded', updateCompanyFields);
+	document.addEventListener('change', function (event) {
+		if (event.target && event.target.name === 'billing_customer_type') updateCompanyFields();
+	});
+	if (window.jQuery) window.jQuery(document.body).on('updated_checkout', updateCompanyFields);
+})();
+JS;
+		wp_add_inline_script( 'wc-checkout', $buyer_fields_script, 'after' );
 	}
 
 	/** Add stable page classes for responsive commerce styling. */
@@ -267,6 +327,22 @@ final class CommercePresentation {
 			return $fields;
 		}
 
+		$posted_type = isset( $_POST['billing_customer_type'] )
+			? self::sanitize_buyer_type( wp_unslash( $_POST['billing_customer_type'] ) )
+			: 'individual';
+		$fields['billing']['billing_customer_type'] = array(
+			'type'     => 'radio',
+			'label'    => self::copy( 'buyer_type' ),
+			'required' => true,
+			'options'  => array(
+				'individual' => self::copy( 'buyer_individual' ),
+				'company'    => self::copy( 'buyer_company' ),
+			),
+			'default'  => $posted_type,
+			'priority' => 5,
+			'class'    => array( 'form-row-wide', 'hse-buyer-type-field' ),
+		);
+
 		$labels = array(
 			'billing_first_name' => array( 'first_name', '' ),
 			'billing_last_name'  => array( 'last_name', '' ),
@@ -292,12 +368,159 @@ final class CommercePresentation {
 			}
 		}
 
+		$fields['billing']['billing_company'] = array_merge(
+			$fields['billing']['billing_company'] ?? array(),
+			array(
+				'type'         => 'text',
+				'label'        => self::copy( 'company' ),
+				'required'     => false,
+				'priority'     => 30,
+				'class'        => array( 'form-row-wide', 'hse-company-field' ),
+				'autocomplete' => 'organization',
+			)
+		);
+
+		$fields['billing']['billing_pib'] = array(
+			'type'              => 'text',
+			'label'             => self::copy( 'tax_id' ),
+			'required'          => false,
+			'priority'          => 31,
+			'class'             => array( 'form-row-first', 'hse-company-field' ),
+			'custom_attributes' => array( 'maxlength' => '32' ),
+		);
+		$fields['billing']['billing_registration_number'] = array(
+			'type'              => 'text',
+			'label'             => self::copy( 'registration_number' ),
+			'required'          => false,
+			'priority'          => 32,
+			'class'             => array( 'form-row-last', 'hse-company-field' ),
+			'custom_attributes' => array( 'maxlength' => '32' ),
+		);
+
 		if ( isset( $fields['order']['order_comments'] ) ) {
 			$fields['order']['order_comments']['label']       = self::copy( 'order_notes' );
 			$fields['order']['order_comments']['placeholder'] = self::copy( 'order_notes_hint' );
 		}
 
 		return $fields;
+	}
+
+	/** Restrict the checkout buyer type to the two supported values. */
+	public static function sanitize_buyer_type( $value ): string {
+		return 'company' === sanitize_key( is_scalar( $value ) ? (string) $value : '' ) ? 'company' : 'individual';
+	}
+
+	/** Return validation messages for conditional legal-entity fields. */
+	public static function validate_buyer_data( array $data ): array {
+		if ( 'company' !== self::sanitize_buyer_type( $data['billing_customer_type'] ?? '' ) ) {
+			return array();
+		}
+
+		$errors       = array();
+		$company      = trim( sanitize_text_field( (string) ( $data['billing_company'] ?? '' ) ) );
+		$tax_id       = trim( sanitize_text_field( (string) ( $data['billing_pib'] ?? '' ) ) );
+		$registration = trim( sanitize_text_field( (string) ( $data['billing_registration_number'] ?? '' ) ) );
+		$country      = strtoupper( sanitize_key( (string) ( $data['billing_country'] ?? '' ) ) );
+
+		if ( '' === $company ) {
+			$errors['billing_company_required'] = self::copy( 'company_required' );
+		}
+		if ( '' === $tax_id ) {
+			$errors['billing_pib_required'] = self::copy( 'tax_id_required' );
+		} elseif ( 'RS' === $country ? ! preg_match( '/^\d{9}$/', $tax_id ) : ! preg_match( '/^[A-Za-z0-9][A-Za-z0-9 .\/-]{4,31}$/', $tax_id ) ) {
+			$errors['billing_pib_invalid'] = self::copy( 'tax_id_invalid' );
+		}
+		if ( '' === $registration ) {
+			$errors['billing_registration_number_required'] = self::copy( 'registration_required' );
+		} elseif ( 'RS' === $country ? ! preg_match( '/^\d{8}$/', $registration ) : ! preg_match( '/^[A-Za-z0-9][A-Za-z0-9 .\/-]{4,31}$/', $registration ) ) {
+			$errors['billing_registration_number_invalid'] = self::copy( 'registration_invalid' );
+		}
+
+		return $errors;
+	}
+
+	/** Enforce business identity fields server-side when legal entity is selected. */
+	public static function validate_buyer_fields( array $data, $errors ): void {
+		if ( ! is_object( $errors ) || ! method_exists( $errors, 'add' ) ) {
+			return;
+		}
+		foreach ( self::validate_buyer_data( $data ) as $code => $message ) {
+			$errors->add( $code, $message );
+		}
+	}
+
+	/** Save the normalized buyer identity on the immutable WooCommerce order. */
+	public static function save_buyer_fields( $order, array $data ): void {
+		if ( ! is_object( $order ) || ! method_exists( $order, 'update_meta_data' ) ) {
+			return;
+		}
+
+		$type = self::sanitize_buyer_type( $data['billing_customer_type'] ?? '' );
+		$order->update_meta_data( self::BUYER_TYPE_META, $type );
+		if ( 'company' === $type ) {
+			$order->update_meta_data( self::COMPANY_TAX_ID_META, sanitize_text_field( (string) ( $data['billing_pib'] ?? '' ) ) );
+			$order->update_meta_data( self::COMPANY_REG_NUMBER_META, sanitize_text_field( (string) ( $data['billing_registration_number'] ?? '' ) ) );
+			return;
+		}
+
+		if ( method_exists( $order, 'set_billing_company' ) ) {
+			$order->set_billing_company( '' );
+		}
+		if ( method_exists( $order, 'delete_meta_data' ) ) {
+			$order->delete_meta_data( self::COMPANY_TAX_ID_META );
+			$order->delete_meta_data( self::COMPANY_REG_NUMBER_META );
+		}
+	}
+
+	/** Return localized buyer details for emails and administration. */
+	public static function order_buyer_details( $order, string $locale ): array {
+		if ( ! is_object( $order ) || ! method_exists( $order, 'get_meta' ) ) {
+			return array();
+		}
+
+		$stored_type = trim( (string) $order->get_meta( self::BUYER_TYPE_META, true ) );
+		if (
+			'' === $stored_type
+			&& method_exists( $order, 'get_billing_company' )
+			&& '' !== trim( (string) $order->get_billing_company() )
+		) {
+			$stored_type = 'company';
+		}
+		$type    = self::sanitize_buyer_type( $stored_type );
+		$details = array(
+			'buyer_type' => array(
+				'label' => self::copy_for_locale( 'buyer_type', $locale ),
+				'value' => self::copy_for_locale( 'company' === $type ? 'buyer_company' : 'buyer_individual', $locale ),
+			),
+		);
+		if ( 'company' !== $type ) {
+			return $details;
+		}
+
+		$tax_id       = sanitize_text_field( (string) $order->get_meta( self::COMPANY_TAX_ID_META, true ) );
+		$registration = sanitize_text_field( (string) $order->get_meta( self::COMPANY_REG_NUMBER_META, true ) );
+		if ( '' !== $tax_id ) {
+			$details['company_tax_id'] = array( 'label' => self::copy_for_locale( 'tax_id', $locale ), 'value' => $tax_id );
+		}
+		if ( '' !== $registration ) {
+			$details['company_registration_number'] = array( 'label' => self::copy_for_locale( 'registration_number', $locale ), 'value' => $registration );
+		}
+		return $details;
+	}
+
+	/** Show buyer identity data in the WooCommerce order editor. */
+	public static function render_admin_buyer_details( $order ): void {
+		$locale = method_exists( $order, 'get_meta' ) ? CommerceLocale::sanitize( $order->get_meta( CommerceLocale::ORDER_META, true ) ) : 'en';
+		foreach ( self::order_buyer_details( $order, $locale ) as $detail ) {
+			echo '<p><strong>' . esc_html( $detail['label'] ) . ':</strong> ' . esc_html( $detail['value'] ) . '</p>';
+		}
+	}
+
+	/** Add buyer identity data to WooCommerce's standard merchant emails. */
+	public static function email_customer_details_fields( array $fields, $sent_to_admin, $order ): array {
+		unset( $sent_to_admin );
+		$locale = method_exists( $order, 'get_meta' ) ? CommerceLocale::sanitize( $order->get_meta( CommerceLocale::ORDER_META, true ) ) : 'en';
+		return array_merge( $fields, self::order_buyer_details( $order, $locale ) );
 	}
 
 	/** Localize the address data also used by Woo's country-change JavaScript. */
