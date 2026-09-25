@@ -27,6 +27,8 @@ final class CommerceCustomerEmail {
 		add_filter( 'woocommerce_email_get_option', array( self::class, 'force_branded_email_type' ), 999, 5 );
 		add_filter( 'woocommerce_email_content_type', array( self::class, 'force_branded_content_type' ), 999, 3 );
 		add_filter( 'woocommerce_email_enabled_customer_processing_order', array( self::class, 'disable_processing_order_email' ), 20, 3 );
+		add_filter( 'woocommerce_email_enabled_customer_invoice', array( self::class, 'disable_customer_invoice_email' ), 20, 3 );
+		add_filter( 'woocommerce_order_actions', array( self::class, 'remove_customer_order_details_action' ), 20, 2 );
 		add_filter( 'woocommerce_email_enabled_customer_cancelled_order', array( self::class, 'enable_cancelled_order_email' ), 20, 3 );
 		add_filter( 'woocommerce_email_recipient_new_order', array( self::class, 'new_order_recipient' ), 20, 3 );
 		add_filter( 'woocommerce_email_subject_customer_completed_order', array( self::class, 'completed_order_subject' ), 20, 3 );
@@ -66,6 +68,26 @@ final class CommerceCustomerEmail {
 	public static function disable_processing_order_email( $enabled, $order = null, $email = null ): bool {
 		unset( $order, $email );
 		return CommerceConfiguration::is_enabled() ? false : (bool) $enabled;
+	}
+
+	/** Prevent WooCommerce's generic paid invoice from duplicating the completed receipt. */
+	public static function disable_customer_invoice_email( $enabled, $order = null, $email = null ): bool {
+		unset( $order, $email );
+		return CommerceConfiguration::is_enabled() ? false : (bool) $enabled;
+	}
+
+	/** Remove the generic order-details action that can be submitted with an order update. */
+	public static function remove_customer_order_details_action( $actions, $order = null ): array {
+		unset( $order );
+		if ( ! is_array( $actions ) ) {
+			return array();
+		}
+
+		if ( CommerceConfiguration::is_enabled() ) {
+			unset( $actions['send_order_details'] );
+		}
+
+		return $actions;
 	}
 
 	/** The bank requires an electronic confirmation for an unsuccessful outcome too. */

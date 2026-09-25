@@ -318,7 +318,7 @@ final class CommercePresentation {
 		}
 
 		$plugin_url = plugin_dir_url( dirname( __DIR__, 2 ) . '/hse-headless.php' );
-		wp_enqueue_style( 'hse-commerce', $plugin_url . 'assets/commerce.css', array( 'woocommerce-layout', 'woocommerce-general' ), '0.25.10' );
+		wp_enqueue_style( 'hse-commerce', $plugin_url . 'assets/commerce.css', array( 'woocommerce-layout', 'woocommerce-general' ), '0.25.11' );
 
 		wp_add_inline_script(
 			'wc-checkout',

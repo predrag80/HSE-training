@@ -242,6 +242,19 @@ hse_commerce_presentation_test_assert(
 	'Customer processing emails are disabled so the successful flow sends only the completed receipt.'
 );
 hse_commerce_presentation_test_assert(
+	false === CommerceCustomerEmail::disable_customer_invoice_email( true ),
+	'Generic customer invoice emails are disabled so an order update cannot duplicate the completed receipt.'
+);
+hse_commerce_presentation_test_assert(
+	array( 'send_order_details_admin' => 'Resend new order notification' ) === CommerceCustomerEmail::remove_customer_order_details_action(
+		array(
+			'send_order_details'       => 'Send order details to customer',
+			'send_order_details_admin' => 'Resend new order notification',
+		)
+	),
+	'The customer order-details action is removed while the merchant resend action remains available.'
+);
+hse_commerce_presentation_test_assert(
 	CommerceCustomerEmail::DEFAULT_ADMIN_EMAIL === CommerceCustomerEmail::new_order_recipient( 'legacy-admin@example.test' ),
 	'Merchant new-order notifications replace imported placeholder recipients.'
 );
