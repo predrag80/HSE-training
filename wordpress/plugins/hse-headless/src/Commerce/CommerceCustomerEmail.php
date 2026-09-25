@@ -14,6 +14,7 @@ final class CommerceCustomerEmail {
 	public const DEFAULT_ADMIN_EMAIL = 'info@hsetraining.rs';
 
 	private const CUSTOMER_ORDER_EMAILS = array(
+		'bokapos_receipt',
 		'customer_on_hold_order',
 		'customer_completed_order',
 		'customer_failed_order',
@@ -23,17 +24,42 @@ final class CommerceCustomerEmail {
 
 	/** Register WooCommerce email hooks. */
 	public static function register_hooks(): void {
+		add_filter( 'woocommerce_email_get_option', array( self::class, 'force_branded_email_type' ), 999, 5 );
+		add_filter( 'woocommerce_email_content_type', array( self::class, 'force_branded_content_type' ), 999, 3 );
 		add_filter( 'woocommerce_email_enabled_customer_processing_order', array( self::class, 'disable_processing_order_email' ), 20, 3 );
 		add_filter( 'woocommerce_email_enabled_customer_cancelled_order', array( self::class, 'enable_cancelled_order_email' ), 20, 3 );
 		add_filter( 'woocommerce_email_recipient_new_order', array( self::class, 'new_order_recipient' ), 20, 3 );
 		add_filter( 'woocommerce_email_subject_customer_completed_order', array( self::class, 'completed_order_subject' ), 20, 3 );
 		add_filter( 'woocommerce_email_heading_customer_completed_order', array( self::class, 'completed_order_heading' ), 20, 3 );
 		add_filter( 'woocommerce_email_additional_content_customer_completed_order', array( self::class, 'remove_completed_order_additional_content' ), 20, 3 );
+		add_filter( 'woocommerce_email_subject_bokapos_receipt', array( self::class, 'fiscal_receipt_subject' ), 20, 3 );
+		add_filter( 'woocommerce_email_heading_bokapos_receipt', array( self::class, 'fiscal_receipt_heading' ), 20, 3 );
+		add_filter( 'woocommerce_email_additional_content_bokapos_receipt', array( self::class, 'remove_fiscal_receipt_additional_content' ), 20, 3 );
 		add_filter( 'woocommerce_email_subject_new_order', array( self::class, 'merchant_order_subject' ), 20, 3 );
 		add_filter( 'woocommerce_email_heading_new_order', array( self::class, 'merchant_order_heading' ), 20, 3 );
 		add_filter( 'woocommerce_email_additional_content_new_order', array( self::class, 'remove_merchant_order_additional_content' ), 20, 3 );
 		add_filter( 'woocommerce_locate_template', array( self::class, 'locate_completed_order_template' ), 20, 3 );
 		add_action( 'woocommerce_email_sent', array( self::class, 'record_email_delivery' ), 20, 3 );
+	}
+
+	/** Ensure branded order notifications render their HTML templates. */
+	public static function force_branded_email_type( $option, $email, $value = null, $key = '', $empty_value = null ): string {
+		unset( $value, $empty_value );
+		if ( CommerceConfiguration::is_enabled() && 'email_type' === $key && self::is_branded_email( $email ) ) {
+			return 'html';
+		}
+
+		return is_scalar( $option ) ? (string) $option : '';
+	}
+
+	/** Keep SMTP and WooCommerce aligned on the MIME type for branded emails. */
+	public static function force_branded_content_type( $content_type, $email, $default_content_type = '' ): string {
+		unset( $default_content_type );
+		if ( CommerceConfiguration::is_enabled() && self::is_branded_email( $email ) ) {
+			return 'text/html';
+		}
+
+		return is_scalar( $content_type ) ? (string) $content_type : '';
 	}
 
 	/** Successful checkout sends only the final completed receipt to the customer. */
@@ -89,6 +115,36 @@ final class CommerceCustomerEmail {
 		return CommerceConfiguration::is_enabled() ? '' : ( is_scalar( $content ) ? (string) $content : '' );
 	}
 
+	/** Localize the separate BokaPOS receipt subject from the checkout language. */
+	public static function fiscal_receipt_subject( $subject, $order = null, $email = null ): string {
+		unset( $email );
+		if ( ! CommerceConfiguration::is_enabled() || ! self::is_order( $order ) ) {
+			return is_scalar( $subject ) ? (string) $subject : '';
+		}
+
+		$format = 'sr' === self::order_locale( $order )
+			? 'Fiskalni račun za porudžbinu #%s'
+			: 'Fiscal receipt for order #%s';
+
+		return sprintf( $format, $order->get_order_number() );
+	}
+
+	/** Localize the prominent BokaPOS receipt heading. */
+	public static function fiscal_receipt_heading( $heading, $order = null, $email = null ): string {
+		unset( $email );
+		if ( ! CommerceConfiguration::is_enabled() || ! self::is_order( $order ) ) {
+			return is_scalar( $heading ) ? (string) $heading : '';
+		}
+
+		return 'sr' === self::order_locale( $order ) ? 'Vaš fiskalni račun' : 'Your fiscal receipt';
+	}
+
+	/** The localized fiscal template owns its closing copy. */
+	public static function remove_fiscal_receipt_additional_content( $content, $order = null, $email = null ): string {
+		unset( $order, $email );
+		return CommerceConfiguration::is_enabled() ? '' : ( is_scalar( $content ) ? (string) $content : '' );
+	}
+
 	/** Give the merchant notification a useful, branded subject. */
 	public static function merchant_order_subject( $subject, $order = null, $email = null ): string {
 		unset( $email );
@@ -127,6 +183,8 @@ final class CommerceCustomerEmail {
 			'emails/plain/customer-completed-order.php',
 			'emails/admin-new-order.php',
 			'emails/plain/admin-new-order.php',
+			'emails/bokapos-receipt.php',
+			'emails/plain/bokapos-receipt.php',
 		);
 		if ( ! in_array( $template_name, $owned, true ) ) {
 			return is_string( $template ) ? $template : '';
@@ -192,6 +250,55 @@ final class CommerceCustomerEmail {
 			'payment_received' => 'PAYMENT RECEIVED',
 			'closing_heading'  => 'We look forward to supporting you throughout your NEBOSH journey.',
 			'next_steps'       => 'Thank you for choosing HSE Training D.O.O. for your professional health and safety training.',
+			'website'          => 'hsetraining.rs',
+			'email'            => 'info@hsetraining.rs',
+			'country'          => 'Serbia',
+		);
+	}
+
+	/** Return fiscal-receipt labels without translating the official PFR document. */
+	public static function fiscal_receipt_copy( string $locale ): array {
+		if ( 'sr' === CommerceLocale::sanitize( $locale ) ) {
+			return array(
+				'company'          => 'HSE TRAINING D.O.O.',
+				'tagline'          => 'Bezbednost, zdravlje i profesionalne obuke',
+				'preheader'        => 'Vaš fiskalni račun i link za proveru kod Poreske uprave.',
+				'title'            => 'Fiskalni račun je izdat',
+				'intro'            => 'Fiskalni račun za porudžbinu #%s je uspešno izdat.',
+				'receipt_number'   => 'PFR broj računa',
+				'receipt_time'     => 'Vreme izdavanja',
+				'amount'           => 'Ukupan iznos',
+				'verify'           => 'Proverite račun kod Poreske uprave',
+				'download'         => 'Preuzmite zvanični PDF račun',
+				'order_summary'    => 'Pregled porudžbine',
+				'description'      => 'Opis',
+				'quantity'         => 'Količina',
+				'line_amount'      => 'Iznos',
+				'official_notice'  => 'Priloženi PDF je zvanični fiskalni dokument. Njegov sadržaj i jezik generiše sistem Poreske uprave i ostaju u propisanom izvornom obliku.',
+				'keep_receipt'     => 'Sačuvajte ovaj mejl i fiskalni račun za svoju evidenciju.',
+				'website'          => 'hsetraining.rs',
+				'email'            => 'info@hsetraining.rs',
+				'country'          => 'Srbija',
+			);
+		}
+
+		return array(
+			'company'          => 'HSE TRAINING D.O.O.',
+			'tagline'          => 'Health, Safety & Professional Training',
+			'preheader'        => 'Your fiscal receipt and Tax Administration verification link.',
+			'title'            => 'Your fiscal receipt is ready',
+			'intro'            => 'The fiscal receipt for order #%s has been successfully issued.',
+			'receipt_number'   => 'PFR receipt number',
+			'receipt_time'     => 'Issue time',
+			'amount'           => 'Total amount',
+			'verify'           => 'Verify with the Serbian Tax Administration',
+			'download'         => 'Download the official fiscal receipt PDF',
+			'order_summary'    => 'Order summary',
+			'description'      => 'Description',
+			'quantity'         => 'Qty',
+			'line_amount'      => 'Amount',
+			'official_notice'  => 'The attached PDF is the official fiscal document. Its content and language are generated by the Serbian Tax Administration and remain in the legally prescribed original format.',
+			'keep_receipt'     => 'Please keep this email and fiscal receipt for your records.',
 			'website'          => 'hsetraining.rs',
 			'email'            => 'info@hsetraining.rs',
 			'country'          => 'Serbia',
@@ -273,5 +380,14 @@ final class CommerceCustomerEmail {
 		return is_object( $order )
 			&& method_exists( $order, 'get_meta' )
 			&& method_exists( $order, 'get_order_number' );
+	}
+
+	/** Report whether an email uses a plugin-owned branded HTML template. */
+	private static function is_branded_email( $email ): bool {
+		if ( ! is_object( $email ) || ! isset( $email->id ) || ! is_scalar( $email->id ) ) {
+			return false;
+		}
+
+		return in_array( (string) $email->id, array( 'new_order', 'customer_completed_order', 'bokapos_receipt' ), true );
 	}
 }

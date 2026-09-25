@@ -14,6 +14,7 @@ final class CommercePresentation {
 	public const BUYER_TYPE_META         = '_hse_buyer_type';
 	public const COMPANY_TAX_ID_META     = '_hse_company_tax_id';
 	public const COMPANY_REG_NUMBER_META = '_hse_company_registration_number';
+	private const BOKAPOS_BUYER_ID_META  = '_bokapos_buyer_id';
 
 	private const VALIDATION_COPY_KEYS = array(
 		'' => array(
@@ -70,11 +71,13 @@ final class CommercePresentation {
 			'last_name'             => 'Last name',
 			'company'               => 'Company name',
 			'tax_id'                => 'Tax identification number (PIB)',
+			'foreign_tax_id'        => 'Tax/VAT identification number',
 			'registration_number'    => 'Company registration number',
 			'company_required'       => 'Enter the company name.',
 			'tax_id_required'        => 'Enter the tax identification number.',
 			'registration_required'  => 'Enter the company registration number.',
-			'tax_id_invalid'         => 'Enter a valid tax identification number.',
+			'tax_id_invalid'         => 'Enter a valid Serbian PIB with nine digits and a valid check digit.',
+			'foreign_tax_id_invalid' => 'Enter a valid Tax/VAT identification number.',
 			'registration_invalid'   => 'Enter a valid company registration number.',
 			'validation_summary'      => 'The following problems were found:',
 			'validation_required'     => '%s is a required field.',
@@ -159,11 +162,13 @@ final class CommercePresentation {
 			'last_name'             => 'Prezime',
 			'company'               => 'Naziv kompanije',
 			'tax_id'                => 'PIB',
+			'foreign_tax_id'        => 'Poreski/VAT identifikacioni broj',
 			'registration_number'    => 'Matični broj',
 			'company_required'       => 'Unesite naziv kompanije.',
 			'tax_id_required'        => 'Unesite PIB.',
 			'registration_required'  => 'Unesite matični broj.',
-			'tax_id_invalid'         => 'Unesite ispravan PIB.',
+			'tax_id_invalid'         => 'Unesite ispravan PIB sa devet cifara i važećom kontrolnom cifrom.',
+			'foreign_tax_id_invalid' => 'Unesite ispravan poreski/VAT identifikacioni broj.',
 			'registration_invalid'   => 'Unesite ispravan matični broj.',
 			'validation_summary'      => 'Pronađeni su sledeći problemi:',
 			'validation_required'     => 'Polje %s je obavezno.',
@@ -313,29 +318,90 @@ final class CommercePresentation {
 		}
 
 		$plugin_url = plugin_dir_url( dirname( __DIR__, 2 ) . '/hse-headless.php' );
-		wp_enqueue_style( 'hse-commerce', $plugin_url . 'assets/commerce.css', array( 'woocommerce-layout', 'woocommerce-general' ), '0.25.5' );
+		wp_enqueue_style( 'hse-commerce', $plugin_url . 'assets/commerce.css', array( 'woocommerce-layout', 'woocommerce-general' ), '0.25.10' );
+
+		wp_add_inline_script(
+			'wc-checkout',
+			'window.hseCheckoutBuyerFields = ' . wp_json_encode(
+				array(
+					'domesticTaxLabel' => self::copy( 'tax_id' ),
+					'foreignTaxLabel'  => self::copy( 'foreign_tax_id' ),
+				)
+			) . ';',
+			'before'
+		);
 
 		$buyer_fields_script = <<<'JS'
 (function () {
+	var fieldCopy = window.hseCheckoutBuyerFields || {};
+
+	function updateFieldLabel(row, text) {
+		var label = row.querySelector('label');
+		if (!label || !text) return;
+		Array.prototype.some.call(label.childNodes, function (node) {
+			if (node.nodeType !== 3 || !node.textContent.trim()) return false;
+			node.textContent = text + ' ';
+			return true;
+		});
+	}
+
+	function updateRequiredMarker(row, required) {
+		var label = row.querySelector('label');
+		if (!label) return;
+		var requiredMarker = label.querySelector('.required');
+		var optionalMarker = label.querySelector('.optional');
+
+		if (required) {
+			if (optionalMarker) optionalMarker.hidden = true;
+			if (!requiredMarker) {
+				requiredMarker = document.createElement('abbr');
+				requiredMarker.className = 'required';
+				requiredMarker.title = 'required';
+				requiredMarker.textContent = '*';
+				label.appendChild(document.createTextNode(' '));
+				label.appendChild(requiredMarker);
+			} else {
+				requiredMarker.hidden = false;
+			}
+			return;
+		}
+
+		if (requiredMarker) requiredMarker.hidden = true;
+		if (optionalMarker) optionalMarker.hidden = false;
+	}
+
 	function updateCompanyFields() {
 		var selected = document.querySelector('input[name="billing_customer_type"]:checked');
 		var isCompany = selected && selected.value === 'company';
+		var country = document.getElementById('billing_country');
+		var isDomestic = !country || country.value === 'RS';
 		['billing_company_field', 'billing_pib_field', 'billing_registration_number_field'].forEach(function (id) {
 			var row = document.getElementById(id);
 			if (!row) return;
 			row.hidden = !isCompany;
 			row.setAttribute('aria-hidden', isCompany ? 'false' : 'true');
 			var input = row.querySelector('input');
+			var isRequiredCompanyField = isCompany && id !== 'billing_registration_number_field';
 			if (input) {
-				input.required = Boolean(isCompany);
-				input.setAttribute('aria-required', isCompany ? 'true' : 'false');
+				input.required = Boolean(isRequiredCompanyField);
+				input.setAttribute('aria-required', isRequiredCompanyField ? 'true' : 'false');
+				if (id === 'billing_pib_field') {
+					input.inputMode = isDomestic ? 'numeric' : 'text';
+					input.maxLength = isDomestic ? 9 : 32;
+					if (isDomestic) input.setAttribute('pattern', '[0-9]{9}');
+					else input.removeAttribute('pattern');
+				}
 			}
+			if (id === 'billing_pib_field') {
+				updateFieldLabel(row, isDomestic ? fieldCopy.domesticTaxLabel : fieldCopy.foreignTaxLabel);
+			}
+			updateRequiredMarker(row, Boolean(isRequiredCompanyField));
 		});
 	}
 
 	document.addEventListener('DOMContentLoaded', updateCompanyFields);
 	document.addEventListener('change', function (event) {
-		if (event.target && event.target.name === 'billing_customer_type') updateCompanyFields();
+		if (event.target && (event.target.name === 'billing_customer_type' || event.target.id === 'billing_country')) updateCompanyFields();
 	});
 	if (window.jQuery) window.jQuery(document.body).on('updated_checkout', updateCompanyFields);
 })();
@@ -367,6 +433,9 @@ JS;
 		if ( ! self::is_checkout_request() ) {
 			return $fields;
 		}
+
+		/* HSE owns buyer type and PIB; remove the duplicate optional BokaPOS controls. */
+		unset( $fields['billing']['billing_bokapos_company'], $fields['billing']['billing_bokapos_pib'] );
 
 		$posted_type = isset( $_POST['billing_customer_type'] )
 			? self::sanitize_buyer_type( wp_unslash( $_POST['billing_customer_type'] ) )
@@ -451,6 +520,25 @@ JS;
 		return 'company' === sanitize_key( is_scalar( $value ) ? (string) $value : '' ) ? 'company' : 'individual';
 	}
 
+	/** Validate a Serbian nine-digit PIB, including its ISO 7064 MOD 11,10 check digit. */
+	public static function is_valid_serbian_pib( $value ): bool {
+		$pib = trim( sanitize_text_field( is_scalar( $value ) ? (string) $value : '' ) );
+		if ( ! preg_match( '/^\d{9}$/', $pib ) ) {
+			return false;
+		}
+
+		$sum = 10;
+		for ( $index = 0; $index < 8; $index++ ) {
+			$sum = ( $sum + (int) $pib[ $index ] ) % 10;
+			if ( 0 === $sum ) {
+				$sum = 10;
+			}
+			$sum = ( $sum * 2 ) % 11;
+		}
+
+		return ( ( 11 - $sum ) % 10 ) === (int) $pib[8];
+	}
+
 	/** Return validation messages for conditional legal-entity fields. */
 	public static function validate_buyer_data( array $data ): array {
 		if ( 'company' !== self::sanitize_buyer_type( $data['billing_customer_type'] ?? '' ) ) {
@@ -468,12 +556,12 @@ JS;
 		}
 		if ( '' === $tax_id ) {
 			$errors['billing_pib_required'] = self::copy( 'tax_id_required' );
-		} elseif ( 'RS' === $country ? ! preg_match( '/^\d{9}$/', $tax_id ) : ! preg_match( '/^[A-Za-z0-9][A-Za-z0-9 .\/-]{4,31}$/', $tax_id ) ) {
+		} elseif ( 'RS' === $country && ! self::is_valid_serbian_pib( $tax_id ) ) {
 			$errors['billing_pib_invalid'] = self::copy( 'tax_id_invalid' );
+		} elseif ( 'RS' !== $country && ! preg_match( '/^[A-Za-z0-9][A-Za-z0-9 .\/-]{4,31}$/', $tax_id ) ) {
+			$errors['billing_pib_invalid'] = self::copy( 'foreign_tax_id_invalid' );
 		}
-		if ( '' === $registration ) {
-			$errors['billing_registration_number_required'] = self::copy( 'registration_required' );
-		} elseif ( 'RS' === $country ? ! preg_match( '/^\d{8}$/', $registration ) : ! preg_match( '/^[A-Za-z0-9][A-Za-z0-9 .\/-]{4,31}$/', $registration ) ) {
+		if ( '' !== $registration && ( 'RS' === $country ? ! preg_match( '/^\d{8}$/', $registration ) : ! preg_match( '/^[A-Za-z0-9][A-Za-z0-9 .\/-]{4,31}$/', $registration ) ) ) {
 			$errors['billing_registration_number_invalid'] = self::copy( 'registration_invalid' );
 		}
 
@@ -499,8 +587,15 @@ JS;
 		$type = self::sanitize_buyer_type( $data['billing_customer_type'] ?? '' );
 		$order->update_meta_data( self::BUYER_TYPE_META, $type );
 		if ( 'company' === $type ) {
-			$order->update_meta_data( self::COMPANY_TAX_ID_META, sanitize_text_field( (string) ( $data['billing_pib'] ?? '' ) ) );
+			$tax_id  = trim( sanitize_text_field( (string) ( $data['billing_pib'] ?? '' ) ) );
+			$country = strtoupper( sanitize_key( (string) ( $data['billing_country'] ?? '' ) ) );
+			$order->update_meta_data( self::COMPANY_TAX_ID_META, $tax_id );
 			$order->update_meta_data( self::COMPANY_REG_NUMBER_META, sanitize_text_field( (string) ( $data['billing_registration_number'] ?? '' ) ) );
+			if ( 'RS' !== $country && '' !== $tax_id ) {
+				$order->update_meta_data( self::BOKAPOS_BUYER_ID_META, '40:' . $tax_id );
+			} elseif ( method_exists( $order, 'delete_meta_data' ) ) {
+				$order->delete_meta_data( self::BOKAPOS_BUYER_ID_META );
+			}
 			return;
 		}
 
@@ -510,6 +605,7 @@ JS;
 		if ( method_exists( $order, 'delete_meta_data' ) ) {
 			$order->delete_meta_data( self::COMPANY_TAX_ID_META );
 			$order->delete_meta_data( self::COMPANY_REG_NUMBER_META );
+			$order->delete_meta_data( self::BOKAPOS_BUYER_ID_META );
 		}
 	}
 

@@ -343,12 +343,19 @@ wp option update woocommerce_price_num_decimals 2
 ```
 
 Checkout asks whether the customer is an individual or a legal entity. Company
-name, tax identification number (PIB), and company registration number become
-required only for a legal entity. The selection is validated server-side,
+name and tax identification number (PIB) become required only for a legal
+entity; the company registration number remains optional and is validated when
+provided. The HSE fields replace the duplicate optional BokaPOS company toggle
+and PIB controls. BokaPOS reads the authoritative PIB from the
+`_hse_company_tax_id` order meta key. The selection is validated server-side,
 stored on the WooCommerce order, and included in the administrator order view,
 merchant notification, and localized completed-order receipt. Serbian company
-identifiers require a nine-digit PIB and eight-digit registration number;
-foreign identifiers accept a bounded alphanumeric format.
+identifiers require a nine-digit PIB and, when supplied, an eight-digit
+registration number. The Serbian PIB is checked with its ISO 7064 MOD 11,10
+check digit before payment. Foreign legal entities receive a localized Tax/VAT
+identifier field; accepted bounded alphanumeric identifiers are stored for
+BokaPOS as buyer identification `40:TIN`, while Serbian companies continue to
+use `10:PIB` through the configured `_hse_company_tax_id` mapping.
 
 Checkout validation summaries and field errors follow the selected checkout
 language. Serbian sessions localize required-field, email, phone, postcode,
@@ -375,12 +382,23 @@ number and date, line items, subtotal, total paid, payment status and HSE
 contact details. Merchant new-order notifications use their own branded HTML
 and plain-text templates with customer identity, payment and transaction data,
 line items, total, checkout language, current order status and a direct link to
-the WooCommerce order. They use `HSE_COMMERCE_ADMIN_EMAIL` when it contains a
+the WooCommerce order. The plugin forces both branded message types to render
+with the HTML template and matching `text/html` MIME header, while retaining
+the plain-text template as a fallback. They use `HSE_COMMERCE_ADMIN_EMAIL` when it contains a
 valid address and otherwise fall back to `info@hsetraining.rs`, so an imported
 WordPress administrator address cannot become the recipient. After WordPress
 reports a successful send, the plugin stores only the customer notification
-identifier and UTC timestamp on the order as operational evidence. The email
-palette can be aligned to the HSE checkout with:
+identifier and UTC timestamp on the order as operational evidence.
+
+The separate BokaPOS fiscal-receipt notification also uses plugin-owned HTML
+and plain-text templates. Its subject, heading, explanatory copy, course title
+and actions follow the immutable `en` or `sr` checkout locale stored on the
+order. The official PFR PDF, QR data and Tax Administration verification link
+remain unchanged. An English checkout translates only the surrounding message
+and explains that the attached fiscal document retains its legally prescribed
+original language and format.
+
+The email palette can be aligned to the HSE checkout with:
 
 ```sh
 wp option update woocommerce_email_base_color '#292d36'

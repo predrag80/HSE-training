@@ -124,6 +124,12 @@ hse_commerce_presentation_test_assert(
 	'Checkout buyer type is restricted to individual or company.'
 );
 hse_commerce_presentation_test_assert(
+	CommercePresentation::is_valid_serbian_pib( '108205616' )
+		&& ! CommercePresentation::is_valid_serbian_pib( '123456789' )
+		&& ! CommercePresentation::is_valid_serbian_pib( '10820561' ),
+	'Serbian PIB validation checks both the nine-digit structure and the check digit.'
+);
+hse_commerce_presentation_test_assert(
 	array() === CommercePresentation::validate_buyer_data( array( 'billing_customer_type' => 'individual' ) ),
 	'Individual checkout does not require company identifiers.'
 );
@@ -146,8 +152,10 @@ $missing_company = CommercePresentation::validate_buyer_data(
 	)
 );
 hse_commerce_presentation_test_assert(
-	3 === count( $missing_company ),
-	'Legal-entity checkout requires company name, PIB, and registration number.'
+	2 === count( $missing_company )
+		&& isset( $missing_company['billing_company_required'], $missing_company['billing_pib_required'] )
+		&& ! isset( $missing_company['billing_registration_number_required'] ),
+	'Legal-entity checkout requires company name and PIB while keeping the registration number optional.'
 );
 $invalid_serbian_company = CommercePresentation::validate_buyer_data(
 	array(
@@ -166,21 +174,49 @@ $valid_company_data = array(
 	'billing_customer_type'        => 'company',
 	'billing_company'              => 'Primer DOO',
 	'billing_country'              => 'RS',
-	'billing_pib'                  => '123456789',
-	'billing_registration_number'  => '12345678',
+	'billing_pib'                  => '108205616',
 );
 hse_commerce_presentation_test_assert(
 	array() === CommercePresentation::validate_buyer_data( $valid_company_data ),
-	'Complete Serbian legal-entity data passes validation.'
+	'A Serbian legal entity passes validation without an optional registration number.'
 );
+$valid_company_data['billing_registration_number'] = '12345678';
 $buyer_order = new HseCommercePresentationTestOrder();
 CommercePresentation::save_buyer_fields( $buyer_order, $valid_company_data );
 $buyer_details = CommercePresentation::order_buyer_details( $buyer_order, 'en' );
 hse_commerce_presentation_test_assert(
 	'Legal entity / Company' === ( $buyer_details['buyer_type']['value'] ?? '' )
-		&& '123456789' === ( $buyer_details['company_tax_id']['value'] ?? '' )
+		&& '108205616' === ( $buyer_details['company_tax_id']['value'] ?? '' )
 		&& '12345678' === ( $buyer_details['company_registration_number']['value'] ?? '' ),
 	'Legal-entity identity is normalized for order and email presentation.'
+);
+hse_commerce_presentation_test_assert(
+	! isset( $buyer_order->meta['_bokapos_buyer_id'] ),
+	'A Serbian legal entity remains mapped through the BokaPOS 10:PIB shortcut.'
+);
+$foreign_company_data = array(
+	'billing_customer_type'       => 'company',
+	'billing_company'             => 'Example GmbH',
+	'billing_country'             => 'DE',
+	'billing_pib'                 => 'DE123456789',
+);
+hse_commerce_presentation_test_assert(
+	array() === CommercePresentation::validate_buyer_data( $foreign_company_data ),
+	'A foreign legal entity accepts a bounded alphanumeric Tax/VAT identifier.'
+);
+$foreign_buyer_order = new HseCommercePresentationTestOrder();
+CommercePresentation::save_buyer_fields( $foreign_buyer_order, $foreign_company_data );
+hse_commerce_presentation_test_assert(
+	'DE123456789' === ( $foreign_buyer_order->meta[ CommercePresentation::COMPANY_TAX_ID_META ] ?? '' )
+		&& '40:DE123456789' === ( $foreign_buyer_order->meta['_bokapos_buyer_id'] ?? '' ),
+	'A foreign Tax/VAT identifier is stored with the official BokaPOS 40:TIN buyer prefix.'
+);
+CommercePresentation::save_buyer_fields( $foreign_buyer_order, array( 'billing_customer_type' => 'individual' ) );
+hse_commerce_presentation_test_assert(
+	! isset( $foreign_buyer_order->meta[ CommercePresentation::COMPANY_TAX_ID_META ] )
+		&& ! isset( $foreign_buyer_order->meta[ CommercePresentation::COMPANY_REG_NUMBER_META ] )
+		&& ! isset( $foreign_buyer_order->meta['_bokapos_buyer_id'] ),
+	'Switching a foreign order to an individual clears every BokaPOS company identifier.'
 );
 $legacy_company_order                  = new HseCommercePresentationTestOrder();
 $legacy_company_order->billing_company = 'Existing Company DOO';
@@ -206,8 +242,24 @@ hse_commerce_presentation_test_assert(
 	'Customer processing emails are disabled so the successful flow sends only the completed receipt.'
 );
 hse_commerce_presentation_test_assert(
-	CommerceCustomerEmail::DEFAULT_ADMIN_EMAIL === CommerceCustomerEmail::new_order_recipient( 'admin@hsetraining.test' ),
+	CommerceCustomerEmail::DEFAULT_ADMIN_EMAIL === CommerceCustomerEmail::new_order_recipient( 'legacy-admin@example.test' ),
 	'Merchant new-order notifications replace imported placeholder recipients.'
+);
+$merchant_email_stub = (object) array( 'id' => 'new_order' );
+hse_commerce_presentation_test_assert(
+	'html' === CommerceCustomerEmail::force_branded_email_type( 'plain', $merchant_email_stub, 'plain', 'email_type' )
+		&& 'text/html' === CommerceCustomerEmail::force_branded_content_type( 'text/plain', $merchant_email_stub ),
+	'Merchant new-order notifications force the branded HTML body and MIME type.'
+);
+hse_commerce_presentation_test_assert(
+	'html' === CommerceCustomerEmail::force_branded_email_type( 'plain', (object) array( 'id' => 'bokapos_receipt' ), 'plain', 'email_type' )
+		&& 'text/html' === CommerceCustomerEmail::force_branded_content_type( 'text/plain', (object) array( 'id' => 'bokapos_receipt' ) ),
+	'BokaPOS receipt notifications force the localized branded HTML body and MIME type.'
+);
+hse_commerce_presentation_test_assert(
+	'plain' === CommerceCustomerEmail::force_branded_email_type( 'plain', (object) array( 'id' => 'customer_failed_order' ), 'plain', 'email_type' )
+		&& 'text/plain' === CommerceCustomerEmail::force_branded_content_type( 'text/plain', (object) array( 'id' => 'customer_failed_order' ) ),
+	'Unrelated WooCommerce emails retain their configured format.'
 );
 hse_commerce_presentation_test_assert(
 	'HSE TRAINING D.O.O.' === ( CommerceCustomerEmail::merchant_copy()['company'] ?? '' )
@@ -237,6 +289,11 @@ if ( is_wp_error( $email_order ) ) {
 		'Completed receipt heading follows the Serbian order locale.'
 	);
 	hse_commerce_presentation_test_assert(
+		'Fiskalni račun za porudžbinu #' . $email_order->get_order_number() === CommerceCustomerEmail::fiscal_receipt_subject( 'Fallback', $email_order )
+			&& 'Vaš fiskalni račun' === CommerceCustomerEmail::fiscal_receipt_heading( 'Fallback', $email_order ),
+		'BokaPOS fiscal receipt subject and heading follow the Serbian order locale.'
+	);
+	hse_commerce_presentation_test_assert(
 		'Nova porudžbina #' . $email_order->get_order_number() . ' - HSE Training' === CommerceCustomerEmail::merchant_order_subject( 'Fallback', $email_order )
 			&& 'Nova porudžbina' === CommerceCustomerEmail::merchant_order_heading( 'Fallback', $email_order ),
 		'Merchant subject and heading identify the new order.'
@@ -244,6 +301,11 @@ if ( is_wp_error( $email_order ) ) {
 	hse_commerce_presentation_test_assert(
 		'Ukupno plaćeno' === ( CommerceCustomerEmail::receipt_copy( 'sr' )['total_paid'] ?? '' ),
 		'Serbian receipt labels are available without relying on the administrator locale.'
+	);
+	hse_commerce_presentation_test_assert(
+		'Proverite račun kod Poreske uprave' === ( CommerceCustomerEmail::fiscal_receipt_copy( 'sr' )['verify'] ?? '' )
+			&& 'Verify with the Serbian Tax Administration' === ( CommerceCustomerEmail::fiscal_receipt_copy( 'en' )['verify'] ?? '' ),
+		'Fiscal receipt labels are available in both checkout languages.'
 	);
 	$receipt_template = CommerceCustomerEmail::locate_completed_order_template(
 		'/tmp/fallback.php',
@@ -260,6 +322,14 @@ if ( is_wp_error( $email_order ) ) {
 	hse_commerce_presentation_test_assert(
 		is_readable( $merchant_template ) && false !== strpos( $merchant_template, 'hse-headless/templates/emails/admin-new-order.php' ),
 		'The plugin-owned merchant new-order template is selected.'
+	);
+	$fiscal_template = CommerceCustomerEmail::locate_completed_order_template(
+		'/tmp/fallback.php',
+		'emails/bokapos-receipt.php'
+	);
+	hse_commerce_presentation_test_assert(
+		is_readable( $fiscal_template ) && false !== strpos( $fiscal_template, 'hse-headless/templates/emails/bokapos-receipt.php' ),
+		'The plugin-owned BokaPOS receipt template is selected.'
 	);
 	$completed_email = WC()->mailer()->get_emails()['WC_Email_Customer_Completed_Order'] ?? null;
 	if ( $completed_email ) {
@@ -311,6 +381,61 @@ if ( is_wp_error( $email_order ) ) {
 	} else {
 		hse_commerce_presentation_test_assert( false, 'WooCommerce new-order merchant email is available for rendering.' );
 	}
+
+	$fiscal_html = wc_get_template_html(
+		'emails/bokapos-receipt.php',
+		array(
+			'order'              => $email_order,
+			'email_heading'      => CommerceCustomerEmail::fiscal_receipt_heading( '', $email_order ),
+			'additional_content' => '',
+			'sent_to_admin'      => false,
+			'plain_text'         => false,
+			'email'              => $completed_email,
+			'pfr_number'         => 'TEST-PFR-123',
+			'pfr_time'           => '25.09.2026. 14:17',
+			'verification_url'   => 'https://sandbox.suf.purs.gov.rs/v/?vl=test',
+			'pdf_url'            => 'https://cms.hsetraining.rs/?bokapos_receipt=test',
+		)
+	);
+	hse_commerce_presentation_test_assert(
+		false !== strpos( $fiscal_html, 'Fiskalni račun je izdat' )
+			&& false !== strpos( $fiscal_html, 'Proverite račun kod Poreske uprave' )
+			&& false !== strpos( $fiscal_html, 'TEST-PFR-123' )
+			&& false !== strpos( $fiscal_html, 'zvanični fiskalni dokument' )
+			&& false !== strpos( $fiscal_html, '<!doctype html>' )
+			&& false !== strpos( $fiscal_html, '<!--[if mso]>' ),
+		'The Serbian BokaPOS receipt renders a branded localized wrapper around the official document.'
+	);
+
+	$email_order->update_meta_data( CommerceLocale::ORDER_META, 'en' );
+	$email_order->save();
+	hse_commerce_presentation_test_assert(
+		'Fiscal receipt for order #' . $email_order->get_order_number() === CommerceCustomerEmail::fiscal_receipt_subject( 'Fallback', $email_order )
+			&& 'Your fiscal receipt' === CommerceCustomerEmail::fiscal_receipt_heading( 'Fallback', $email_order ),
+		'BokaPOS fiscal receipt subject and heading follow the English order locale.'
+	);
+	$fiscal_html_en = wc_get_template_html(
+		'emails/bokapos-receipt.php',
+		array(
+			'order'              => $email_order,
+			'email_heading'      => CommerceCustomerEmail::fiscal_receipt_heading( '', $email_order ),
+			'additional_content' => '',
+			'sent_to_admin'      => false,
+			'plain_text'         => false,
+			'email'              => $completed_email,
+			'pfr_number'         => 'TEST-PFR-456',
+			'pfr_time'           => '25 September 2026, 14:17',
+			'verification_url'   => 'https://sandbox.suf.purs.gov.rs/v/?vl=test-en',
+			'pdf_url'            => 'https://cms.hsetraining.rs/?bokapos_receipt=test-en',
+		)
+	);
+	hse_commerce_presentation_test_assert(
+		false !== strpos( $fiscal_html_en, 'Your fiscal receipt is ready' )
+			&& false !== strpos( $fiscal_html_en, 'Verify with the Serbian Tax Administration' )
+			&& false !== strpos( $fiscal_html_en, 'official fiscal document' )
+			&& false !== strpos( $fiscal_html_en, 'TEST-PFR-456' ),
+		'The English BokaPOS receipt renders localized guidance while retaining the official document.'
+	);
 
 	$email = (object) array( 'object' => $email_order );
 	CommerceCustomerEmail::record_email_delivery( true, 'customer_failed_order', $email );
