@@ -114,6 +114,13 @@
 	line-height: 1;
 }
 
+.company-intro__title h2,
+.company-agency__content h2,
+.company-expertise__header h2,
+.company-reasons__copy h2 {
+	font-size: var(--font-size-split-heading);
+}
+
 .company-intro__copy {
 	width: 50%;
 	margin-left: 8.3333%;

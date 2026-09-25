@@ -30,7 +30,7 @@
 
 .home-pricing__copy h2 {
 	color: #292d36;
-	font-size: 3.438rem;
+	font-size: var(--font-size-split-heading);
 	font-weight: 600;
 	letter-spacing: -0.125rem;
 	line-height: 1;

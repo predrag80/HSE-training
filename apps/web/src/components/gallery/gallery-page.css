@@ -22,7 +22,7 @@
 .training-gallery { padding: 7rem 0 7.75rem; background: #f7f7f7; }
 .training-gallery__heading { display: grid; grid-template-columns: 1fr 0.55fr; gap: 6rem; align-items: end; margin-bottom: 4.5rem; }
 .training-gallery__heading p { margin: 0 0 0.75rem; color: #dd6531; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.045em; text-transform: uppercase; }
-.training-gallery__heading h2 { max-width: 14ch; margin: 0; color: #292d36; font-size: clamp(2.7rem, 4.1vw, 3.65rem); font-weight: 600; letter-spacing: -0.05em; line-height: 1.03; }
+.training-gallery__heading h2 { max-width: 14ch; margin: 0; color: #292d36; font-size: var(--font-size-split-heading); font-weight: 600; letter-spacing: -0.05em; line-height: 1.03; }
 .training-gallery__heading > span { padding-bottom: 0.35rem; color: #808291; line-height: 1.75; }
 
 .training-gallery__grid { display: grid; grid-auto-flow: dense; grid-auto-rows: 14rem; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }

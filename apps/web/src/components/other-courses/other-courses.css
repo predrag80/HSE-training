@@ -115,6 +115,12 @@
 	line-height: 1.03;
 }
 
+.other-course-intro__copy h2,
+.other-course-outcomes h2,
+.other-course-audience h2 {
+	font-size: var(--font-size-split-heading);
+}
+
 .other-courses-selector__grid {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
