@@ -5,6 +5,7 @@ export { getCourseByKey, getCourseBySlug, getCourses, getHomepageCourses, getTra
 export { getHomepage } from './homepage';
 export { getLegalPage } from './legal-pages';
 export { getHomepageReferences, getHomepageReferenceSection, getReferences } from './references';
+export { getResources } from './resources';
 export { getServices } from './services';
 export { CmsError, isCmsError } from './errors';
 export type { CmsErrorCode } from './errors';
@@ -16,3 +17,4 @@ export type { Homepage, HomepageHero, HomepageHeroSlide } from '../../types/home
 export type { LegalPageContent, LegalPageKey, LegalPageSection } from '../../types/legal';
 export type { Service, ServiceCollection } from '../../types/service';
 export type { Reference, ReferenceCollection } from '../../types/reference';
+export type { Resource, ResourceCollection, ResourceType } from '../../types/resource';

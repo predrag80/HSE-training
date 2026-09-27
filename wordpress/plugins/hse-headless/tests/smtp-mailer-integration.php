@@ -72,6 +72,7 @@ hse_smtp_mailer_test_assert( 'tls' === $mailer->SMTPSecure, 'STARTTLS is applied
 hse_smtp_mailer_test_assert( 'integration-test-secret' === $mailer->Password, 'The configured credential reaches PHPMailer without persistence.' );
 hse_smtp_mailer_test_assert( 'UTF-8' === $mailer->CharSet, 'UTF-8 email content is enabled.' );
 hse_smtp_mailer_test_assert( 'website@hsetraining.rs' === $mailer->From, 'The dedicated website sender is applied.' );
+hse_smtp_mailer_test_assert( 'info@hsetraining.rs' === SmtpMailer::CONTACT_RECIPIENT, 'The contact recipient is fixed to the approved HSE mailbox.' );
 hse_smtp_mailer_test_assert( 10 === has_action( 'phpmailer_init', array( SmtpMailer::class, 'configure_phpmailer' ) ), 'The SMTP hook is registered.' );
 
 if ( $failures ) {

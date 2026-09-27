@@ -20,7 +20,7 @@ const currentYear = new Date().getFullYear();
 	<div class="site-footer__main">
 		<div class="site-footer__column site-footer__about">
 			<a class="site-footer__logo" href={path('/')} aria-label={copy.homeLabel}>
-				<img src="/images/hse-training-logo.png" width="410" height="136" alt={`${contactDetails.companyName} Belgrade`} />
+				<img src="/images/HSE_Training_logo_transparent.png" width="900" height="335" alt={`${contactDetails.companyName} Belgrade`} />
 			</a>
 			<p>{copy.description}</p>
 			<ul class="site-footer__socials" aria-label={copy.socialLabel}>
@@ -40,6 +40,7 @@ const currentYear = new Date().getFullYear();
 				<li><a href={path('/browse-hse-talent/')}>{copy.consulting}</a></li>
 				<li><a href={path('/gallery/')}>{copy.gallery}</a></li>
 				<li><a href={referencePath}>{copy.reference}</a></li>
+				<li><a href={path('/resources/')}>{copy.resources}</a></li>
 				<li><a href={path('/contact/')}>{copy.contact}</a></li>
 			</ul>
 		</nav>

@@ -27,6 +27,7 @@ const translations = {
 			consulting: 'Browse HSE Talent',
 			gallery: 'Gallery',
 			reference: 'Reference',
+			resources: 'Resources',
 			contact: 'Contact',
 		},
 		homepage: {
@@ -91,6 +92,7 @@ const translations = {
 			consulting: 'Browse HSE Talent',
 			gallery: 'Gallery',
 			reference: 'Reference',
+			resources: 'Free resources',
 			contact: 'Contact',
 			getInTouch: 'Get in touch',
 			courseEnquiries: 'Course enquiries',
@@ -133,6 +135,7 @@ const translations = {
 			consulting: 'Pregledajte HSE stručnjake',
 			gallery: 'Galerija',
 			reference: 'Reference',
+			resources: 'Resursi',
 			contact: 'Kontakt',
 		},
 		homepage: {
@@ -197,6 +200,7 @@ const translations = {
 			consulting: 'Pregledajte HSE stručnjake',
 			gallery: 'Galerija',
 			reference: 'Reference',
+			resources: 'Besplatni resursi',
 			contact: 'Kontakt',
 			getInTouch: 'Kontaktirajte nas',
 			courseEnquiries: 'Informacije o kursevima',

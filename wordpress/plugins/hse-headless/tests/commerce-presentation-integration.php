@@ -8,6 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 use HSETraining\Headless\Commerce\CommerceLocale;
+use HSETraining\Headless\Commerce\CommerceOrderNumber;
 use HSETraining\Headless\Commerce\CommercePresentation;
 use HSETraining\Headless\Commerce\CommerceCustomerEmail;
 
@@ -65,8 +66,38 @@ final class HseCommercePresentationTestStatusOrder {
 	}
 }
 
+/** Minimal order collaborator for public order-number display checks. */
+final class HseCommercePresentationTestNumberOrder {
+	private $number;
+
+	public function __construct( $number ) {
+		$this->number = $number;
+	}
+
+	public function get_meta( $key, $single = false ) {
+		unset( $single );
+		return CommerceOrderNumber::ORDER_META === $key ? $this->number : '';
+	}
+
+	public function update_meta_data( $key, $value ) {
+		unset( $key, $value );
+	}
+
+	public function save_meta_data() {}
+}
+
 hse_commerce_presentation_test_assert( 'en' === CommerceLocale::sanitize( 'de' ), 'Unsupported checkout locales resolve to English.' );
 hse_commerce_presentation_test_assert( 'sr' === CommerceLocale::sanitize( 'SR' ), 'Serbian checkout locale is normalized.' );
+hse_commerce_presentation_test_assert(
+	'HSE-000001' === CommerceOrderNumber::format( 1 )
+		&& 'HSE-1000000' === CommerceOrderNumber::format( 1000000 ),
+	'Public order numbers use the stable HSE prefix and at least six digits.'
+);
+hse_commerce_presentation_test_assert(
+	'HSE-000042' === CommerceOrderNumber::filter( '1436', new HseCommercePresentationTestNumberOrder( 'HSE-000042' ) )
+		&& '1436' === CommerceOrderNumber::filter( '1436', new HseCommercePresentationTestNumberOrder( 'invalid' ) ),
+	'Only a valid stored HSE order number replaces the internal WooCommerce ID.'
+);
 
 CommerceLocale::capture( 'sr' );
 hse_commerce_presentation_test_assert( 'sr' === CommerceLocale::current(), 'Captured Serbian locale becomes current.' );
@@ -276,8 +307,8 @@ hse_commerce_presentation_test_assert(
 );
 hse_commerce_presentation_test_assert(
 	'HSE TRAINING D.O.O.' === ( CommerceCustomerEmail::merchant_copy()['company'] ?? '' )
-		&& 'OTVORI PORUDŽBINU' === ( CommerceCustomerEmail::merchant_copy()['view_order'] ?? '' ),
-	'Merchant notification copy contains the HSE identity and order action.'
+		&& ! isset( CommerceCustomerEmail::merchant_copy()['view_order'] ),
+	'Merchant notification copy contains the HSE identity without an unreliable admin link.'
 );
 hse_commerce_presentation_test_assert(
 	'RSD' === CommercePresentation::localize_currency_symbol( 'рсд', 'RSD' ),
@@ -293,6 +324,11 @@ if ( is_wp_error( $email_order ) ) {
 	$email_order->update_meta_data( CommercePresentation::COMPANY_TAX_ID_META, '123456789' );
 	$email_order->update_meta_data( CommercePresentation::COMPANY_REG_NUMBER_META, '12345678' );
 	$email_order->save();
+	hse_commerce_presentation_test_assert(
+		1 === preg_match( '/^HSE-[0-9]{6,}$/', $email_order->get_order_number() )
+			&& '' !== (string) $email_order->get_meta( CommerceOrderNumber::SEQUENCE_META, true ),
+		'New WooCommerce orders receive an immutable HSE public number.'
+	);
 	hse_commerce_presentation_test_assert(
 		'Potvrda o plaćanju za porudžbinu #' . $email_order->get_order_number() === CommerceCustomerEmail::completed_order_subject( 'Fallback', $email_order ),
 		'Completed receipt subject follows the Serbian order locale.'
@@ -386,7 +422,7 @@ if ( is_wp_error( $email_order ) ) {
 		hse_commerce_presentation_test_assert(
 			false !== strpos( $merchant_html, 'Primljena je nova porudžbina' )
 				&& false !== strpos( $merchant_html, 'Podaci kupca' )
-				&& false !== strpos( $merchant_html, 'OTVORI PORUDŽBINU' )
+				&& false === strpos( $merchant_html, 'OTVORI PORUDŽBINU' )
 				&& false !== strpos( $merchant_html, '123456789' )
 				&& false !== strpos( $merchant_html, '<!doctype html>' ),
 			'The merchant email renders the branded order summary and customer details.'

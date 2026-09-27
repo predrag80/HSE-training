@@ -11,6 +11,7 @@ const localizedContentPaths = new Set([
 	'/browse-hse-talent/',
 	'/contact/',
 	'/gallery/',
+	'/resources/',
 	'/other-courses/',
 	'/banksman-slinger/',
 	'/train-the-trainer/',

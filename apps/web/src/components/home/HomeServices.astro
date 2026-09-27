@@ -26,11 +26,11 @@ const copy = getUiTranslations(locale).homepage.services;
 			{
 				services.map((service) => (
 					<li class="home-services__item">
-						<div class="service-tilt" data-service-tilt>
-							<div class="service-tilt__scale">
-								<div class="service-tilt__rotate">
-									<div class="service-tilt__inner">
-										<a class="service-card" href={HSE_DIRECTORY_URL} target="_blank" rel="noreferrer" aria-label={`${copy.enquiry}: ${service.title}`}>
+						<a class="service-card" href={HSE_DIRECTORY_URL} target="_blank" rel="noreferrer" aria-label={`${copy.enquiry}: ${service.title}`}>
+							<span class="service-tilt" data-service-tilt>
+								<span class="service-tilt__scale">
+									<span class="service-tilt__rotate">
+										<span class="service-tilt__inner">
 											<img
 												class="service-card__image"
 												src={service.image.url}
@@ -47,11 +47,11 @@ const copy = getUiTranslations(locale).homepage.services;
 												<span class="service-card__description">{service.shortDescription}</span>
 												<span class="service-card__enquiry">{copy.enquiry} <i aria-hidden="true">↗</i></span>
 											</span>
-										</a>
-									</div>
-								</div>
-							</div>
-						</div>
+										</span>
+									</span>
+								</span>
+							</span>
+						</a>
 					</li>
 				))
 			}

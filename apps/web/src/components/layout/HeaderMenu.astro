@@ -26,6 +26,7 @@ const copy = locale === 'sr'
 			iogc: 'NEBOSH IOGC',
 		},
 		about: 'O HSE Training',
+		resources: 'Besplatni resursi',
 		contact: 'Kontaktirajte nas',
 	}
 	: {
@@ -43,6 +44,7 @@ const copy = locale === 'sr'
 			iogc: 'NEBOSH IOGC',
 		},
 		about: 'About HSE Training',
+		resources: 'Free resources',
 		contact: 'Contact us',
 	};
 ---
@@ -97,6 +99,7 @@ const copy = locale === 'sr'
 					</div>
 				</details>
 				<a href={`${path('/')}#about`}>{copy.about}</a>
+				<a href={path('/resources/')}>{copy.resources}</a>
 				<a href={path('/contact/')}>{copy.contact}</a>
 			</nav>
 

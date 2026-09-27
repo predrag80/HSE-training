@@ -1,0 +1,104 @@
+---
+import './resources-page.css';
+import type { Locale } from '../../i18n/config';
+import { getResourcesUiTranslations } from '../../i18n/resources-ui';
+import { getResources } from '../../lib/cms';
+import type { ResourceType } from '../../types/resource';
+
+interface Props {
+	readonly locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = getResourcesUiTranslations(locale);
+const { resources } = await getResources(locale);
+const types: readonly ResourceType[] = ['link', 'video', 'document', 'procedure', 'standard'];
+const formatBytes = (bytes: number) => {
+	if (!bytes) return '';
+	const units = ['B', 'KB', 'MB', 'GB'];
+	const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+	return `${(bytes / 1024 ** index).toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+};
+const actionLabel = (type: ResourceType, isDownload: boolean) => {
+	if (type === 'video') return copy.watch;
+	if (isDownload) return copy.download;
+	return copy.open;
+};
+---
+
+<section class="resources-hero">
+	<div class="resources-hero__inner">
+		<p class="resources-hero__eyebrow">{copy.eyebrow}</p>
+		<h1>{copy.title}</h1>
+		<p class="resources-hero__description">{copy.description}</p>
+	</div>
+</section>
+
+<section class="resources-library" aria-labelledby="resources-library-title" data-resource-library>
+	<h2 class="sr-only" id="resources-library-title">{copy.title}</h2>
+	{
+		resources.length > 0 ? (
+			<>
+				<div class="resources-filters" role="group" aria-label={copy.filtersLabel}>
+					<button class="resources-filter" type="button" data-resource-filter="all" aria-pressed="true">{copy.all}</button>
+					{types.map((type) => (
+						<button class="resources-filter" type="button" data-resource-filter={type} aria-pressed="false">{copy.types[type]}</button>
+					))}
+				</div>
+				<div class="resources-grid">
+					{resources.map((resource) => (
+						<article class:list={['resource-card', { 'resource-card--featured': resource.featured }]} data-resource-card data-resource-type={resource.type}>
+							{resource.image ? (
+								<div class="resource-card__image"><img src={resource.image.url} alt={resource.image.alt} width={resource.image.width} height={resource.image.height} loading="lazy" /></div>
+							) : (
+								<div class="resource-card__icon" aria-hidden="true">
+									{resource.type === 'video' ? '▶' : resource.type === 'link' ? '↗' : '↓'}
+								</div>
+							)}
+							<div class="resource-card__body">
+								<div class="resource-card__meta">
+									<span>{copy.types[resource.type]}</span>
+									{resource.featured && <span>{copy.featured}</span>}
+								</div>
+								<h3>{resource.title}</h3>
+								{resource.topic && <p class="resource-card__topic">{resource.topic}</p>}
+								{resource.summary && <p class="resource-card__summary">{resource.summary}</p>}
+								{resource.description && <div class="resource-card__description" set:html={resource.description} />}
+								{resource.isDownload && (resource.fileName || resource.fileSize > 0) && (
+									<p class="resource-card__file">{[resource.fileName, formatBytes(resource.fileSize)].filter(Boolean).join(' · ')}</p>
+								)}
+								<a class="resource-card__link" href={resource.actionUrl} target="_blank" rel="noreferrer">
+									{actionLabel(resource.type, resource.isDownload)} <span aria-hidden="true">→</span>
+								</a>
+							</div>
+						</article>
+					))}
+				</div>
+				<p class="resources-empty" data-resource-empty hidden>{copy.noResults}</p>
+			</>
+		) : (
+			<p class="resources-empty">{copy.empty}</p>
+		)
+	}
+</section>
+
+<script>
+	document.querySelectorAll<HTMLElement>('[data-resource-library]').forEach((library) => {
+		const buttons = library.querySelectorAll<HTMLButtonElement>('[data-resource-filter]');
+		const cards = library.querySelectorAll<HTMLElement>('[data-resource-card]');
+		const empty = library.querySelector<HTMLElement>('[data-resource-empty]');
+		buttons.forEach((button) => {
+			button.addEventListener('click', () => {
+				const filter = button.dataset.resourceFilter ?? 'all';
+				let visible = 0;
+				buttons.forEach((candidate) => candidate.setAttribute('aria-pressed', String(candidate === button)));
+				cards.forEach((card) => {
+					const matches = filter === 'all' || card.dataset.resourceType === filter;
+					card.hidden = !matches;
+					if (matches) visible += 1;
+				});
+				if (empty) empty.hidden = visible > 0;
+			});
+		});
+	});
+</script>

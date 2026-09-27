@@ -10,6 +10,8 @@ namespace HSETraining\Headless\Infrastructure;
 defined( 'ABSPATH' ) || exit;
 
 final class SmtpMailer {
+	public const CONTACT_RECIPIENT = 'info@hsetraining.rs';
+
 	/** @var bool Avoid repeating the same configuration warning for every message. */
 	private static $configuration_warning_logged = false;
 
@@ -31,7 +33,7 @@ final class SmtpMailer {
 			'username' => self::read_setting( 'HSE_SMTP_USERNAME' ),
 			'password' => self::read_setting( 'HSE_SMTP_PASSWORD', false ),
 			'from'     => self::read_setting( 'HSE_MAIL_FROM' ),
-			'to'       => self::read_setting( 'HSE_MAIL_TO' ),
+				'to'       => self::CONTACT_RECIPIENT,
 		);
 	}
 
@@ -119,7 +121,7 @@ final class SmtpMailer {
 	public static function get_recipient() {
 		$configuration = self::get_configuration();
 		$recipient     = self::validate_configuration( $configuration ) ? '' : (string) $configuration['to'];
-		$recipient     = sanitize_email( (string) apply_filters( 'hse_contact_recipient', $recipient ) );
+		$recipient     = sanitize_email( $recipient );
 
 		return is_email( $recipient ) ? $recipient : '';
 	}

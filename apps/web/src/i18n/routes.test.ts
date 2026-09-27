@@ -56,7 +56,7 @@ describe('locale routes', () => {
 	});
 
 	it('exposes all completed Serbian marketing routes', () => {
-		for (const path of ['/company/', '/browse-hse-talent/', '/contact/', '/gallery/', '/other-courses/', '/banksman-slinger/', '/train-the-trainer/']) {
+		for (const path of ['/company/', '/browse-hse-talent/', '/contact/', '/gallery/', '/resources/', '/other-courses/', '/banksman-slinger/', '/train-the-trainer/']) {
 			expect(getAvailablePublicPath(path, 'sr')).toBe(`/sr${path}`);
 			expect(getLanguageAlternates(path)).toEqual({ en: path, sr: `/sr${path}` });
 		}

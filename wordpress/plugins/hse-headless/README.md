@@ -6,11 +6,12 @@ CMS integration.
 ## Current Status
 
 The plugin provides separately managed Course and Training content, an ordered Homepage Hero
-Slide collection, a canonical Company profile, and a Service collection shared
+Slide collection, a canonical Company profile, a Service collection shared
 by the Homepage and Consulting Page. Course promotions and client References
-also feed their Homepage sections from WordPress. WordPress theme rendering is
+also feed their Homepage sections from WordPress, while Free Resources are managed
+as a separate bilingual library. WordPress theme rendering is
 disabled so the installation remains a CMS rather than a second public site.
-Homepage, Company, Hero Slide, Service, Course, Training, Reference, and Legal Page content supports
+Homepage, Company, Hero Slide, Service, Course, Training, Reference, Free Resource, and Legal Page content supports
 explicit English and Serbian variants without a third-party translation plugin.
 
 ## Responsibilities
@@ -24,10 +25,12 @@ explicit English and Serbian variants without a third-party translation plugin.
 - Allowlisted `en`/`sr` content locales and locale-isolated Homepage responses
 - Explicit Homepage Course promotion fields and ordering
 - Ordered client References with a Homepage-featured subset
+- Bilingual Free Resources with links, videos, documents, procedures, and standards
 - Locale-specific Privacy Policy, Terms and Conditions, and Copyright pages
 - Small REST API extensions needed by headless consumers
 - Headless CMS integration
 - Closed, non-indexable WordPress theme frontend
+- Customer-facing WooCommerce order numbers with an environment-local `HSE-000001` sequence
 
 ## Headless Access Boundary
 
@@ -173,6 +176,25 @@ The contract is documented in
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/reference-integration.php
 ```
 
+## Free Resources API
+
+Editors manage links, videos, documents, procedures, and standards through
+**Free Resources**. A resource can point to an external URL or to a file selected
+from the WordPress Media Library. English and Serbian entries use the same stable
+resource key and remain separate localized records.
+
+```text
+/wp-json/hse/v1/resources?lang=en
+/wp-json/hse/v1/resources?lang=sr
+```
+
+An empty collection is valid, allowing the public page to show its managed empty
+state before the first resources are published.
+
+```sh
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/resource-integration.php
+```
+
 ## Legal Pages API
 
 Administrators edit legal copy through **Legal Pages**, then select the page
@@ -208,7 +230,6 @@ define( 'HSE_SMTP_SECURE', 'tls' );
 define( 'HSE_SMTP_USERNAME', 'website@hsetraining.rs' );
 define( 'HSE_SMTP_PASSWORD', getenv( 'HSE_SMTP_PASSWORD' ) );
 define( 'HSE_MAIL_FROM', 'website@hsetraining.rs' );
-define( 'HSE_MAIL_TO', 'info@hsetraining.rs' );
 define( 'HSE_COMMERCE_ADMIN_EMAIL', 'info@hsetraining.rs' );
 define( 'HSE_CONTACT_ALLOWED_ORIGINS', 'https://hsetraining.rs,https://www.hsetraining.rs,https://staging.hsetraining.rs' );
 ```
@@ -261,7 +282,8 @@ site origins (plus localhost during development), silently absorbs a honeypot,
 and permits at most three accepted messages from one client address per ten
 minutes. Delivery failures return generic public messages and server logs
 contain only a generated request ID, never the submitted personal data. The
-recipient is controlled by the server-only `HSE_MAIL_TO` value.
+recipient is fixed in the plugin to `info@hsetraining.rs`; SMTP credentials
+control only the authenticated transport and sender identity.
 
 Run the endpoint checks without sending a real message:
 
@@ -381,8 +403,8 @@ the order. It includes the customer billing details, payment method, order
 number and date, line items, subtotal, total paid, payment status and HSE
 contact details. Merchant new-order notifications use their own branded HTML
 and plain-text templates with customer identity, payment and transaction data,
-line items, total, checkout language, current order status and a direct link to
-the WooCommerce order. The plugin forces both branded message types to render
+line items, total, checkout language and current order status. The plugin
+forces both branded message types to render
 with the HTML template and matching `text/html` MIME header, while retaining
 the plain-text template as a fallback. They use `HSE_COMMERCE_ADMIN_EMAIL` when it contains a
 valid address and otherwise fall back to `info@hsetraining.rs`, so an imported

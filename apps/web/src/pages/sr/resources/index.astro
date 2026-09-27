@@ -1,0 +1,12 @@
+---
+import ResourcesPage from '../../../components/resources/ResourcesPage.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getResourcesUiTranslations } from '../../../i18n/resources-ui';
+
+const locale = 'sr';
+const copy = getResourcesUiTranslations(locale);
+---
+
+<BaseLayout title={copy.metaTitle} description={copy.metaDescription} locale={locale}>
+	<main id="main-content"><ResourcesPage {locale} /></main>
+</BaseLayout>

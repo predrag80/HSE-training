@@ -350,7 +350,6 @@ final class CommerceCustomerEmail {
 			'total'               => 'Ukupno',
 			'payment_confirmed'   => 'PLAĆANJE POTVRĐENO',
 			'order_received'      => 'PORUDŽBINA PRIMLJENA',
-			'view_order'          => 'OTVORI PORUDŽBINU',
 			'language_en'         => 'Engleski',
 			'language_sr'         => 'Srpski',
 			'website'             => 'hsetraining.rs',

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: HSE Training Headless
  * Description: Custom headless CMS functionality for the HSE Training platform.
- * Version: 0.25.11
+ * Version: 0.26.0
  * Text Domain: hse-headless
  *
  * @package HSETraining\Headless
@@ -34,6 +34,10 @@ require_once __DIR__ . '/src/Reference/ReferencePostType.php';
 require_once __DIR__ . '/src/Reference/ReferenceMeta.php';
 require_once __DIR__ . '/src/Reference/ReferenceRepository.php';
 require_once __DIR__ . '/src/Reference/ReferenceRestController.php';
+require_once __DIR__ . '/src/Resource/ResourcePostType.php';
+require_once __DIR__ . '/src/Resource/ResourceMeta.php';
+require_once __DIR__ . '/src/Resource/ResourceRepository.php';
+require_once __DIR__ . '/src/Resource/ResourceRestController.php';
 require_once __DIR__ . '/src/Homepage/HeroSlidePostType.php';
 require_once __DIR__ . '/src/Homepage/HeroSlideMeta.php';
 require_once __DIR__ . '/src/Homepage/HomepageSettings.php';
@@ -45,6 +49,7 @@ require_once __DIR__ . '/src/Contact/ContactEmailTemplate.php';
 require_once __DIR__ . '/src/Contact/ContactRestController.php';
 require_once __DIR__ . '/src/Commerce/CommerceConfiguration.php';
 require_once __DIR__ . '/src/Commerce/CommerceLocale.php';
+require_once __DIR__ . '/src/Commerce/CommerceOrderNumber.php';
 require_once __DIR__ . '/src/Commerce/CommerceProductRepository.php';
 require_once __DIR__ . '/src/Commerce/CommerceProductSync.php';
 require_once __DIR__ . '/src/Commerce/CommerceRestController.php';
@@ -70,6 +75,9 @@ Service\ServiceRestController::register_hooks();
 Reference\ReferencePostType::register_hooks();
 Reference\ReferenceMeta::register_hooks();
 Reference\ReferenceRestController::register_hooks();
+Resource\ResourcePostType::register_hooks();
+Resource\ResourceMeta::register_hooks();
+Resource\ResourceRestController::register_hooks();
 Homepage\HeroSlidePostType::register_hooks();
 Homepage\HeroSlideMeta::register_hooks();
 Homepage\HomepageSettings::register_hooks();
@@ -82,6 +90,7 @@ Infrastructure\SmtpMailer::register_hooks();
 Contact\ContactRestController::register_hooks();
 Commerce\CommerceRestController::register_hooks();
 Commerce\CommerceLocale::register_hooks();
+Commerce\CommerceOrderNumber::register_hooks();
 Commerce\CommerceCheckout::register_hooks();
 Commerce\CommercePresentation::register_hooks();
 Commerce\CommerceProductSync::register_hooks();

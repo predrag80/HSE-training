@@ -11,7 +11,6 @@ interface Props {
 
 const { pathname, locale } = Astro.props;
 const routePath = getDefaultLocalePath(pathname);
-const isHome = routePath === '/';
 const neboshCurrent = routePath.startsWith('/nebosh');
 const otherCoursesCurrent = routePath.startsWith('/training') || routePath.startsWith('/banksman-slinger') || routePath.startsWith('/train-the-trainer');
 const ui = getUiTranslations(locale);
@@ -65,7 +64,7 @@ const links = [
 	},
 	{ label: ui.navigation.consulting, href: path('/browse-hse-talent/'), current: routePath.startsWith('/browse-hse-talent') },
 	{ label: ui.navigation.gallery, href: path('/gallery/'), current: routePath.startsWith('/gallery') },
-	{ label: ui.navigation.reference, href: isHome ? '#reference' : `${path('/')}#reference`, current: false },
+	{ label: ui.navigation.resources, href: path('/resources/'), current: routePath.startsWith('/resources') },
 	{ label: ui.navigation.contact, href: path('/contact/'), current: routePath.startsWith('/contact') },
 ];
 ---

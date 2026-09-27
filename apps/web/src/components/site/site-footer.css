@@ -22,8 +22,8 @@
 .site-footer__contact,
 .site-footer__newsletter { width: 25%; }
 
-.site-footer__logo { display: block; width: 11.5rem; margin-bottom: 1.25rem; }
-.site-footer__logo img { width: 100%; height: auto; padding: 0.45rem 0.6rem; background: #292d36; }
+.site-footer__logo { display: block; width: min(13rem, 100%); margin-bottom: 1.25rem; line-height: 0; }
+.site-footer__logo img { display: block; width: 100%; height: auto; }
 .site-footer p { margin: 0; }
 .site-footer__about > p { max-width: none; }
 

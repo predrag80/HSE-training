@@ -23,12 +23,6 @@ function hse_contact_rest_test_assert( $condition, $message ) {
 
 $mail_calls = array();
 add_filter(
-	'hse_contact_recipient',
-	static function () {
-		return 'contact-recipient@example.com';
-	}
-);
-add_filter(
 	'pre_wp_mail',
 	static function ( $return, $attributes ) use ( &$mail_calls ) {
 		$mail_calls[] = $attributes;
@@ -58,7 +52,7 @@ $response = rest_do_request( $valid_request );
 $mail     = isset( $mail_calls[0] ) ? $mail_calls[0] : array( 'to' => '', 'message' => '', 'headers' => array() );
 hse_contact_rest_test_assert( 202 === $response->get_status(), 'A valid enquiry is accepted.' );
 hse_contact_rest_test_assert( 1 === count( $mail_calls ), 'A valid enquiry invokes WordPress mail once.' );
-hse_contact_rest_test_assert( 'contact-recipient@example.com' === $mail['to'], 'The server-configured recipient is used.' );
+hse_contact_rest_test_assert( 'info@hsetraining.rs' === $mail['to'], 'Contact enquiries always use the approved HSE recipient.' );
 hse_contact_rest_test_assert( false !== strpos( $mail['message'], '<!doctype html>' ), 'The branded HTML template is delivered.' );
 hse_contact_rest_test_assert( in_array( 'Reply-To: predrag@example.com', $mail['headers'], true ), 'The visitor is configured as Reply-To.' );
 

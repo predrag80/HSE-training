@@ -21,7 +21,6 @@ $transaction_id   = $order->get_transaction_id();
 $price_args       = array( 'currency' => $order->get_currency() );
 $status           = wc_get_order_status_name( $order->get_status() );
 $language_label   = 'sr' === $order_locale ? $copy['language_sr'] : $copy['language_en'];
-$order_admin_url  = method_exists( $order, 'get_edit_order_url' ) ? $order->get_edit_order_url() : '';
 
 echo esc_html( $copy['company'] ) . "\n";
 echo esc_html( $copy['tagline'] ) . "\n\n";
@@ -64,7 +63,4 @@ foreach ( $order->get_items( 'line_item' ) as $item ) {
 echo "\n" . esc_html( $copy['subtotal'] ) . ': ' . esc_html( wp_strip_all_tags( wc_price( $order->get_subtotal(), $price_args ) ) ) . "\n";
 echo esc_html( $copy['total'] ) . ': ' . esc_html( wp_strip_all_tags( $order->get_formatted_order_total() ) ) . "\n\n";
 echo esc_html( $order->is_paid() ? $copy['payment_confirmed'] : $copy['order_received'] ) . "\n";
-if ( $order_admin_url ) {
-	echo esc_html( $copy['view_order'] ) . ': ' . esc_url( $order_admin_url ) . "\n";
-}
 echo "\n" . esc_html( $copy['company'] ) . ' · ' . esc_html( $copy['website'] ) . ' · ' . esc_html( $copy['email'] ) . "\n";
