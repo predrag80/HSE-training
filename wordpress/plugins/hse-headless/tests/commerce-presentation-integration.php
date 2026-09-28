@@ -117,6 +117,11 @@ hse_commerce_presentation_test_assert(
 CommerceLocale::capture( 'en' );
 hse_commerce_presentation_test_assert( 'Billing details' === CommercePresentation::copy( 'billing_details' ), 'English checkout copy is available.' );
 hse_commerce_presentation_test_assert(
+	'Direct bank transfer' === CommercePresentation::copy( 'bank_transfer_title' )
+		&& 'Confirm order' === CommercePresentation::copy( 'place_order_bank' ),
+	'English bank-transfer checkout copy is available.'
+);
+hse_commerce_presentation_test_assert(
 	false === strpos( CommercePresentation::public_url( '/terms-and-conditions/' ), '/sr/' ),
 	'English legal links remain unprefixed.'
 );
@@ -134,6 +139,32 @@ hse_commerce_presentation_test_assert(
 );
 
 CommerceLocale::capture( 'sr' );
+hse_commerce_presentation_test_assert(
+	'Direktna uplata na račun' === CommercePresentation::copy( 'bank_transfer_title' )
+		&& 'Potvrdite porudžbinu' === CommercePresentation::copy( 'place_order_bank' ),
+	'Serbian bank-transfer checkout copy is localized.'
+);
+$bank_fields = array(
+	'bank_name'      => array( 'label' => 'Bank', 'value' => 'Example bank' ),
+	'account_number' => array( 'label' => 'Account number', 'value' => '123' ),
+	'sort_code'      => array( 'label' => 'Sort code', 'value' => '456' ),
+	'iban'           => array( 'label' => 'IBAN', 'value' => 'RS00' ),
+	'bic'            => array( 'label' => 'BIC', 'value' => 'EXAMPLE' ),
+);
+$domestic_bank_fields = CommercePresentation::bacs_account_fields_for_country( $bank_fields, 'RS', 'sr' );
+hse_commerce_presentation_test_assert(
+	isset( $domestic_bank_fields['bank_name'], $domestic_bank_fields['account_number'] )
+		&& ! isset( $domestic_bank_fields['iban'], $domestic_bank_fields['bic'], $domestic_bank_fields['sort_code'] )
+		&& 'Broj računa' === $domestic_bank_fields['account_number']['label'],
+	'Domestic bank-transfer instructions show the local account number without IBAN or SWIFT/BIC.'
+);
+$foreign_bank_fields = CommercePresentation::bacs_account_fields_for_country( $bank_fields, 'DE', 'en' );
+hse_commerce_presentation_test_assert(
+	isset( $foreign_bank_fields['bank_name'], $foreign_bank_fields['iban'], $foreign_bank_fields['bic'] )
+		&& ! isset( $foreign_bank_fields['account_number'], $foreign_bank_fields['sort_code'] )
+		&& 'SWIFT/BIC' === $foreign_bank_fields['bic']['label'],
+	'International bank-transfer instructions show IBAN and SWIFT/BIC without the domestic account number.'
+);
 hse_commerce_presentation_test_assert(
 	'Hvala. Vaše plaćanje je potvrđeno.' === CommercePresentation::order_received_text( '', new HseCommercePresentationTestStatusOrder( 'completed' ) ),
 	'Serbian paid confirmation copy is explicit.'

@@ -39,16 +39,18 @@ final class CommercePresentation {
 			'page_title'            => 'Secure checkout',
 			'checkout_eyebrow'      => 'Course enrolment',
 			'checkout_title'        => 'Complete your order.',
-			'checkout_intro'        => 'Enter your billing details, review the course and continue to secure card payment.',
+			'checkout_intro'        => 'Enter your billing details, review the course and choose your preferred payment method.',
 			'confirmation_eyebrow'  => 'Order confirmation',
 			'confirmation_title'    => 'Your order status.',
 			'confirmation_intro'    => 'Review the current payment status and your order details below.',
-			'secure'                => 'Secure card payment via RaiAccept',
+			'secure'                => 'Secure checkout',
 			'back'                  => 'Back to HSE Training',
 			'contact'               => 'Need help? Contact us',
 			'privacy'               => 'Privacy Policy',
 			'terms'                 => 'Purchase Terms',
 			'place_order'           => 'Continue to secure payment',
+			'place_order_card'      => 'Continue to secure payment',
+			'place_order_bank'      => 'Confirm order',
 			'billing_details'       => 'Billing details',
 			'buyer_type'            => 'Customer type',
 			'buyer_individual'      => 'Individual',
@@ -60,6 +62,8 @@ final class CommercePresentation {
 			'total'                 => 'Total',
 			'payment_title'         => 'Card payment',
 			'payment_description'   => 'Pay securely with an accepted credit or debit card.',
+			'bank_transfer_title'   => 'Direct bank transfer',
+			'bank_transfer_description' => 'Pay directly into our bank account. Payment details and the order reference will be shown after the order is placed and sent by email.',
 			'have_coupon'           => 'Have a coupon?',
 			'coupon_prompt'         => 'Click here to enter your code',
 			'coupon_code'           => 'Coupon code',
@@ -105,6 +109,10 @@ final class CommercePresentation {
 			'date'                  => 'Date',
 			'quantity'              => 'Quantity',
 			'payment_method'        => 'Payment method',
+			'bank_name'             => 'Bank',
+			'account_number'        => 'Account number',
+			'iban'                  => 'IBAN',
+			'swift_bic'             => 'SWIFT/BIC',
 			'billing_address'       => 'Billing address',
 			'actions'               => 'Actions',
 			'pay'                   => 'Pay',
@@ -130,16 +138,18 @@ final class CommercePresentation {
 			'page_title'            => 'Bezbedno plaćanje',
 			'checkout_eyebrow'      => 'Prijava za kurs',
 			'checkout_title'        => 'Završite porudžbinu.',
-			'checkout_intro'        => 'Unesite podatke, proverite izabrani kurs i nastavite na bezbedno kartično plaćanje.',
+			'checkout_intro'        => 'Unesite podatke, proverite izabrani kurs i izaberite željeni način plaćanja.',
 			'confirmation_eyebrow'  => 'Potvrda porudžbine',
 			'confirmation_title'    => 'Status vaše porudžbine.',
 			'confirmation_intro'    => 'U nastavku možete proveriti trenutni status plaćanja i podatke o porudžbini.',
-			'secure'                => 'Bezbedno kartično plaćanje putem RaiAccept-a',
+			'secure'                => 'Bezbedna kupovina',
 			'back'                  => 'Nazad na HSE Training',
 			'contact'               => 'Potrebna vam je pomoć? Kontaktirajte nas',
 			'privacy'               => 'Politika privatnosti',
 			'terms'                 => 'Uslovi kupovine',
 			'place_order'           => 'Nastavite na bezbedno plaćanje',
+			'place_order_card'      => 'Nastavite na bezbedno plaćanje',
+			'place_order_bank'      => 'Potvrdite porudžbinu',
 			'billing_details'       => 'Podaci o kupcu',
 			'buyer_type'            => 'Tip kupca',
 			'buyer_individual'      => 'Fizičko lice',
@@ -151,6 +161,8 @@ final class CommercePresentation {
 			'total'                 => 'Ukupno',
 			'payment_title'         => 'Plaćanje karticom',
 			'payment_description'   => 'Platite bezbedno podržanom kreditnom ili debitnom karticom.',
+			'bank_transfer_title'   => 'Direktna uplata na račun',
+			'bank_transfer_description' => 'Uplatite direktno na naš bankovni račun. Podaci za uplatu i poziv na broj biće prikazani nakon kreiranja porudžbine i poslati emailom.',
 			'have_coupon'           => 'Imate kupon?',
 			'coupon_prompt'         => 'Kliknite ovde da unesete kod',
 			'coupon_code'           => 'Kod kupona',
@@ -196,6 +208,10 @@ final class CommercePresentation {
 			'date'                  => 'Datum',
 			'quantity'              => 'Količina',
 			'payment_method'        => 'Način plaćanja',
+			'bank_name'             => 'Banka',
+			'account_number'        => 'Broj računa',
+			'iban'                  => 'IBAN',
+			'swift_bic'             => 'SWIFT/BIC',
 			'billing_address'       => 'Adresa kupca',
 			'actions'               => 'Akcije',
 			'pay'                   => 'Plati',
@@ -238,6 +254,7 @@ final class CommercePresentation {
 		add_filter( 'woocommerce_order_button_text', array( self::class, 'order_button_text' ) );
 		add_filter( 'woocommerce_gateway_title', array( self::class, 'gateway_title' ), 20, 2 );
 		add_filter( 'woocommerce_gateway_description', array( self::class, 'gateway_description' ), 20, 2 );
+		add_filter( 'woocommerce_bacs_account_fields', array( self::class, 'filter_bacs_account_fields' ), 20, 2 );
 		add_filter( 'woocommerce_get_privacy_policy_text', array( self::class, 'privacy_notice' ), 20, 2 );
 		add_action( 'woocommerce_review_order_before_submit', array( self::class, 'render_terms_consent' ), 15 );
 		add_action( 'woocommerce_checkout_process', array( self::class, 'validate_terms_consent' ) );
@@ -318,7 +335,7 @@ final class CommercePresentation {
 		}
 
 		$plugin_url = plugin_dir_url( dirname( __DIR__, 2 ) . '/hse-headless.php' );
-		wp_enqueue_style( 'hse-commerce', $plugin_url . 'assets/commerce.css', array( 'woocommerce-layout', 'woocommerce-general' ), '0.25.11' );
+		wp_enqueue_style( 'hse-commerce', $plugin_url . 'assets/commerce.css', array( 'woocommerce-layout', 'woocommerce-general' ), '0.26.3' );
 
 		wp_add_inline_script(
 			'wc-checkout',
@@ -326,6 +343,8 @@ final class CommercePresentation {
 				array(
 					'domesticTaxLabel' => self::copy( 'tax_id' ),
 					'foreignTaxLabel'  => self::copy( 'foreign_tax_id' ),
+					'cardButtonLabel'  => self::copy( 'place_order_card' ),
+					'bankButtonLabel'  => self::copy( 'place_order_bank' ),
 				)
 			) . ';',
 			'before'
@@ -399,11 +418,65 @@ final class CommercePresentation {
 		});
 	}
 
-	document.addEventListener('DOMContentLoaded', updateCompanyFields);
+	function updatePaymentAction() {
+		var selected = document.querySelector('input[name="payment_method"]:checked');
+		var button = document.getElementById('place_order');
+		if (!button) return;
+		var label = selected && selected.value === 'bacs' ? fieldCopy.bankButtonLabel : fieldCopy.cardButtonLabel;
+		if (label) {
+			button.textContent = label;
+			button.value = label;
+		}
+	}
+
+	function prepareCheckoutLayout() {
+		var form = document.querySelector('form.checkout');
+		var billingHeading = document.querySelector('.woocommerce-billing-fields > h3');
+		var heading = document.getElementById('order_review_heading');
+		var review = document.getElementById('order_review');
+		if (!form || !heading || !review) return;
+
+		function addStepBadge(target, number) {
+			if (!target || target.querySelector('.hse-checkout-step')) return;
+			var badge = document.createElement('span');
+			badge.className = 'hse-checkout-step';
+			badge.setAttribute('aria-hidden', 'true');
+			badge.textContent = number;
+			target.insertBefore(badge, target.firstChild);
+		}
+
+		addStepBadge(billingHeading, '1');
+		addStepBadge(heading, '2');
+		if (heading.parentElement === review.parentElement && heading.parentElement.classList.contains('hse-checkout-summary')) return;
+
+		var summary = document.createElement('div');
+		summary.className = 'hse-checkout-summary';
+		form.insertBefore(summary, heading);
+		summary.appendChild(heading);
+		summary.appendChild(review);
+	}
+
+	document.addEventListener('DOMContentLoaded', function () {
+		prepareCheckoutLayout();
+		updateCompanyFields();
+		updatePaymentAction();
+	});
+	document.addEventListener('click', function (event) {
+		if (!event.target || !(event.target instanceof Element)) return;
+		var method = event.target.closest('li.wc_payment_method');
+		if (!method || event.target.closest('a, button, input, label, select, textarea')) return;
+		var radio = method.querySelector(':scope > input[type="radio"]');
+		if (radio && !radio.checked) radio.click();
+	});
 	document.addEventListener('change', function (event) {
 		if (event.target && (event.target.name === 'billing_customer_type' || event.target.id === 'billing_country')) updateCompanyFields();
+		if (event.target && event.target.name === 'payment_method') updatePaymentAction();
 	});
-	if (window.jQuery) window.jQuery(document.body).on('updated_checkout', updateCompanyFields);
+	if (window.jQuery) window.jQuery(document.body).on('updated_checkout', function () {
+		prepareCheckoutLayout();
+		updateCompanyFields();
+		updatePaymentAction();
+	});
 })();
 JS;
 		wp_add_inline_script( 'wc-checkout', $buyer_fields_script, 'after' );
@@ -716,12 +789,64 @@ JS;
 
 	/** Localize the configured RaiAccept label on this isolated surface. */
 	public static function gateway_title( $title, $gateway_id ) {
-		return self::is_checkout_request() && 'raiaccept' === $gateway_id ? self::copy( 'payment_title' ) : $title;
+		if ( ! self::is_checkout_request() ) {
+			return $title;
+		}
+		if ( 'raiaccept' === $gateway_id ) {
+			return self::copy( 'payment_title' );
+		}
+		return 'bacs' === $gateway_id ? self::copy( 'bank_transfer_title' ) : $title;
 	}
 
 	/** Localize the RaiAccept helper text without changing gateway behavior. */
 	public static function gateway_description( $description, $gateway_id ) {
-		return self::is_checkout_request() && 'raiaccept' === $gateway_id ? self::copy( 'payment_description' ) : $description;
+		if ( ! self::is_checkout_request() ) {
+			return $description;
+		}
+		if ( 'raiaccept' === $gateway_id ) {
+			return self::copy( 'payment_description' );
+		}
+		return 'bacs' === $gateway_id ? self::copy( 'bank_transfer_description' ) : $description;
+	}
+
+	/** Keep domestic and international bank-transfer instructions unambiguous. */
+	public static function filter_bacs_account_fields( array $fields, $order_id ): array {
+		$order   = function_exists( 'wc_get_order' ) ? wc_get_order( $order_id ) : null;
+		$country = is_object( $order ) && method_exists( $order, 'get_billing_country' )
+			? strtoupper( sanitize_key( (string) $order->get_billing_country() ) )
+			: '';
+		$locale  = is_object( $order ) && method_exists( $order, 'get_meta' )
+			? CommerceLocale::sanitize( (string) $order->get_meta( CommerceLocale::ORDER_META, true ) )
+			: CommerceLocale::current();
+
+		return self::bacs_account_fields_for_country( $fields, $country, $locale );
+	}
+
+	/** Return only the account identifiers required for one billing country. */
+	public static function bacs_account_fields_for_country( array $fields, string $country, string $locale ): array {
+		$country     = strtoupper( sanitize_key( $country ) );
+		$locale      = CommerceLocale::sanitize( $locale );
+		$is_domestic = '' !== $country ? 'RS' === $country : 'sr' === $locale;
+
+		if ( $is_domestic ) {
+			unset( $fields['iban'], $fields['bic'], $fields['sort_code'] );
+		} else {
+			unset( $fields['account_number'], $fields['sort_code'] );
+		}
+
+		$labels = array(
+			'bank_name'      => 'bank_name',
+			'account_number' => 'account_number',
+			'iban'           => 'iban',
+			'bic'            => 'swift_bic',
+		);
+		foreach ( $labels as $field => $copy_key ) {
+			if ( isset( $fields[ $field ] ) ) {
+				$fields[ $field ]['label'] = self::copy_for_locale( $copy_key, $locale );
+			}
+		}
+
+		return $fields;
 	}
 
 	/** Link the data-use notice to the public Astro legal page. */
