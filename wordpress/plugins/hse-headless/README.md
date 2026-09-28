@@ -320,10 +320,13 @@ wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/com
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/commerce-product-sync-integration.php
 ```
 
-Astro appends `lang=en` or `lang=sr` to checkout initiation. The plugin keeps
+Astro appends `lang=en` or `lang=sr` and the allowlisted `hse_source` environment
+to checkout initiation. The plugin keeps
 that allowlisted locale in the Woo session, an HTTP-only cookie, and the order
 so checkout and the gateway return use the same reviewed English or
-Serbian-Latin copy. Checkout and the order-received endpoint render inside a
+Serbian-Latin copy. It also stores the initiating `dev` or `staging` source on
+the order so shared WooCommerce checkout notifications can use separate
+merchant recipients. Checkout and the order-received endpoint render inside a
 plugin-owned, non-indexable HSE shell and use the classic Woo checkout renderer;
 WooCommerce and RaiAccept core files remain untouched. Confirmation copy comes
 from the Woo order status and does not treat a browser return as proof of
@@ -408,7 +411,10 @@ forces both branded message types to render
 with the HTML template and matching `text/html` MIME header, while retaining
 the plain-text template as a fallback. They use `HSE_COMMERCE_ADMIN_EMAIL` when it contains a
 valid address and otherwise fall back to `info@hsetraining.rs`, so an imported
-WordPress administrator address cannot become the recipient. After WordPress
+WordPress administrator address cannot become the recipient. Orders initiated
+from the dev Astro build use `HSE_COMMERCE_DEV_ADMIN_EMAIL` when configured and
+otherwise fall back to `predo.vuckovic@gmail.com`; staging orders retain the
+standard merchant recipient. After WordPress
 reports a successful send, the plugin stores only the customer notification
 identifier and UTC timestamp on the order as operational evidence.
 

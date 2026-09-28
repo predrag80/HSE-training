@@ -1,5 +1,6 @@
 import type { Locale } from '../../i18n/config';
 import type { CommerceProduct } from '../../types/commerce';
+import { serverConfig } from '../config';
 import { fetchCmsJson } from './client';
 import { isCanonicalCourseKey } from './course-key';
 import { CmsError, isCmsError } from './errors';
@@ -51,6 +52,7 @@ function mapCommerceProduct(value: unknown, expectedCourseKey: string, locale: L
 		throw new CmsError('invalid-response', 'CMS returned an unsupported Commerce checkout URL.');
 	}
 	checkoutUrl.searchParams.set('lang', locale);
+	checkoutUrl.searchParams.set('hse_source', serverConfig.checkoutSource);
 
 	return {
 		schemaVersion: value.schema_version,

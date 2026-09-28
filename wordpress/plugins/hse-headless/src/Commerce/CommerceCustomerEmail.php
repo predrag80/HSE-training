@@ -12,6 +12,7 @@ defined( 'ABSPATH' ) || exit;
 /** Ensures every terminal payment outcome can notify the customer and be audited. */
 final class CommerceCustomerEmail {
 	public const DEFAULT_ADMIN_EMAIL = 'info@hsetraining.rs';
+	public const DEFAULT_DEV_ADMIN_EMAIL = 'predo.vuckovic@gmail.com';
 
 	private const CUSTOMER_ORDER_EMAILS = array(
 		'bokapos_receipt',
@@ -98,9 +99,14 @@ final class CommerceCustomerEmail {
 
 	/** Keep merchant order notifications away from imported placeholder addresses. */
 	public static function new_order_recipient( $recipient, $order = null, $email = null ): string {
-		unset( $order, $email );
+		unset( $email );
 		if ( ! CommerceConfiguration::is_enabled() ) {
 			return sanitize_email( is_scalar( $recipient ) ? (string) $recipient : '' );
+		}
+
+		if ( 'dev' === CommerceCheckoutSource::for_order( $order ) ) {
+			$configured_dev = defined( 'HSE_COMMERCE_DEV_ADMIN_EMAIL' ) ? sanitize_email( (string) constant( 'HSE_COMMERCE_DEV_ADMIN_EMAIL' ) ) : '';
+			return is_email( $configured_dev ) ? $configured_dev : self::DEFAULT_DEV_ADMIN_EMAIL;
 		}
 
 		$configured = defined( 'HSE_COMMERCE_ADMIN_EMAIL' ) ? sanitize_email( (string) constant( 'HSE_COMMERCE_ADMIN_EMAIL' ) ) : '';

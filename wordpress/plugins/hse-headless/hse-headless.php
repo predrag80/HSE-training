@@ -2,7 +2,7 @@
 /**
  * Plugin Name: HSE Training Headless
  * Description: Custom headless CMS functionality for the HSE Training platform.
- * Version: 0.26.3
+ * Version: 0.26.4
  * Text Domain: hse-headless
  *
  * @package HSETraining\Headless
@@ -49,6 +49,7 @@ require_once __DIR__ . '/src/Contact/ContactEmailTemplate.php';
 require_once __DIR__ . '/src/Contact/ContactRestController.php';
 require_once __DIR__ . '/src/Commerce/CommerceConfiguration.php';
 require_once __DIR__ . '/src/Commerce/CommerceLocale.php';
+require_once __DIR__ . '/src/Commerce/CommerceCheckoutSource.php';
 require_once __DIR__ . '/src/Commerce/CommerceOrderNumber.php';
 require_once __DIR__ . '/src/Commerce/CommerceProductRepository.php';
 require_once __DIR__ . '/src/Commerce/CommerceProductSync.php';
@@ -90,6 +91,7 @@ Infrastructure\SmtpMailer::register_hooks();
 Contact\ContactRestController::register_hooks();
 Commerce\CommerceRestController::register_hooks();
 Commerce\CommerceLocale::register_hooks();
+Commerce\CommerceCheckoutSource::register_hooks();
 Commerce\CommerceOrderNumber::register_hooks();
 Commerce\CommerceCheckout::register_hooks();
 Commerce\CommercePresentation::register_hooks();

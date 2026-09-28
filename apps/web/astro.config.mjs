@@ -20,6 +20,11 @@ export default defineConfig({
 				access: 'public',
 				url: true,
 			}),
+			HSE_CHECKOUT_SOURCE: envField.string({
+				context: 'server',
+				access: 'public',
+				default: 'staging',
+			}),
 		},
 	},
 });

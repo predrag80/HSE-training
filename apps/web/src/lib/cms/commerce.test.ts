@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../config', () => ({ serverConfig: { wordpressApiUrl: 'https://cms.example.test' } }));
+vi.mock('../config', () => ({
+	serverConfig: {
+		wordpressApiUrl: 'https://cms.example.test',
+		checkoutSource: 'staging',
+	},
+}));
 
 import { formatCommercePrice, formatCommercePriceCompact, formatCommercePriceWithReference, getCommerceReferencePrice, getOptionalCommerceProduct, getOptionalCommerceProducts } from './commerce';
 
@@ -23,7 +28,7 @@ describe('getOptionalCommerceProduct', () => {
 			courseKey: 'nebosh-igc',
 			priceMinor: 100000,
 			purchasable: true,
-			checkoutUrl: 'https://cms.example.test/?hse_course_checkout=nebosh-igc&lang=en',
+			checkoutUrl: 'https://cms.example.test/?hse_course_checkout=nebosh-igc&lang=en&hse_source=staging',
 		});
 	});
 
@@ -40,7 +45,7 @@ describe('getOptionalCommerceProduct', () => {
 		}), { status: 200 })));
 
 		await expect(getOptionalCommerceProduct('nebosh-igc', 'sr')).resolves.toMatchObject({
-			checkoutUrl: 'https://cms.example.test/?hse_course_checkout=nebosh-igc&lang=sr',
+			checkoutUrl: 'https://cms.example.test/?hse_course_checkout=nebosh-igc&lang=sr&hse_source=staging',
 		});
 	});
 

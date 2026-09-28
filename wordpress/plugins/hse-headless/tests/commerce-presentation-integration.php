@@ -8,6 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 use HSETraining\Headless\Commerce\CommerceLocale;
+use HSETraining\Headless\Commerce\CommerceCheckoutSource;
 use HSETraining\Headless\Commerce\CommerceOrderNumber;
 use HSETraining\Headless\Commerce\CommercePresentation;
 use HSETraining\Headless\Commerce\CommerceCustomerEmail;
@@ -88,6 +89,17 @@ final class HseCommercePresentationTestNumberOrder {
 
 hse_commerce_presentation_test_assert( 'en' === CommerceLocale::sanitize( 'de' ), 'Unsupported checkout locales resolve to English.' );
 hse_commerce_presentation_test_assert( 'sr' === CommerceLocale::sanitize( 'SR' ), 'Serbian checkout locale is normalized.' );
+hse_commerce_presentation_test_assert(
+	'dev' === CommerceCheckoutSource::sanitize( 'DEV' )
+		&& 'staging' === CommerceCheckoutSource::sanitize( 'unexpected' ),
+	'Checkout source accepts only dev and staging.'
+);
+$source_order = new HseCommercePresentationTestOrder();
+$source_order->update_meta_data( CommerceCheckoutSource::ORDER_META, 'dev' );
+hse_commerce_presentation_test_assert(
+	'dev' === CommerceCheckoutSource::for_order( $source_order ),
+	'Checkout source is read from immutable order metadata.'
+);
 hse_commerce_presentation_test_assert(
 	'HSE-000001' === CommerceOrderNumber::format( 1 )
 		&& 'HSE-1000000' === CommerceOrderNumber::format( 1000000 ),
@@ -318,7 +330,11 @@ hse_commerce_presentation_test_assert(
 );
 hse_commerce_presentation_test_assert(
 	CommerceCustomerEmail::DEFAULT_ADMIN_EMAIL === CommerceCustomerEmail::new_order_recipient( 'legacy-admin@example.test' ),
-	'Merchant new-order notifications replace imported placeholder recipients.'
+	'Staging merchant notifications replace imported placeholder recipients.'
+);
+hse_commerce_presentation_test_assert(
+	CommerceCustomerEmail::DEFAULT_DEV_ADMIN_EMAIL === CommerceCustomerEmail::new_order_recipient( 'legacy-admin@example.test', $source_order ),
+	'Dev merchant notifications use the dedicated development recipient.'
 );
 $merchant_email_stub = (object) array( 'id' => 'new_order' );
 hse_commerce_presentation_test_assert(

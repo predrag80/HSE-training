@@ -59,13 +59,24 @@ final class CommerceCheckout {
 				? sanitize_key( wp_unslash( $_GET[ CommerceLocale::QUERY_VAR ] ) )
 				: 'en'
 		);
+		$source = CommerceCheckoutSource::capture(
+			isset( $_GET[ CommerceCheckoutSource::QUERY_VAR ] )
+				? sanitize_key( wp_unslash( $_GET[ CommerceCheckoutSource::QUERY_VAR ] ) )
+				: 'staging'
+		);
 		WC()->cart->empty_cart();
 		if ( false === WC()->cart->add_to_cart( $product->get_id(), 1 ) ) {
 			self::stop( 409 );
 		}
 
 		wp_safe_redirect(
-			add_query_arg( CommerceLocale::QUERY_VAR, $locale, wc_get_checkout_url() ),
+			add_query_arg(
+				array(
+					CommerceLocale::QUERY_VAR         => $locale,
+					CommerceCheckoutSource::QUERY_VAR => $source,
+				),
+				wc_get_checkout_url()
+			),
 			302,
 			'HSE Training'
 		);

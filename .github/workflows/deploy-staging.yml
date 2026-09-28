@@ -31,6 +31,7 @@ jobs:
       DEPLOY_ROOT: /home/sbb22122/staging.hsetraining.rs
       DEPLOY_URL: https://staging.hsetraining.rs
       WORDPRESS_API_URL: https://cms.hsetraining.rs
+      HSE_CHECKOUT_SOURCE: staging
       SSH_HOST: s83.unlimited.rs
       SSH_PORT: "9780"
       SSH_USER: sbb22122
