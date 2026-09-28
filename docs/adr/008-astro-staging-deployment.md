@@ -2,11 +2,14 @@
 
 ## Status
 
-Accepted
+Superseded
 
 ## Date
 
 2026-09-07
+
+Superseded on 2026-09-28 by the Unlimited dev/staging deployment described in
+`docs/deployment/unlimited.md`.
 
 ## Context
 

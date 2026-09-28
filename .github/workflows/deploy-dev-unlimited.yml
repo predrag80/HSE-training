@@ -1,11 +1,11 @@
-name: Deploy Astro to staging (Unlimited)
+name: Deploy Astro to dev (Unlimited)
 
 on:
   push:
     branches:
-      - main
+      - develop
     paths:
-      - .github/workflows/deploy-staging.yml
+      - .github/workflows/deploy-dev-unlimited.yml
       - .node-version
       - apps/web/**
       - scripts/deploy-astro-unlimited.sh
@@ -15,21 +15,21 @@ permissions:
   contents: read
 
 concurrency:
-  group: hsetraining-staging-unlimited
+  group: hsetraining-dev-unlimited
   cancel-in-progress: true
 
 jobs:
   deploy:
-    name: Build and deploy
+    name: Build and deploy dev
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     environment:
-      name: staging
-      url: https://staging.hsetraining.rs
+      name: dev
+      url: https://dev.hsetraining.rs
     env:
-      DEPLOY_ENVIRONMENT: staging
-      DEPLOY_ROOT: /home/sbb22122/staging.hsetraining.rs
-      DEPLOY_URL: https://staging.hsetraining.rs
+      DEPLOY_ENVIRONMENT: dev
+      DEPLOY_ROOT: /home/sbb22122/dev.hsetraining.rs
+      DEPLOY_URL: https://dev.hsetraining.rs
       WORDPRESS_API_URL: https://cms.hsetraining.rs
       SSH_HOST: s83.unlimited.rs
       SSH_PORT: "9780"
