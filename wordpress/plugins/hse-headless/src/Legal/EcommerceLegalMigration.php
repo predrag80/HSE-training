@@ -8,9 +8,9 @@ defined( 'ABSPATH' ) || exit;
 /** Applies reviewed legal drafts while preserving previous CMS options. */
 final class EcommerceLegalMigration {
 	private const SCHEMA_OPTION = 'hse_ecommerce_legal_schema_version';
-	private const VERSION       = 4;
+	private const VERSION       = 5;
 	private const BACKUP_SUFFIX = '_pre_digital_delivery_20260929';
-	private const ACCESS_TERMS_BACKUP_SUFFIX = '_pre_access_term_20260929';
+	private const PLATFORM_DETAILS_BACKUP_SUFFIX = '_pre_platform_name_20260929';
 
 	/** Register the idempotent migration. */
 	public static function register_hooks(): void {
@@ -28,7 +28,7 @@ final class EcommerceLegalMigration {
 			if ( ! self::migrate_all_documents() ) {
 				return;
 			}
-		} elseif ( ! self::migrate_course_access_terms() ) {
+		} elseif ( ! self::migrate_platform_details() ) {
 			return;
 		}
 
@@ -55,22 +55,29 @@ final class EcommerceLegalMigration {
 		return true;
 	}
 
-	/** Update only the access terms so unrelated editor changes remain intact. */
-	private static function migrate_course_access_terms(): bool {
+	/** Update only platform-related sections so unrelated editor changes remain intact. */
+	private static function migrate_platform_details(): bool {
 		$documents = self::documents();
-		foreach ( array( 'en', 'sr' ) as $locale ) {
-			$option_name = LegalPageSettings::option_name( 'terms', $locale );
-			$previous    = get_option( $option_name, false );
-			if ( ! is_array( $previous ) ) {
-				return false;
-			}
+		$sections  = array(
+			'terms'   => 'section_2_body',
+			'privacy' => 'section_4_body',
+		);
 
-			add_option( $option_name . self::ACCESS_TERMS_BACKUP_SUFFIX, $previous, '', false );
-			$previous['section_2_body'] = $documents['terms'][ $locale ]['section_2_body'];
+		foreach ( $sections as $page_key => $section_key ) {
+			foreach ( array( 'en', 'sr' ) as $locale ) {
+				$option_name = LegalPageSettings::option_name( $page_key, $locale );
+				$previous    = get_option( $option_name, false );
+				if ( ! is_array( $previous ) ) {
+					return false;
+				}
 
-			if ( false === update_option( $option_name, LegalPageSettings::sanitize_settings( $previous ), false )
-				&& false === get_option( $option_name, false ) ) {
-				return false;
+				add_option( $option_name . self::PLATFORM_DETAILS_BACKUP_SUFFIX, $previous, '', false );
+				$previous[ $section_key ] = $documents[ $page_key ][ $locale ][ $section_key ];
+
+				if ( false === update_option( $option_name, LegalPageSettings::sanitize_settings( $previous ), false )
+					&& false === get_option( $option_name, false ) ) {
+					return false;
+				}
 			}
 		}
 
@@ -91,7 +98,7 @@ final class EcommerceLegalMigration {
 					'section_1_title'  => 'Seller information and scope',
 					'section_1_body'   => '<p>The seller is HSE Training DOO, Braće Radovanović 17/5, Lamela C, 11000 Belgrade, Serbia. Company registration number: 20952288. Tax identification number (PIB): 108205616. Registered activity: 7022 — Management consultancy activities. Website: <a href="https://hsetraining.rs/">hsetraining.rs</a>. Customer support and complaints: <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a>, +381 61 5335 010.</p><p>These terms apply to courses offered for online purchase. The course description, language, price, access period and technical requirements shown before checkout form part of the pre-contract information.</p>',
 					'section_2_title'  => 'Digital course delivery and access',
-					'section_2_body'   => '<p>The purchased course is delivered digitally through an external learning platform and no physical shipping applies. After confirmed payment, the purchaser receives instructions or a link to create an account on that platform. The purchaser can create the account and begin the course immediately. Standard access lasts 12 months from the purchase date.</p><p>If the purchaser has not completed the course within that period, further access to the external learning portal may be arranged subject to an additional extension fee charged separately by HSE Training. HSE Training will provide the applicable fee and payment instructions before an extension is activated. The extension fee is not calculated or collected through this website.</p><p>Card delivery begins after the payment provider verifies the transaction. For a direct bank transfer, delivery begins only after HSE Training confirms that the funds have been credited. If account-creation instructions do not arrive or access does not work, contact <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a> and quote the order number.</p>',
+					'section_2_body'   => '<p>The purchased course is delivered digitally through the HSE e-learning platform and no physical shipping applies. After confirmed payment, the purchaser receives instructions or a link to create an account on the platform. The purchaser can create the account and begin the course immediately. Standard access lasts 12 months from the purchase date.</p><p>If the purchaser has not completed the course within that period, further access to the HSE e-learning platform may be arranged subject to an additional extension fee charged separately by HSE Training. HSE Training will provide the applicable fee and payment instructions before an extension is activated. The extension fee is not calculated or collected through this website.</p><p>Card delivery begins after the payment provider verifies the transaction. For a direct bank transfer, delivery begins only after HSE Training confirms that the funds have been credited. If account-creation instructions do not arrive or access does not work, contact <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a> and quote the order number.</p>',
 					'section_3_title'  => 'Prices, card payment and bank transfer',
 					'section_3_body'   => '<p>Checkout prices are displayed and charged in Serbian dinars (RSD). Before submission, checkout shows the course, quantity, unit price, applicable tax and total amount. Any additional cost must be shown before the order is placed.</p><p>Card payments are processed on the Raiffeisen Bank RaiAccept hosted service. HSE Training does not receive or store the full card number, security code or 3-D Secure credentials. If direct bank transfer is selected, the order confirmation provides the bank details and order reference. Creating a bank-transfer order does not constitute payment or activate course access; access begins after the funds are received and confirmed.</p>',
 					'section_4_title'  => 'Ordering and conclusion of the contract',
@@ -113,7 +120,7 @@ final class EcommerceLegalMigration {
 					'section_1_title'  => 'Podaci o prodavcu i primena uslova',
 					'section_1_body'   => '<p>Prodavac je HSE Training DOO, Braće Radovanović 17/5, Lamela C, 11000 Beograd, Srbija. Matični broj: 20952288. PIB: 108205616. Pretežna delatnost: 7022 — Konsultantske aktivnosti u vezi s poslovanjem i ostalim upravljanjem. Internet adresa: <a href="https://hsetraining.rs/">hsetraining.rs</a>. Podrška kupcima i reklamacije: <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a>, +381 61 5335 010.</p><p>Ovi uslovi primenjuju se na kurseve dostupne za online kupovinu. Opis kursa, jezik, cena, period pristupa i tehnički zahtevi prikazani pre checkouta čine deo predugovornog obaveštenja.</p>',
 					'section_2_title'  => 'Digitalna isporuka kursa i pristup',
-					'section_2_body'   => '<p>Kupljeni kurs isporučuje se digitalno preko spoljne platforme za učenje i nema fizičke dostave. Nakon potvrđenog plaćanja kupac dobija uputstvo ili link za kreiranje naloga na toj platformi. Kupac može odmah da kreira nalog i započne kurs. Standardni pristup traje 12 meseci od datuma kupovine.</p><p>Ako kupac ne završi kurs u tom periodu, dodatni pristup spoljnom portalu za učenje može se dogovoriti uz naknadu za produženje koju HSE Training naplaćuje odvojeno. HSE Training će kupcu saopštiti važeći iznos i instrukcije za plaćanje pre aktiviranja produženja. Naknada za produženje ne obračunava se niti naplaćuje preko ovog sajta.</p><p>Kod kartičnog plaćanja isporuka počinje nakon što procesor potvrdi transakciju. Kod direktne uplate na račun isporuka počinje tek nakon što HSE Training potvrdi priliv sredstava. Ako uputstvo za kreiranje naloga ne stigne ili pristup ne radi, kupac treba da kontaktira <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a> i navede broj porudžbine.</p>',
+					'section_2_body'   => '<p>Kupljeni kurs isporučuje se digitalno preko HSE e-learning platforme i nema fizičke dostave. Nakon potvrđenog plaćanja kupac dobija uputstvo ili link za kreiranje naloga na platformi. Kupac može odmah da kreira nalog i započne kurs. Standardni pristup traje 12 meseci od datuma kupovine.</p><p>Ako kupac ne završi kurs u tom periodu, dodatni pristup HSE e-learning platformi može se dogovoriti uz naknadu za produženje koju HSE Training naplaćuje odvojeno. HSE Training će kupcu saopštiti važeći iznos i instrukcije za plaćanje pre aktiviranja produženja. Naknada za produženje ne obračunava se niti naplaćuje preko ovog sajta.</p><p>Kod kartičnog plaćanja isporuka počinje nakon što procesor potvrdi transakciju. Kod direktne uplate na račun isporuka počinje tek nakon što HSE Training potvrdi priliv sredstava. Ako uputstvo za kreiranje naloga ne stigne ili pristup ne radi, kupac treba da kontaktira <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a> i navede broj porudžbine.</p>',
 					'section_3_title'  => 'Cene, kartično plaćanje i direktna uplata',
 					'section_3_body'   => '<p>Cene na checkoutu prikazane su i naplaćuju se u dinarima (RSD). Pre slanja porudžbine prikazuju se kurs, količina, pojedinačna cena, primenljivi porez i ukupan iznos. Svaki dodatni trošak mora biti prikazan pre poručivanja.</p><p>Kartično plaćanje obrađuje se na hostovanom servisu Raiffeisen Bank RaiAccept. HSE Training ne prima niti čuva puni broj kartice, sigurnosni kod ili 3-D Secure podatke. Ako kupac izabere direktnu uplatu, u potvrdi porudžbine dobija podatke računa i poziv na broj. Kreiranje porudžbine za direktnu uplatu ne znači da je kurs plaćen niti aktivira pristup; pristup počinje nakon prijema i potvrde sredstava.</p>',
 					'section_4_title'  => 'Koraci kupovine i zaključenje ugovora',
@@ -141,7 +148,7 @@ final class EcommerceLegalMigration {
 					'section_3_title'  => 'Purposes and legal bases',
 					'section_3_body'   => '<p>Enquiries and checkout preparation are processed to take requested pre-contract steps. Orders, payment reconciliation, refunds, account-creation instructions and course access are processed to perform the contract. Fiscal, accounting and complaint records are processed to comply with legal duties. Service security, fraud prevention, delivery evidence and legal claims are processed for the legitimate interests of operating and protecting the service and demonstrating compliance, subject to the required balancing assessment. Optional external media is loaded only with consent.</p><p>We do not use checkout data for automated decision-making or profiling that produces legal or similarly significant effects.</p>',
 					'section_4_title'  => 'Providers, recipients and international transfers',
-					'section_4_body'   => '<p>Necessary data may be processed by our hosting and authenticated email providers; WooCommerce for order administration; Raiffeisen Bank/RaiAccept for hosted card payment; BokaPOS for fiscalisation and electronic fiscal receipts; professional advisers; public authorities where legally required; and the external learning platform on which the purchaser creates an account and accesses the paid course.</p><p>Only the data required for each purpose is shared. If a provider processes data outside Serbia, HSE Training will use an applicable legal transfer mechanism and make information about the relevant safeguards available. We do not sell personal data.</p>',
+					'section_4_body'   => '<p>Necessary data may be processed by our hosting and authenticated email providers; WooCommerce for order administration; Raiffeisen Bank/RaiAccept for hosted card payment; BokaPOS for fiscalisation and electronic fiscal receipts; professional advisers; public authorities where legally required; and the HSE e-learning platform on which the purchaser creates an account and accesses the paid course.</p><p>Only the data required for each purpose is shared. If a provider processes data outside Serbia, HSE Training will use an applicable legal transfer mechanism and make information about the relevant safeguards available. We do not sell personal data.</p>',
 					'section_5_title'  => 'Retention and delivery evidence',
 					'section_5_body'   => '<p>Transaction and electronic-delivery evidence is retained for at least 120 days and longer while a payment dispute, complaint or legal claim may be pursued. Complaint records are kept for at least two years. Order, payment, fiscal, tax, accounting and contractual records are retained for the periods required by applicable law. Enquiries, security logs and consent records are kept only for as long as necessary for their stated purpose, security investigation or proof of compliance, after which they are deleted, anonymised or securely archived.</p>',
 					'section_6_title'  => 'Cookies and external content',
@@ -163,7 +170,7 @@ final class EcommerceLegalMigration {
 					'section_3_title'  => 'Svrhe i pravni osnovi',
 					'section_3_body'   => '<p>Upite i pripremu checkouta obrađujemo radi preduzimanja radnji na zahtev lica pre zaključenja ugovora. Porudžbine, usklađivanje i povraćaj uplata, uputstvo za kreiranje naloga i pristup kursu obrađujemo radi izvršenja ugovora. Fiskalne, računovodstvene i reklamacione podatke obrađujemo radi poštovanja pravnih obaveza. Bezbednost servisa, sprečavanje prevare, dokaz isporuke i pravne zahteve obrađujemo zbog legitimnog interesa da servis radi bezbedno i da možemo dokazati usklađenost, uz potrebnu procenu interesa. Opcioni spoljni sadržaj učitava se samo na osnovu pristanka.</p><p>Checkout podatke ne koristimo za automatizovano odlučivanje ili profilisanje koje proizvodi pravne ili slično značajne posledice.</p>',
 					'section_4_title'  => 'Pružaoci, primaoci i međunarodni prenos',
-					'section_4_body'   => '<p>Neophodne podatke mogu obrađivati pružaoci hostinga i autentifikovanog emaila; WooCommerce za administraciju porudžbina; Raiffeisen Bank/RaiAccept za hostovano kartično plaćanje; BokaPOS za fiskalizaciju i elektronske fiskalne račune; stručni savetnici; nadležni organi kada je to zakonski obavezno; i spoljna platforma za učenje na kojoj kupac kreira nalog i pristupa plaćenom kursu.</p><p>Deli se samo obim podataka potreban za konkretnu svrhu. Ako pružalac obrađuje podatke van Srbije, HSE Training će primeniti odgovarajući zakonski mehanizam prenosa i učiniti dostupnim informacije o merama zaštite. Podatke o ličnosti ne prodajemo.</p>',
+					'section_4_body'   => '<p>Neophodne podatke mogu obrađivati pružaoci hostinga i autentifikovanog emaila; WooCommerce za administraciju porudžbina; Raiffeisen Bank/RaiAccept za hostovano kartično plaćanje; BokaPOS za fiskalizaciju i elektronske fiskalne račune; stručni savetnici; nadležni organi kada je to zakonski obavezno; i HSE e-learning platforma na kojoj kupac kreira nalog i pristupa plaćenom kursu.</p><p>Deli se samo obim podataka potreban za konkretnu svrhu. Ako pružalac obrađuje podatke van Srbije, HSE Training će primeniti odgovarajući zakonski mehanizam prenosa i učiniti dostupnim informacije o merama zaštite. Podatke o ličnosti ne prodajemo.</p>',
 					'section_5_title'  => 'Rok čuvanja i dokaz isporuke',
 					'section_5_body'   => '<p>Evidencija transakcije i elektronske isporuke čuva se najmanje 120 dana, odnosno duže dok je moguć spor u vezi sa plaćanjem, reklamacija ili pravni zahtev. Evidencija reklamacija čuva se najmanje dve godine. Porudžbine, platna, fiskalna, poreska, računovodstvena i ugovorna dokumentacija čuva se u rokovima propisanim važećim pravom. Upiti, bezbednosni logovi i evidencije saglasnosti čuvaju se samo koliko je potrebno za navedenu svrhu, bezbednosnu istragu ili dokaz usklađenosti, nakon čega se brišu, anonimizuju ili bezbedno arhiviraju.</p>',
 					'section_6_title'  => 'Kolačići i spoljni sadržaj',

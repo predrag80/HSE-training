@@ -2,7 +2,7 @@
 /**
  * Plugin Name: HSE Training Headless
  * Description: Custom headless CMS functionality for the HSE Training platform.
- * Version: 0.26.7
+ * Version: 0.26.8
  * Text Domain: hse-headless
  *
  * @package HSETraining\Headless

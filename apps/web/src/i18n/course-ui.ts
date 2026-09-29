@@ -66,7 +66,7 @@ const courseTranslations = {
 				faqs: [
 					{ question: 'Who normally takes this qualification?', answer: 'Managers, supervisors, employees with safety responsibilities and people preparing for a career in health and safety.' },
 					{ question: 'Do I need previous health and safety knowledge?', answer: 'No formal health and safety qualification is required. Learners need sufficient English to understand and explain the concepts in the syllabus.' },
-					{ question: 'How do I receive course access?', answer: 'After confirmed payment, you receive instructions to create an account on the external learning platform and can begin immediately. Standard course access lasts 12 months from purchase. If you have not completed the course within that period, further portal access may be arranged for an additional extension fee charged separately by HSE Training. The extension fee is not collected through this website.' },
+					{ question: 'How do I receive course access?', answer: 'After confirmed payment, you receive instructions to create an account on the HSE e-learning platform and can begin immediately. Standard course access lasts 12 months from purchase. If you have not completed the course within that period, further platform access may be arranged for an additional extension fee charged separately by HSE Training. The extension fee is not collected through this website.' },
 				],
 				inlineCta: 'Ready to discuss the International General Certificate?',
 			},
@@ -173,7 +173,7 @@ const courseTranslations = {
 				faqs: [
 					{ question: 'Ko najčešće pohađa ovu kvalifikaciju?', answer: 'Rukovodioci, supervizori, zaposleni sa odgovornostima za bezbednost i osobe koje se pripremaju za karijeru u ovoj oblasti.' },
 					{ question: 'Da li mi je potrebno prethodno znanje?', answer: 'Nije potrebna formalna kvalifikacija iz bezbednosti i zdravlja na radu. Potreban je dovoljan nivo engleskog jezika za razumevanje i objašnjavanje pojmova iz programa.' },
-					{ question: 'Kako dobijam pristup kursu?', answer: 'Nakon potvrđenog plaćanja dobijate uputstvo za kreiranje naloga na spoljnoj platformi za učenje i možete odmah započeti kurs. Standardni pristup traje 12 meseci od kupovine. Ako kurs ne završite u tom roku, dodatni pristup portalu može se dogovoriti uz naknadu za produženje koju HSE Training naplaćuje odvojeno. Naknada za produženje ne plaća se preko ovog sajta.' },
+					{ question: 'Kako dobijam pristup kursu?', answer: 'Nakon potvrđenog plaćanja dobijate uputstvo za kreiranje naloga na HSE e-learning platformi i možete odmah započeti kurs. Standardni pristup traje 12 meseci od kupovine. Ako kurs ne završite u tom roku, dodatni pristup platformi može se dogovoriti uz naknadu za produženje koju HSE Training naplaćuje odvojeno. Naknada za produženje ne plaća se preko ovog sajta.' },
 				],
 				inlineCta: 'Želite da razgovaramo o International General Certificate kursu?',
 			},
