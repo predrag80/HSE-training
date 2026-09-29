@@ -21,6 +21,7 @@ const localizedContentPaths = new Set([
 	'/training/train-the-trainer/',
 	'/privacy-policy/',
 	'/terms-and-conditions/',
+	'/withdrawal-form/',
 	'/copyright/',
 ]);
 const localizedContentPrefixes = ['/courses/'];

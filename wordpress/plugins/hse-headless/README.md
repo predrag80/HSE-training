@@ -32,6 +32,12 @@ explicit English and Serbian variants without a third-party translation plugin.
 - Closed, non-indexable WordPress theme frontend
 - Customer-facing WooCommerce order numbers with an environment-local `HSE-000001` sequence
 
+Hero Slide featured images must be at least 1600 × 900 pixels. The editor
+recommends 1920 × 1080 pixels and automatically keeps a slide in draft when a
+smaller image is selected. This validation is scoped to Hero Slides and does
+not block smaller team photos, logos, or document thumbnails elsewhere in the
+Media Library.
+
 ## Headless Access Boundary
 
 Normal theme requests return HTTP 404 and a minimal non-indexable response.
@@ -205,6 +211,7 @@ numbering. The public read-only documents are available at:
 ```text
 /wp-json/hse/v1/legal-pages/privacy?lang=en
 /wp-json/hse/v1/legal-pages/terms?lang=en
+/wp-json/hse/v1/legal-pages/withdrawal?lang=en
 /wp-json/hse/v1/legal-pages/copyright?lang=en
 ```
 
@@ -330,7 +337,10 @@ merchant recipients. Checkout and the order-received endpoint render inside a
 plugin-owned, non-indexable HSE shell and use the classic Woo checkout renderer;
 WooCommerce and RaiAccept core files remain untouched. Confirmation copy comes
 from the Woo order status and does not treat a browser return as proof of
-payment.
+payment. Checkout separately records the purchaser's express request for
+immediate digital delivery, including the UTC timestamp and wording version,
+and the completed-order email confirms that acknowledgement and the external
+platform account-creation step.
 
 `HSE_PUBLIC_SITE_URL` owns checkout links back to Astro. Set it to
 `https://staging.hsetraining.rs` on staging and `https://hsetraining.rs` in

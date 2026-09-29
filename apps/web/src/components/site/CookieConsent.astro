@@ -1,0 +1,122 @@
+---
+import './cookie-consent.css';
+import type { Locale } from '../../i18n/config';
+import { getUiTranslations } from '../../i18n/ui';
+
+interface Props {
+	readonly locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = getUiTranslations(locale).cookies;
+---
+
+<aside class="cookie-consent" data-cookie-consent hidden aria-labelledby="cookie-consent-title">
+	<div class="cookie-consent__summary">
+		<div>
+			<p class="cookie-consent__eyebrow">{copy.eyebrow}</p>
+			<h2 id="cookie-consent-title">{copy.title}</h2>
+			<p>{copy.description}</p>
+		</div>
+		<div class="cookie-consent__actions">
+			<button type="button" class="cookie-consent__button cookie-consent__button--primary" data-cookie-action="accept-all">{copy.acceptAll}</button>
+			<button type="button" class="cookie-consent__button" data-cookie-action="necessary">{copy.necessaryOnly}</button>
+			<button type="button" class="cookie-consent__settings-button" data-cookie-action="toggle-settings" aria-expanded="false">{copy.settings}</button>
+		</div>
+	</div>
+
+	<div class="cookie-consent__settings" data-cookie-settings-panel hidden>
+		<section>
+			<div>
+				<h3>{copy.necessaryTitle}</h3>
+				<p>{copy.necessaryDescription}</p>
+				<ul>
+					<li><code>hse_cookie_consent</code> — {copy.consentCookie}</li>
+					<li><code>hse_checkout_locale</code> — {copy.localeCookie}</li>
+					<li><code>woocommerce_*</code> — {copy.commerceCookies}</li>
+				</ul>
+			</div>
+			<strong>{copy.alwaysActive}</strong>
+		</section>
+		<section>
+			<div>
+				<h3>{copy.externalTitle}</h3>
+				<p>{copy.externalDescription}</p>
+			</div>
+			<label class="cookie-consent__switch">
+				<input type="checkbox" data-external-media-toggle />
+				<span>{copy.externalToggle}</span>
+			</label>
+		</section>
+		<div class="cookie-consent__save-row">
+			<button type="button" class="cookie-consent__button cookie-consent__button--primary" data-cookie-action="save">{copy.save}</button>
+		</div>
+	</div>
+</aside>
+
+<script>
+	import {
+		createCookieConsentValue,
+		readCookieConsent,
+		type CookieConsentLevel,
+	} from '../../lib/cookie-consent';
+
+	const consent = document.querySelector<HTMLElement>('[data-cookie-consent]');
+	const settingsPanel = consent?.querySelector<HTMLElement>('[data-cookie-settings-panel]');
+	const settingsButton = consent?.querySelector<HTMLButtonElement>('[data-cookie-action="toggle-settings"]');
+	const externalMediaToggle = consent?.querySelector<HTMLInputElement>('[data-external-media-toggle]');
+
+	const showConsent = (showSettings = false) => {
+		if (!consent) return;
+		consent.hidden = false;
+		if (settingsPanel) settingsPanel.hidden = !showSettings;
+		settingsButton?.setAttribute('aria-expanded', String(showSettings));
+		if (showSettings) settingsButton?.focus();
+	};
+
+	const hideConsent = () => {
+		if (consent) consent.hidden = true;
+	};
+
+	const saveConsent = (level: CookieConsentLevel) => {
+		document.cookie = createCookieConsentValue(level, location.protocol === 'https:');
+		if (externalMediaToggle) externalMediaToggle.checked = level === 'external-media';
+		window.dispatchEvent(new CustomEvent('hse:consent-changed', { detail: { level } }));
+		hideConsent();
+	};
+
+	const savedConsent = readCookieConsent(document.cookie);
+	if (externalMediaToggle) externalMediaToggle.checked = savedConsent === 'external-media';
+	if (!savedConsent) showConsent();
+
+	consent?.addEventListener('click', (event) => {
+		const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-cookie-action]');
+		if (!button) return;
+
+		switch (button.dataset.cookieAction) {
+			case 'accept-all':
+				saveConsent('external-media');
+				break;
+			case 'necessary':
+				saveConsent('necessary');
+				break;
+			case 'toggle-settings': {
+				const shouldOpen = settingsPanel?.hidden ?? false;
+				if (settingsPanel) settingsPanel.hidden = !shouldOpen;
+				button.setAttribute('aria-expanded', String(shouldOpen));
+				break;
+			}
+			case 'save':
+				saveConsent(externalMediaToggle?.checked ? 'external-media' : 'necessary');
+				break;
+		}
+	});
+
+	document.querySelectorAll<HTMLButtonElement>('[data-open-cookie-settings]').forEach((button) => {
+		button.addEventListener('click', () => showConsent(true));
+	});
+
+	window.addEventListener('hse:consent-request', ((event: CustomEvent<{ level?: CookieConsentLevel }>) => {
+		if (event.detail?.level) saveConsent(event.detail.level);
+	}) as EventListener);
+</script>

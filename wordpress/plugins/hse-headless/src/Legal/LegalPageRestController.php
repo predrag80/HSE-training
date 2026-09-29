@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 /** Exposes only validated, published legal content. */
 final class LegalPageRestController {
 	public const REST_NAMESPACE = 'hse/v1';
-	public const REST_ROUTE     = '/legal-pages/(?P<page_key>privacy|terms|copyright)';
+	public const REST_ROUTE     = '/legal-pages/(?P<page_key>privacy|terms|withdrawal|copyright)';
 
 	/** Register WordPress hooks. */
 	public static function register_hooks(): void {

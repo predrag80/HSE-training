@@ -105,7 +105,9 @@ const currentYear = new Date().getFullYear();
 		<nav aria-label={copy.legalNavigation}>
 			<ul>
 				<li><a href={path('/privacy-policy/')}>{copy.privacyPolicy}</a></li>
+				<li><button type="button" class="site-footer__cookie-settings" data-open-cookie-settings>{copy.cookieSettings}</button></li>
 				<li><a href={path('/terms-and-conditions/')}>{copy.terms}</a></li>
+				<li><a href={path('/withdrawal-form/')}>{copy.withdrawalForm}</a></li>
 				<li><a href={path('/copyright/')}>{copy.copyright}</a></li>
 			</ul>
 		</nav>

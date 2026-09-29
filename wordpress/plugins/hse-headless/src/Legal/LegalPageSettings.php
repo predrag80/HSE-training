@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 /** Owns locale-specific legal copy while Astro owns presentation. */
 final class LegalPageSettings {
 	public const OPTION_PREFIX = 'hse_legal_page';
-	public const PAGE_KEYS     = array( 'privacy', 'terms', 'copyright' );
+	public const PAGE_KEYS     = array( 'privacy', 'terms', 'withdrawal', 'copyright' );
 	public const MAX_SECTIONS  = 7;
 
 	private const PAGE_SLUG      = 'hse-legal-pages';
@@ -289,6 +289,7 @@ final class LegalPageSettings {
 		$labels = array(
 			'privacy'   => __( 'Privacy Policy', 'hse-headless' ),
 			'terms'     => __( 'Terms and Conditions', 'hse-headless' ),
+			'withdrawal' => __( 'Withdrawal Form', 'hse-headless' ),
 			'copyright' => __( 'Copyright', 'hse-headless' ),
 		);
 

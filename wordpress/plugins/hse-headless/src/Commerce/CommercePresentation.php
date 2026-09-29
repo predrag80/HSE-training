@@ -11,10 +11,14 @@ defined( 'ABSPATH' ) || exit;
 
 /** Owns the temporary checkout shell without modifying WooCommerce templates. */
 final class CommercePresentation {
-	public const BUYER_TYPE_META         = '_hse_buyer_type';
-	public const COMPANY_TAX_ID_META     = '_hse_company_tax_id';
-	public const COMPANY_REG_NUMBER_META = '_hse_company_registration_number';
-	private const BOKAPOS_BUYER_ID_META  = '_bokapos_buyer_id';
+	public const BUYER_TYPE_META              = '_hse_buyer_type';
+	public const COMPANY_TAX_ID_META          = '_hse_company_tax_id';
+	public const COMPANY_REG_NUMBER_META      = '_hse_company_registration_number';
+	public const DIGITAL_CONSENT_META         = '_hse_digital_delivery_consent';
+	public const DIGITAL_CONSENT_AT_META      = '_hse_digital_delivery_consent_at';
+	public const DIGITAL_CONSENT_VERSION_META = '_hse_digital_delivery_consent_version';
+	public const DIGITAL_CONSENT_VERSION      = '2026-09-29';
+	private const BOKAPOS_BUYER_ID_META       = '_bokapos_buyer_id';
 
 	private const VALIDATION_COPY_KEYS = array(
 		'' => array(
@@ -48,9 +52,10 @@ final class CommercePresentation {
 			'contact'               => 'Need help? Contact us',
 			'privacy'               => 'Privacy Policy',
 			'terms'                 => 'Purchase Terms',
-			'place_order'           => 'Continue to secure payment',
-			'place_order_card'      => 'Continue to secure payment',
-			'place_order_bank'      => 'Confirm order',
+			'withdrawal_form'       => 'Withdrawal form',
+			'place_order'           => 'Order and pay',
+			'place_order_card'      => 'Order and pay',
+			'place_order_bank'      => 'Place order with obligation to pay',
 			'billing_details'       => 'Billing details',
 			'buyer_type'            => 'Customer type',
 			'buyer_individual'      => 'Individual',
@@ -122,8 +127,14 @@ final class CommercePresentation {
 			'privacy_notice'        => 'Your personal data will be used to process this order and as described in our <a href="%s">Privacy Policy</a>.',
 			'terms_consent'         => 'I have read and agree to the <a href="%s">Purchase Terms</a> and <a href="%s">Privacy Policy</a>.',
 			'terms_required'        => 'Please accept the Purchase Terms and Privacy Policy before continuing.',
+			'digital_consent'       => 'I expressly request immediate delivery of the digital course after confirmed payment. I understand that once digital delivery begins, I lose the right to withdraw to the extent provided by applicable law.',
+			'digital_consent_required' => 'Please confirm that you request immediate digital delivery and acknowledge the effect on your right to withdraw.',
+			'digital_consent_admin' => 'Immediate digital delivery consent',
+			'digital_consent_yes'   => 'Accepted',
+			'digital_consent_time'  => 'Consent recorded at',
+			'digital_consent_version' => 'Consent text version',
 			'next_steps_title'      => 'What happens next?',
-			'next_steps_paid'       => 'Payment has been confirmed. Our team will contact you by email with the next steps for course enrolment.',
+			'next_steps_paid'       => 'Payment has been confirmed. Follow the instructions sent by email to create your account on the external learning platform and begin the course immediately.',
 			'next_steps_pending'    => 'Your order has been received. We are waiting for the payment provider to confirm the transaction.',
 			'next_steps_failed'     => 'Payment was not completed. Please try again or contact us if you need assistance.',
 			'order_received_paid'   => 'Thank you. Your payment has been confirmed.',
@@ -147,9 +158,10 @@ final class CommercePresentation {
 			'contact'               => 'Potrebna vam je pomoć? Kontaktirajte nas',
 			'privacy'               => 'Politika privatnosti',
 			'terms'                 => 'Uslovi kupovine',
-			'place_order'           => 'Nastavite na bezbedno plaćanje',
-			'place_order_card'      => 'Nastavite na bezbedno plaćanje',
-			'place_order_bank'      => 'Potvrdite porudžbinu',
+			'withdrawal_form'       => 'Obrazac za odustanak',
+			'place_order'           => 'Poručite i platite',
+			'place_order_card'      => 'Poručite i platite',
+			'place_order_bank'      => 'Potvrdite porudžbinu sa obavezom plaćanja',
 			'billing_details'       => 'Podaci o kupcu',
 			'buyer_type'            => 'Tip kupca',
 			'buyer_individual'      => 'Fizičko lice',
@@ -221,8 +233,14 @@ final class CommercePresentation {
 			'privacy_notice'        => 'Vaši lični podaci biće korišćeni za obradu porudžbine i na način opisan u našoj <a href="%s">Politici privatnosti</a>.',
 			'terms_consent'         => 'Pročitao/la sam i prihvatam <a href="%s">Uslove kupovine</a> i <a href="%s">Politiku privatnosti</a>.',
 			'terms_required'        => 'Pre nastavka prihvatite Uslove kupovine i Politiku privatnosti.',
+			'digital_consent'       => 'Izričito zahtevam da isporuka digitalnog kursa počne odmah nakon potvrđenog plaćanja. Razumem da početkom digitalne isporuke gubim pravo na odustanak u meri propisanoj važećim zakonom.',
+			'digital_consent_required' => 'Potvrdite da zahtevate trenutnu digitalnu isporuku i da razumete njen uticaj na pravo na odustanak.',
+			'digital_consent_admin' => 'Saglasnost za trenutnu digitalnu isporuku',
+			'digital_consent_yes'   => 'Prihvaćena',
+			'digital_consent_time'  => 'Vreme evidentiranja saglasnosti',
+			'digital_consent_version' => 'Verzija teksta saglasnosti',
 			'next_steps_title'      => 'Šta sledi?',
-			'next_steps_paid'       => 'Plaćanje je potvrđeno. Naš tim će vam poslati email sa sledećim koracima za prijavu na kurs.',
+			'next_steps_paid'       => 'Plaćanje je potvrđeno. Pratite uputstvo poslato emailom, kreirajte nalog na spoljnoj platformi za učenje i odmah započnite kurs.',
 			'next_steps_pending'    => 'Porudžbina je primljena. Čekamo potvrdu transakcije od procesora plaćanja.',
 			'next_steps_failed'     => 'Plaćanje nije završeno. Pokušajte ponovo ili nas kontaktirajte ako vam je potrebna pomoć.',
 			'order_received_paid'   => 'Hvala. Vaše plaćanje je potvrđeno.',
@@ -258,6 +276,7 @@ final class CommercePresentation {
 		add_filter( 'woocommerce_get_privacy_policy_text', array( self::class, 'privacy_notice' ), 20, 2 );
 		add_action( 'woocommerce_review_order_before_submit', array( self::class, 'render_terms_consent' ), 15 );
 		add_action( 'woocommerce_checkout_process', array( self::class, 'validate_terms_consent' ) );
+		add_action( 'woocommerce_checkout_create_order', array( self::class, 'save_legal_consents' ), 30, 2 );
 		add_filter( 'woocommerce_thankyou_order_received_text', array( self::class, 'order_received_text' ), 20, 2 );
 		add_action( 'woocommerce_thankyou', array( self::class, 'render_next_steps' ), 5 );
 		add_filter( 'woocommerce_get_order_item_totals', array( self::class, 'localize_order_totals' ), 20, 3 );
@@ -335,7 +354,7 @@ final class CommercePresentation {
 		}
 
 		$plugin_url = plugin_dir_url( dirname( __DIR__, 2 ) . '/hse-headless.php' );
-		wp_enqueue_style( 'hse-commerce', $plugin_url . 'assets/commerce.css', array( 'woocommerce-layout', 'woocommerce-general' ), '0.26.4' );
+		wp_enqueue_style( 'hse-commerce', $plugin_url . 'assets/commerce.css', array( 'woocommerce-layout', 'woocommerce-general' ), '0.26.6' );
 
 		wp_add_inline_script(
 			'wc-checkout',
@@ -724,6 +743,18 @@ JS;
 		foreach ( self::order_buyer_details( $order, $locale ) as $detail ) {
 			echo '<p><strong>' . esc_html( $detail['label'] ) . ':</strong> ' . esc_html( $detail['value'] ) . '</p>';
 		}
+
+		if ( method_exists( $order, 'get_meta' ) && 'yes' === $order->get_meta( self::DIGITAL_CONSENT_META, true ) ) {
+			$recorded_at = sanitize_text_field( (string) $order->get_meta( self::DIGITAL_CONSENT_AT_META, true ) );
+			$version     = sanitize_text_field( (string) $order->get_meta( self::DIGITAL_CONSENT_VERSION_META, true ) );
+			echo '<p><strong>' . esc_html( self::copy_for_locale( 'digital_consent_admin', $locale ) ) . ':</strong> ' . esc_html( self::copy_for_locale( 'digital_consent_yes', $locale ) ) . '</p>';
+			if ( '' !== $recorded_at ) {
+				echo '<p><strong>' . esc_html( self::copy_for_locale( 'digital_consent_time', $locale ) ) . ':</strong> ' . esc_html( $recorded_at ) . '</p>';
+			}
+			if ( '' !== $version ) {
+				echo '<p><strong>' . esc_html( self::copy_for_locale( 'digital_consent_version', $locale ) ) . ':</strong> ' . esc_html( $version ) . '</p>';
+			}
+		}
 	}
 
 	/** Add buyer identity data to WooCommerce's standard merchant emails. */
@@ -863,8 +894,9 @@ JS;
 			return;
 		}
 
-		$checked = isset( $_POST['hse_terms_consent'] );
-		$text    = sprintf(
+		$checked         = self::posted_checkbox_is_checked( 'hse_terms_consent' );
+		$digital_checked = self::posted_checkbox_is_checked( 'hse_digital_delivery_consent' );
+		$text            = sprintf(
 			self::copy( 'terms_consent' ),
 			esc_url( self::public_url( '/terms-and-conditions/' ) ),
 			esc_url( self::public_url( '/privacy-policy/' ) )
@@ -877,14 +909,43 @@ JS;
 				<abbr class="required" title="required">*</abbr>
 			</label>
 		</p>
+		<p class="form-row validate-required hse-commerce__consent hse-commerce__consent--digital">
+			<label class="woocommerce-form__label woocommerce-form__label-for-checkbox checkbox" for="hse_digital_delivery_consent">
+				<input type="checkbox" class="woocommerce-form__input woocommerce-form__input-checkbox input-checkbox" name="hse_digital_delivery_consent" id="hse_digital_delivery_consent" value="1" <?php checked( $digital_checked ); ?> required />
+				<span><?php echo esc_html( self::copy( 'digital_consent' ) ); ?></span>
+				<abbr class="required" title="required">*</abbr>
+			</label>
+		</p>
 		<?php
 	}
 
 	/** Reject checkout server-side when the legal acknowledgement is missing. */
 	public static function validate_terms_consent(): void {
-		if ( ! isset( $_POST['hse_terms_consent'] ) ) {
+		if ( ! self::posted_checkbox_is_checked( 'hse_terms_consent' ) ) {
 			wc_add_notice( self::copy( 'terms_required' ), 'error' );
 		}
+		if ( ! self::posted_checkbox_is_checked( 'hse_digital_delivery_consent' ) ) {
+			wc_add_notice( self::copy( 'digital_consent_required' ), 'error' );
+		}
+	}
+
+	/** Persist the explicit digital-delivery acknowledgement with its wording version. */
+	public static function save_legal_consents( $order, array $data ): void {
+		unset( $data );
+		if ( ! is_object( $order ) || ! method_exists( $order, 'update_meta_data' ) ) {
+			return;
+		}
+
+		if ( self::posted_checkbox_is_checked( 'hse_digital_delivery_consent' ) ) {
+			$order->update_meta_data( self::DIGITAL_CONSENT_META, 'yes' );
+			$order->update_meta_data( self::DIGITAL_CONSENT_AT_META, gmdate( 'c' ) );
+			$order->update_meta_data( self::DIGITAL_CONSENT_VERSION_META, self::DIGITAL_CONSENT_VERSION );
+		}
+	}
+
+	/** Accept only the explicit checkbox value rendered by this checkout. */
+	private static function posted_checkbox_is_checked( string $name ): bool {
+		return isset( $_POST[ $name ] ) && '1' === sanitize_text_field( wp_unslash( $_POST[ $name ] ) );
 	}
 
 	/** Keep the return page accurate if the provider notification is still pending. */

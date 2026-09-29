@@ -116,6 +116,12 @@ try {
 	hse_homepage_test_assert( 'homepage-main' === HeroSlideMeta::sanitize_slide_key( 'Homepage Main' ), 'Slide keys normalize to canonical form.' );
 	hse_homepage_test_assert( '' === HeroSlideMeta::sanitize_link_url( 'javascript:alert(1)' ), 'Unsafe Hero Slide links are rejected.' );
 	hse_homepage_test_assert( '/browse-hse-talent/' === HeroSlideMeta::sanitize_link_url( '/browse-hse-talent/' ), 'Same-site Hero Slide links are accepted.' );
+	hse_homepage_test_assert(
+		HeroSlideMeta::meets_minimum_image_dimensions( 1920, 1080 )
+			&& HeroSlideMeta::meets_minimum_image_dimensions( 1600, 900 )
+			&& ! HeroSlideMeta::meets_minimum_image_dimensions( 612, 306 ),
+		'Hero Slide dimensions reject small images while accepting the minimum and recommended sizes.'
+	);
 
 	foreach ( $published_before as $published_id ) {
 		wp_update_post(
@@ -138,10 +144,14 @@ try {
 		throw new RuntimeException( 'Could not create the temporary Homepage image.' );
 	}
 
-	$png = base64_decode( 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', true );
-	if ( false === $png || false === file_put_contents( $temp_file, $png ) ) {
+	if ( ! function_exists( 'imagecreatetruecolor' ) || ! function_exists( 'imagepng' ) ) {
+		throw new RuntimeException( 'GD is required to create the temporary Homepage image.' );
+	}
+	$png = imagecreatetruecolor( HeroSlideMeta::MIN_IMAGE_WIDTH, HeroSlideMeta::MIN_IMAGE_HEIGHT );
+	if ( false === $png || ! imagepng( $png, $temp_file ) ) {
 		throw new RuntimeException( 'Could not write the temporary Homepage image.' );
 	}
+	imagedestroy( $png );
 
 	$attachment_id = wp_insert_attachment(
 		array(
@@ -243,7 +253,7 @@ try {
 	hse_homepage_test_assert( 'en' === ( $data['locale'] ?? null ), 'Homepage REST defaults to English.' );
 	hse_homepage_test_assert( HeroSlideMeta::MAX_PUBLISHED === count( $data['hero']['slides'] ?? array() ), 'Homepage REST returns all five published slides.' );
 	hse_homepage_test_assert( $key_prefix . '-first' === ( $data['hero']['slides'][0]['slide_key'] ?? null ), 'Homepage REST orders slides by the WordPress Order field.' );
-	hse_homepage_test_assert( 1 === ( $data['hero']['slides'][0]['image']['width'] ?? null ), 'Homepage REST resolves image dimensions.' );
+	hse_homepage_test_assert( HeroSlideMeta::MIN_IMAGE_WIDTH === ( $data['hero']['slides'][0]['image']['width'] ?? null ), 'Homepage REST resolves image dimensions.' );
 	hse_homepage_test_assert( ! isset( $data['hero']['slides'][0]['image']['id'] ), 'WordPress attachment IDs do not cross the CMS boundary.' );
 	hse_homepage_test_assert( 1 === count( $data['featured_services'] ?? array() ), 'Homepage REST contains the featured Service collection.' );
 	hse_homepage_test_assert( ! isset( $data['featured_services'][0]['image']['id'] ), 'Service attachment IDs do not cross the Homepage API boundary.' );

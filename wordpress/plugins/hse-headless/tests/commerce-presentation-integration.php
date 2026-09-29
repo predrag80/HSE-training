@@ -130,7 +130,8 @@ CommerceLocale::capture( 'en' );
 hse_commerce_presentation_test_assert( 'Billing details' === CommercePresentation::copy( 'billing_details' ), 'English checkout copy is available.' );
 hse_commerce_presentation_test_assert(
 	'Direct bank transfer' === CommercePresentation::copy( 'bank_transfer_title' )
-		&& 'Confirm order' === CommercePresentation::copy( 'place_order_bank' ),
+		&& 'Place order with obligation to pay' === CommercePresentation::copy( 'place_order_bank' )
+		&& 'Order and pay' === CommercePresentation::copy( 'place_order_card' ),
 	'English bank-transfer checkout copy is available.'
 );
 hse_commerce_presentation_test_assert(
@@ -153,8 +154,20 @@ hse_commerce_presentation_test_assert(
 CommerceLocale::capture( 'sr' );
 hse_commerce_presentation_test_assert(
 	'Direktna uplata na račun' === CommercePresentation::copy( 'bank_transfer_title' )
-		&& 'Potvrdite porudžbinu' === CommercePresentation::copy( 'place_order_bank' ),
+		&& 'Potvrdite porudžbinu sa obavezom plaćanja' === CommercePresentation::copy( 'place_order_bank' )
+		&& 'Poručite i platite' === CommercePresentation::copy( 'place_order_card' ),
 	'Serbian bank-transfer checkout copy is localized.'
+);
+
+$_POST['hse_digital_delivery_consent'] = '1';
+$consent_order = new HseCommercePresentationTestOrder();
+CommercePresentation::save_legal_consents( $consent_order, array() );
+unset( $_POST['hse_digital_delivery_consent'] );
+hse_commerce_presentation_test_assert(
+	'yes' === ( $consent_order->meta[ CommercePresentation::DIGITAL_CONSENT_META ] ?? '' )
+		&& CommercePresentation::DIGITAL_CONSENT_VERSION === ( $consent_order->meta[ CommercePresentation::DIGITAL_CONSENT_VERSION_META ] ?? '' )
+		&& '' !== ( $consent_order->meta[ CommercePresentation::DIGITAL_CONSENT_AT_META ] ?? '' ),
+	'Immediate digital-delivery consent is stored with its UTC time and wording version.'
 );
 $bank_fields = array(
 	'bank_name'      => array( 'label' => 'Bank', 'value' => 'Example bank' ),

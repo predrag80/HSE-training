@@ -62,6 +62,9 @@ foreach ( $order->get_items( 'line_item' ) as $item ) {
 echo "\n" . esc_html( $copy['subtotal'] ) . ': ' . esc_html( wp_strip_all_tags( wc_price( $order->get_subtotal(), $price_args ) ) ) . "\n";
 echo esc_html( $copy['total_paid'] ) . ': ' . esc_html( wp_strip_all_tags( $order->get_formatted_order_total() ) ) . "\n\n";
 echo esc_html( $copy['payment_received'] ) . "\n\n";
+echo esc_html( $copy['access_heading'] ) . "\n";
+echo esc_html( $copy['access_instructions'] ) . "\n";
+echo esc_html( $copy['consent_confirmation'] ) . "\n\n";
 echo esc_html( $copy['closing_heading'] ) . "\n";
 echo esc_html( $copy['next_steps'] ) . "\n\n";
 echo esc_html( $copy['company'] ) . ' · ' . esc_html( $copy['country'] ) . ' · ' . esc_html( $copy['website'] ) . ' · ' . esc_html( $copy['email'] ) . "\n";

@@ -2,6 +2,7 @@
 import '../styles/tokens.css';
 import '../styles/global.css';
 import Header from '../components/layout/Header.astro';
+import CookieConsent from '../components/site/CookieConsent.astro';
 import ScrollProgress from '../components/site/ScrollProgress.astro';
 import SiteFooter from '../components/site/SiteFooter.astro';
 import { localeMetadata, type Locale } from '../i18n/config';
@@ -50,5 +51,6 @@ const hasSerbianAlternate = hasLocalizedContentPath(Astro.url.pathname);
 		<slot />
 		<SiteFooter locale={locale} />
 		<ScrollProgress locale={locale} />
+		<CookieConsent locale={locale} />
 	</body>
 </html>

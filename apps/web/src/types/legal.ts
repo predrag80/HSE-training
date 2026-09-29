@@ -1,6 +1,6 @@
 import type { Locale } from '../i18n/config';
 
-export type LegalPageKey = 'privacy' | 'terms' | 'copyright';
+export type LegalPageKey = 'privacy' | 'terms' | 'withdrawal' | 'copyright';
 
 export interface LegalPageSection {
 	readonly title: string;

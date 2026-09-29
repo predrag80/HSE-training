@@ -78,11 +78,18 @@ const contactItems: readonly ContactItem[] = [
 </section>
 
 <section class="contact-map" aria-label={copy.mapLabel} data-contact-reveal="map">
+	<div class="contact-map__consent" data-map-consent>
+		<strong>{copy.mapConsentTitle}</strong>
+		<p>{copy.mapConsentDescription}</p>
+		<button type="button" data-map-allow>{copy.mapConsentButton}</button>
+	</div>
 	<iframe
 		title={copy.mapTitle}
-		src={contactDetails.mapsEmbedUrl}
+		data-map-frame
+		data-src={contactDetails.mapsEmbedUrl}
 		loading="lazy"
 		referrerpolicy="no-referrer-when-downgrade"
+		hidden
 	></iframe>
 	<div class="contact-map__card">
 		<strong>{contactDetails.companyName}</strong>
@@ -131,6 +138,7 @@ const contactItems: readonly ContactItem[] = [
 
 <script>
 	import { sendContactEnquiry, type ContactEnquiry } from '../../lib/contact-form';
+	import { allowsExternalMedia } from '../../lib/cookie-consent';
 
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	document.querySelectorAll<HTMLElement>('[data-contact-reveal]').forEach((element) => {
@@ -158,6 +166,30 @@ const contactItems: readonly ContactItem[] = [
 	};
 	addEventListener('scroll', requestParallax, { passive: true });
 	updateParallax();
+
+	const mapFrame = document.querySelector<HTMLIFrameElement>('[data-map-frame]');
+	const mapConsent = document.querySelector<HTMLElement>('[data-map-consent]');
+	const loadMap = () => {
+		if (!mapFrame || !mapFrame.dataset.src) return;
+		if (!mapFrame.src) mapFrame.src = mapFrame.dataset.src;
+		mapFrame.hidden = false;
+		if (mapConsent) mapConsent.hidden = true;
+	};
+	const unloadMap = () => {
+		if (!mapFrame) return;
+		mapFrame.removeAttribute('src');
+		mapFrame.hidden = true;
+		if (mapConsent) mapConsent.hidden = false;
+	};
+	if (allowsExternalMedia(document.cookie)) loadMap();
+	document.querySelector<HTMLButtonElement>('[data-map-allow]')?.addEventListener('click', () => {
+		window.dispatchEvent(new CustomEvent('hse:consent-request', { detail: { level: 'external-media' } }));
+		loadMap();
+	});
+	window.addEventListener('hse:consent-changed', ((event: CustomEvent<{ level?: string }>) => {
+		if (event.detail?.level === 'external-media') loadMap();
+		else unloadMap();
+	}) as EventListener);
 
 	document.querySelectorAll<HTMLFormElement>('[data-contact-form]').forEach((form) => {
 		form.addEventListener('submit', async (event) => {

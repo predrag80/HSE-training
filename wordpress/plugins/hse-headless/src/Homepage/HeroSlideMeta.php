@@ -15,15 +15,19 @@ defined( 'ABSPATH' ) || exit;
  * Owns the fields and publication rules for Homepage Hero Slides.
  */
 final class HeroSlideMeta {
-	public const SLIDE_KEY          = 'slide_key';
-	public const LEADING_TITLE      = 'leading_title';
-	public const EMPHASIZED_TITLE   = 'emphasized_title';
-	public const PRIMARY_CTA_LABEL  = 'primary_cta_label';
-	public const PRIMARY_CTA_URL    = 'primary_cta_url';
-	public const MESSAGE_PREFIX     = 'message_prefix';
-	public const MESSAGE_LINK_LABEL = 'message_link_label';
-	public const MESSAGE_LINK_URL   = 'message_link_url';
-	public const MAX_PUBLISHED      = 5;
+	public const SLIDE_KEY               = 'slide_key';
+	public const LEADING_TITLE           = 'leading_title';
+	public const EMPHASIZED_TITLE        = 'emphasized_title';
+	public const PRIMARY_CTA_LABEL       = 'primary_cta_label';
+	public const PRIMARY_CTA_URL         = 'primary_cta_url';
+	public const MESSAGE_PREFIX          = 'message_prefix';
+	public const MESSAGE_LINK_LABEL      = 'message_link_label';
+	public const MESSAGE_LINK_URL        = 'message_link_url';
+	public const MAX_PUBLISHED           = 5;
+	public const MIN_IMAGE_WIDTH         = 1600;
+	public const MIN_IMAGE_HEIGHT        = 900;
+	public const RECOMMENDED_IMAGE_WIDTH  = 1920;
+	public const RECOMMENDED_IMAGE_HEIGHT = 1080;
 
 	private const LOCKED_SLIDE_KEY = '_hse_locked_slide_key';
 	private const NONCE_ACTION     = 'hse_save_hero_slide_details';
@@ -195,7 +199,18 @@ final class HeroSlideMeta {
 		self::render_text_field( self::MESSAGE_LINK_URL, __( 'Supporting link URL', 'hse-headless' ), $post->ID, self::MAX_URL_LENGTH, false, __( 'Internal path, page anchor, or full HTTP(S) URL.', 'hse-headless' ) );
 		?>
 		<p class="description">
-			<?php esc_html_e( 'Set a Hero image in the Featured image panel. Use the Order field in Page Attributes to control slider sequence. At most five slides can be published.', 'hse-headless' ); ?>
+			<?php
+			echo esc_html(
+				sprintf(
+					/* translators: 1: minimum width, 2: minimum height, 3: recommended width, 4: recommended height. */
+					__( 'Set a Hero image in the Featured image panel. Images must be at least %1$d × %2$d px; %3$d × %4$d px is recommended. Use the Order field in Page Attributes to control slider sequence. At most five slides can be published.', 'hse-headless' ),
+					self::MIN_IMAGE_WIDTH,
+					self::MIN_IMAGE_HEIGHT,
+					self::RECOMMENDED_IMAGE_WIDTH,
+					self::RECOMMENDED_IMAGE_HEIGHT
+				)
+			);
+			?>
 		</p>
 		<?php
 	}
@@ -325,6 +340,14 @@ final class HeroSlideMeta {
 			return $data;
 		}
 
+		$image_validation = self::validate_image_dimensions( $thumbnail_id );
+		if ( is_wp_error( $image_validation ) ) {
+			$data['post_status']     = 'draft';
+			self::$admin_error_code = $image_validation->get_error_code();
+
+			return $data;
+		}
+
 		$current_status = $post_id ? get_post_status( $post_id ) : false;
 		if ( 'publish' !== $current_status && self::MAX_PUBLISHED <= self::published_count( $locale ) ) {
 			$data['post_status']     = 'draft';
@@ -355,6 +378,39 @@ final class HeroSlideMeta {
 		$locale = ContentLocale::get_posted_or_stored_locale( $post_id );
 		if ( self::slide_key_exists( $slide_key, $post_id, $locale ) ) {
 			return new \WP_Error( 'hse_slide_key_duplicate', __( 'Another Hero Slide already uses this slide key.', 'hse-headless' ) );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Report whether dimensions are large enough for a full-width Hero Slide.
+	 */
+	public static function meets_minimum_image_dimensions( $width, $height ): bool {
+		return (int) $width >= self::MIN_IMAGE_WIDTH && (int) $height >= self::MIN_IMAGE_HEIGHT;
+	}
+
+	/**
+	 * Validate the full-size dimensions of one Hero Slide attachment.
+	 *
+	 * @return true|\WP_Error
+	 */
+	public static function validate_image_dimensions( $attachment_id ) {
+		$image = wp_get_attachment_image_src( absint( $attachment_id ), 'full' );
+		if ( ! $image ) {
+			return new \WP_Error( 'hse_hero_slide_incomplete', __( 'A Hero Slide image is required.', 'hse-headless' ) );
+		}
+
+		if ( ! self::meets_minimum_image_dimensions( $image[1], $image[2] ) ) {
+			return new \WP_Error(
+				'hse_hero_image_too_small',
+				sprintf(
+					/* translators: 1: minimum width, 2: minimum height. */
+					__( 'Hero images must be at least %1$d × %2$d pixels.', 'hse-headless' ),
+					self::MIN_IMAGE_WIDTH,
+					self::MIN_IMAGE_HEIGHT
+				)
+			);
 		}
 
 		return true;
@@ -440,6 +496,14 @@ final class HeroSlideMeta {
 			'hse_content_locale_immutable' => __( 'Hero Slide language cannot change after publication.', 'hse-headless' ),
 			'hse_content_locale_not_saved' => __( 'Hero Slide was saved as a draft because its content language could not be saved.', 'hse-headless' ),
 			'hse_hero_slide_incomplete' => __( 'Hero Slide was saved as a draft. Complete every field and select a featured image before publishing.', 'hse-headless' ),
+			'hse_hero_image_too_small'  => sprintf(
+				/* translators: 1: minimum width, 2: minimum height, 3: recommended width, 4: recommended height. */
+				__( 'Hero Slide was saved as a draft because its image is too small. Minimum: %1$d × %2$d px. Recommended: %3$d × %4$d px.', 'hse-headless' ),
+				self::MIN_IMAGE_WIDTH,
+				self::MIN_IMAGE_HEIGHT,
+				self::RECOMMENDED_IMAGE_WIDTH,
+				self::RECOMMENDED_IMAGE_HEIGHT
+			),
 			'hse_hero_slide_limit'      => sprintf( __( 'Hero Slide was saved as a draft because no more than %d slides may be published.', 'hse-headless' ), self::MAX_PUBLISHED ),
 		);
 
@@ -504,7 +568,9 @@ final class HeroSlideMeta {
 
 		$thumbnail_id = get_post_thumbnail_id( $post_id );
 
-		return $thumbnail_id && wp_attachment_is_image( $thumbnail_id );
+		return $thumbnail_id
+			&& wp_attachment_is_image( $thumbnail_id )
+			&& ! is_wp_error( self::validate_image_dimensions( $thumbnail_id ) );
 	}
 
 	/**

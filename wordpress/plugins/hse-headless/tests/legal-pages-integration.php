@@ -87,6 +87,8 @@ try {
 	$serbian_data     = $serbian_response->get_data();
 	hse_legal_pages_test_assert( 'sr' === ( $serbian_data['locale'] ?? null ), 'Serbian Legal Page content is isolated.' );
 	hse_legal_pages_test_assert( 'Rukovalac' === ( $serbian_data['content']['sections'][0]['title'] ?? null ), 'Serbian Legal Page content is returned.' );
+	hse_legal_pages_test_assert( in_array( 'withdrawal', LegalPageSettings::PAGE_KEYS, true ), 'The withdrawal form is an editable Legal Page.' );
+	hse_legal_pages_test_assert( false !== strpos( LegalPageRestController::REST_ROUTE, 'withdrawal' ), 'The withdrawal form is exposed by the legal REST route.' );
 
 	echo "Legal Page integration checks passed.\n";
 } finally {

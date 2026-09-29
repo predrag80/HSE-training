@@ -165,6 +165,15 @@ final class HomepageRestController {
 	 * @return array<string, int|string>|\WP_Error
 	 */
 	private static function prepare_image( $attachment_id ) {
+		$validation = HeroSlideMeta::validate_image_dimensions( $attachment_id );
+		if ( is_wp_error( $validation ) ) {
+			return new \WP_Error(
+				$validation->get_error_code(),
+				$validation->get_error_message(),
+				array( 'status' => 503 )
+			);
+		}
+
 		$image = wp_get_attachment_image_src( $attachment_id, 'full' );
 		if ( ! $image ) {
 			return new \WP_Error(

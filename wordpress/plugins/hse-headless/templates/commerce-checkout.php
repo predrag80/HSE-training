@@ -103,6 +103,7 @@ $payment_asset    = static function ( string $filename ) use ( $plugin_file ): s
 				<a href="<?php echo esc_url( CommercePresentation::public_url( '/contact/' ) ); ?>"><?php echo esc_html( CommercePresentation::copy( 'contact' ) ); ?></a>
 				<a href="<?php echo esc_url( CommercePresentation::public_url( '/privacy-policy/' ) ); ?>"><?php echo esc_html( CommercePresentation::copy( 'privacy' ) ); ?></a>
 				<a href="<?php echo esc_url( CommercePresentation::public_url( '/terms-and-conditions/' ) ); ?>"><?php echo esc_html( CommercePresentation::copy( 'terms' ) ); ?></a>
+				<a href="<?php echo esc_url( CommercePresentation::public_url( '/withdrawal-form/' ) ); ?>"><?php echo esc_html( CommercePresentation::copy( 'withdrawal_form' ) ); ?></a>
 			</nav>
 		</div>
 	</footer>

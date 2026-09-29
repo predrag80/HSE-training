@@ -157,6 +157,50 @@
 	filter: grayscale(1) contrast(0.82) brightness(1.12);
 }
 
+.contact-map iframe[hidden],
+.contact-map__consent[hidden] {
+	display: none;
+}
+
+.contact-map__consent {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	align-content: center;
+	justify-items: center;
+	padding: 2rem;
+	background:
+		linear-gradient(rgb(233 233 231 / 92%), rgb(233 233 231 / 92%)),
+		radial-gradient(circle at 30% 25%, #fff 0 0.2rem, transparent 0.25rem),
+		#e9e9e7;
+	background-size: auto, 2rem 2rem, auto;
+	text-align: center;
+}
+
+.contact-map__consent strong {
+	color: #292d36;
+	font-size: 1.25rem;
+}
+
+.contact-map__consent p {
+	max-width: 34rem;
+	margin: 0.6rem 0 1.25rem;
+	color: #666a78;
+	line-height: 1.6;
+}
+
+.contact-map__consent button {
+	padding: 0.85rem 1.2rem;
+	cursor: pointer;
+	color: #fff;
+	background: #292d36;
+	border: 0;
+	font-size: 0.8rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
 .contact-map__card {
 	position: absolute;
 	top: 3.75rem;

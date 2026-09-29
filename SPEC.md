@@ -41,8 +41,8 @@ WordPress or Astro into an LMS.
   selected only after merchant approval, contract, technical documentation,
   supported currency, test-environment, settlement, refund, and authenticated
   server-notification requirements are confirmed.
-- Initial course access is provisioned manually by the owner in an external LMS
-  after a verified purchase.
+- After a verified purchase, the customer receives instructions to create an
+  account in the external LMS and can begin the digital course immediately.
 - No local customer authentication is required.
 - The [Crafto Consulting demo](https://crafto.themezaa.com/consulting/) is the
   approved primary visual target for the public frontend. Corresponding HSE
@@ -88,10 +88,10 @@ on Unlimited.rs                 e-commerce gateway
                             verified purchase
                                      |
                                      v
-                         owner provisions access
+                       account-creation instructions
                                      |
                                      v
-                             third-party LMS
+                  customer creates account in third-party LMS
 ```
 
 ### Astro public application
@@ -176,8 +176,10 @@ on Unlimited.rs                 e-commerce gateway
 
 - The third-party LMS stores and delivers instructional content.
 - Customers do not need an HSE Training application account.
-- Initial fulfillment is a documented manual owner action after verified
-  purchase; automation is a later integration decision.
+- After verified payment, the purchaser receives the account-creation path and
+  can begin the course immediately in the external LMS.
+- The LMS name and exact access period remain required pre-contract content and
+  must be supplied before the production launch.
 - The project must not reproduce LMS functions such as lessons, progress,
   quizzes, certificates, or learner authentication.
 
@@ -314,12 +316,13 @@ format when the PostgreSQL and payment mappings are introduced.
 
 ### Course fulfillment
 
-1. A verified paid purchase enters a fulfillment queue represented in
-   PostgreSQL state, not an infrastructure queue service.
-2. The owner uses the purchaser details and `course_key` to grant access in the
+1. A verified paid purchase enters fulfillment state represented in PostgreSQL,
+   not an infrastructure queue service.
+2. The purchaser receives instructions or a link to create an account in the
    third-party LMS.
-3. The owner records fulfillment status and timestamp.
-4. Failures remain retryable without altering the verified payment record.
+3. The purchaser can create the account and begin the course immediately.
+4. Delivery and account-creation evidence is recorded and failures remain
+   retryable without altering the verified payment record.
 
 ### Contact submission
 
@@ -519,8 +522,8 @@ must accompany application functionality as it is introduced.
 - Valid payment webhooks create one durable business outcome even when delivered
   repeatedly.
 - PostgreSQL contains auditable payment and fulfillment state.
-- The owner can identify paid, unfulfilled purchases and record external LMS
-  access delivery.
+- The owner can identify paid purchases and review external LMS account-creation
+  and access-delivery evidence.
 - Instructional content and learner activity remain outside Astro and WordPress.
 - Corresponding public frontend sections match the approved Crafto Consulting
   visual target with high fidelity across mobile, tablet, laptop, and desktop.
@@ -533,8 +536,8 @@ must accompany application functionality as it is introduced.
 
 1. Which WordPress fields and existing-site content must be migrated, and which
    current URLs require redirects?
-2. Which third-party LMS will be used, and what exact manual fulfillment steps
-   and evidence are required?
+2. Which third-party LMS will be used, how long does course access last, and
+   what account-creation and delivery evidence is available?
 3. Will Banca Intesa or Raiffeisen be the acquiring bank, and what merchant
    contract, supported currencies/cards, fees, settlement rules, refund and
    cancellation operations, 3D Secure flow, test credentials, signed
