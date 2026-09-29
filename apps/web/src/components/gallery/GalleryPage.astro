@@ -39,7 +39,7 @@ const images = [
 }));
 ---
 
-<section class="gallery-hero" aria-labelledby="gallery-title" data-gallery-parallax>
+<section class="gallery-hero" aria-labelledby="gallery-title">
 	<div class="gallery-hero__overlay" aria-hidden="true"></div>
 	<div class="gallery-hero__content" data-gallery-reveal="hero">
 		<p>{copy.heroEyebrow}</p>
@@ -107,18 +107,6 @@ const images = [
 			});
 		}, { threshold: 0.1 });
 		revealTargets.forEach((target) => observer.observe(target));
-	}
-
-	const hero = document.querySelector<HTMLElement>('[data-gallery-parallax]');
-	let parallaxFrame = 0;
-	if (hero && !reduceMotion) {
-		window.addEventListener('scroll', () => {
-			if (parallaxFrame) return;
-			parallaxFrame = window.requestAnimationFrame(() => {
-				hero.style.setProperty('--gallery-hero-shift', `${Math.min(window.scrollY * 0.42, 210)}px`);
-				parallaxFrame = 0;
-			});
-		}, { passive: true });
 	}
 
 	const lightbox = document.querySelector<HTMLDialogElement>('[data-gallery-lightbox]');

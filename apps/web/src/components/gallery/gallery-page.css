@@ -1,14 +1,13 @@
 .gallery-container { width: min(76.25rem, calc(100% - 3.75rem)); margin-inline: auto; }
 
 .gallery-hero {
-	--gallery-hero-shift: 0px;
 	position: relative;
 	display: grid;
 	height: 38.75rem;
 	overflow: hidden;
 	place-items: center;
 	color: #fff;
-	background: url('/images/gallery/IMG_3052.webp') center calc(50% + var(--gallery-hero-shift)) / cover no-repeat;
+	background: url('/images/gallery/IMG_3052.webp') center top / cover no-repeat;
 }
 
 .gallery-hero__overlay { position: absolute; inset: 0; background: rgb(23 26 32 / 58%); }
@@ -72,7 +71,7 @@
 
 @media (max-width: 61.999rem) {
 	.gallery-container { width: 45rem; }
-	.gallery-hero { height: 32rem; background-position: center; }
+	.gallery-hero { height: 32rem; background-position: center top; }
 	.gallery-hero__content { padding-top: 0; }
 	.training-gallery__heading { gap: 3rem; }
 	.training-gallery__grid { grid-auto-rows: 14rem; grid-template-columns: repeat(3, 1fr); }
