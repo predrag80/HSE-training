@@ -410,7 +410,22 @@ asset URL or retain the earlier plugin-only logo treatment.
 The successful customer flow suppresses WooCommerce's intermediate processing
 email and sends the final completed-order payment receipt only. Pending,
 failed, cancelled and refunded outcomes keep their own notifications. The
-completed receipt is rendered by plugin-owned HTML and plain-text templates;
+verified RaiAccept payment-complete event moves an order containing only
+plugin-synchronized virtual Course products directly to `completed`; this
+starts immediate fulfilment and lets BokaPOS issue the final fiscal receipt.
+The rule never auto-completes `bacs` orders. Direct bank transfer orders remain
+`on-hold` until the merchant verifies the incoming credit on the bank account
+and manually changes the order to `completed`.
+
+BokaPOS must therefore auto-fiscalize only on `completed`, have no advance or
+proforma gateways, and map `raiaccept` to `CARD` and `bacs` to
+`WIRE_TRANSFER`. Use one fiscal-email sender: the current setup sends the
+plugin-branded WooCommerce BokaPOS receipt with its PDF attachment and disables
+the duplicate BokaPOS portal email. Do not enable Direct bank transfer until
+the beneficiary name, domestic account number, bank name, IBAN and SWIFT/BIC
+have been verified and entered in WooCommerce.
+
+The completed receipt is rendered by plugin-owned HTML and plain-text templates;
 its subject, body, Course title and labels use the `en` or `sr` locale stored on
 the order. It includes the customer billing details, payment method, order
 number and date, line items, subtotal, total paid, payment status and HSE
