@@ -8,8 +8,9 @@ defined( 'ABSPATH' ) || exit;
 /** Applies reviewed legal drafts while preserving previous CMS options. */
 final class EcommerceLegalMigration {
 	private const SCHEMA_OPTION = 'hse_ecommerce_legal_schema_version';
-	private const VERSION       = 3;
+	private const VERSION       = 4;
 	private const BACKUP_SUFFIX = '_pre_digital_delivery_20260929';
+	private const ACCESS_TERMS_BACKUP_SUFFIX = '_pre_access_term_20260929';
 
 	/** Register the idempotent migration. */
 	public static function register_hooks(): void {
@@ -18,10 +19,24 @@ final class EcommerceLegalMigration {
 
 	/** Replace the prior draft once and preserve each previous option. */
 	public static function maybe_migrate(): void {
-		if ( self::VERSION <= (int) get_option( self::SCHEMA_OPTION, 0 ) ) {
+		$current_version = (int) get_option( self::SCHEMA_OPTION, 0 );
+		if ( self::VERSION <= $current_version ) {
 			return;
 		}
 
+		if ( 3 > $current_version ) {
+			if ( ! self::migrate_all_documents() ) {
+				return;
+			}
+		} elseif ( ! self::migrate_course_access_terms() ) {
+			return;
+		}
+
+		update_option( self::SCHEMA_OPTION, self::VERSION, false );
+	}
+
+	/** Install the full reviewed document set for sites that predate schema version 3. */
+	private static function migrate_all_documents(): bool {
 		foreach ( self::documents() as $page_key => $translations ) {
 			foreach ( $translations as $locale => $document ) {
 				$option_name = LegalPageSettings::option_name( $page_key, $locale );
@@ -32,12 +47,34 @@ final class EcommerceLegalMigration {
 
 				if ( false === update_option( $option_name, LegalPageSettings::sanitize_settings( $document ), false )
 					&& false === get_option( $option_name, false ) ) {
-					return;
+					return false;
 				}
 			}
 		}
 
-		update_option( self::SCHEMA_OPTION, self::VERSION, false );
+		return true;
+	}
+
+	/** Update only the access terms so unrelated editor changes remain intact. */
+	private static function migrate_course_access_terms(): bool {
+		$documents = self::documents();
+		foreach ( array( 'en', 'sr' ) as $locale ) {
+			$option_name = LegalPageSettings::option_name( 'terms', $locale );
+			$previous    = get_option( $option_name, false );
+			if ( ! is_array( $previous ) ) {
+				return false;
+			}
+
+			add_option( $option_name . self::ACCESS_TERMS_BACKUP_SUFFIX, $previous, '', false );
+			$previous['section_2_body'] = $documents['terms'][ $locale ]['section_2_body'];
+
+			if ( false === update_option( $option_name, LegalPageSettings::sanitize_settings( $previous ), false )
+				&& false === get_option( $option_name, false ) ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/** @return array<string, array<string, array<string, string>>> */
@@ -54,7 +91,7 @@ final class EcommerceLegalMigration {
 					'section_1_title'  => 'Seller information and scope',
 					'section_1_body'   => '<p>The seller is HSE Training DOO, Braće Radovanović 17/5, Lamela C, 11000 Belgrade, Serbia. Company registration number: 20952288. Tax identification number (PIB): 108205616. Registered activity: 7022 — Management consultancy activities. Website: <a href="https://hsetraining.rs/">hsetraining.rs</a>. Customer support and complaints: <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a>, +381 61 5335 010.</p><p>These terms apply to courses offered for online purchase. The course description, language, price, access period and technical requirements shown before checkout form part of the pre-contract information.</p>',
 					'section_2_title'  => 'Digital course delivery and access',
-					'section_2_body'   => '<p>The purchased course is delivered digitally through an external learning platform and no physical shipping applies. After confirmed payment, the purchaser receives instructions or a link to create an account on that platform. The purchaser can create the account and begin the course immediately.</p><p>Card delivery begins after the payment provider verifies the transaction. For a direct bank transfer, delivery begins only after HSE Training confirms that the funds have been credited. The applicable access period and supported technical environment are stated with the course information before the order is submitted. If account-creation instructions do not arrive or access does not work, contact <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a> and quote the order number.</p>',
+					'section_2_body'   => '<p>The purchased course is delivered digitally through an external learning platform and no physical shipping applies. After confirmed payment, the purchaser receives instructions or a link to create an account on that platform. The purchaser can create the account and begin the course immediately. Standard access lasts 12 months from the purchase date.</p><p>If the purchaser has not completed the course within that period, further access to the external learning portal may be arranged subject to an additional extension fee charged separately by HSE Training. HSE Training will provide the applicable fee and payment instructions before an extension is activated. The extension fee is not calculated or collected through this website.</p><p>Card delivery begins after the payment provider verifies the transaction. For a direct bank transfer, delivery begins only after HSE Training confirms that the funds have been credited. If account-creation instructions do not arrive or access does not work, contact <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a> and quote the order number.</p>',
 					'section_3_title'  => 'Prices, card payment and bank transfer',
 					'section_3_body'   => '<p>Checkout prices are displayed and charged in Serbian dinars (RSD). Before submission, checkout shows the course, quantity, unit price, applicable tax and total amount. Any additional cost must be shown before the order is placed.</p><p>Card payments are processed on the Raiffeisen Bank RaiAccept hosted service. HSE Training does not receive or store the full card number, security code or 3-D Secure credentials. If direct bank transfer is selected, the order confirmation provides the bank details and order reference. Creating a bank-transfer order does not constitute payment or activate course access; access begins after the funds are received and confirmed.</p>',
 					'section_4_title'  => 'Ordering and conclusion of the contract',
@@ -76,7 +113,7 @@ final class EcommerceLegalMigration {
 					'section_1_title'  => 'Podaci o prodavcu i primena uslova',
 					'section_1_body'   => '<p>Prodavac je HSE Training DOO, Braće Radovanović 17/5, Lamela C, 11000 Beograd, Srbija. Matični broj: 20952288. PIB: 108205616. Pretežna delatnost: 7022 — Konsultantske aktivnosti u vezi s poslovanjem i ostalim upravljanjem. Internet adresa: <a href="https://hsetraining.rs/">hsetraining.rs</a>. Podrška kupcima i reklamacije: <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a>, +381 61 5335 010.</p><p>Ovi uslovi primenjuju se na kurseve dostupne za online kupovinu. Opis kursa, jezik, cena, period pristupa i tehnički zahtevi prikazani pre checkouta čine deo predugovornog obaveštenja.</p>',
 					'section_2_title'  => 'Digitalna isporuka kursa i pristup',
-					'section_2_body'   => '<p>Kupljeni kurs isporučuje se digitalno preko spoljne platforme za učenje i nema fizičke dostave. Nakon potvrđenog plaćanja kupac dobija uputstvo ili link za kreiranje naloga na toj platformi. Kupac može odmah da kreira nalog i započne kurs.</p><p>Kod kartičnog plaćanja isporuka počinje nakon što procesor potvrdi transakciju. Kod direktne uplate na račun isporuka počinje tek nakon što HSE Training potvrdi priliv sredstava. Period pristupa i podržano tehničko okruženje navode se uz informacije o kursu pre slanja porudžbine. Ako uputstvo za kreiranje naloga ne stigne ili pristup ne radi, kupac treba da kontaktira <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a> i navede broj porudžbine.</p>',
+					'section_2_body'   => '<p>Kupljeni kurs isporučuje se digitalno preko spoljne platforme za učenje i nema fizičke dostave. Nakon potvrđenog plaćanja kupac dobija uputstvo ili link za kreiranje naloga na toj platformi. Kupac može odmah da kreira nalog i započne kurs. Standardni pristup traje 12 meseci od datuma kupovine.</p><p>Ako kupac ne završi kurs u tom periodu, dodatni pristup spoljnom portalu za učenje može se dogovoriti uz naknadu za produženje koju HSE Training naplaćuje odvojeno. HSE Training će kupcu saopštiti važeći iznos i instrukcije za plaćanje pre aktiviranja produženja. Naknada za produženje ne obračunava se niti naplaćuje preko ovog sajta.</p><p>Kod kartičnog plaćanja isporuka počinje nakon što procesor potvrdi transakciju. Kod direktne uplate na račun isporuka počinje tek nakon što HSE Training potvrdi priliv sredstava. Ako uputstvo za kreiranje naloga ne stigne ili pristup ne radi, kupac treba da kontaktira <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a> i navede broj porudžbine.</p>',
 					'section_3_title'  => 'Cene, kartično plaćanje i direktna uplata',
 					'section_3_body'   => '<p>Cene na checkoutu prikazane su i naplaćuju se u dinarima (RSD). Pre slanja porudžbine prikazuju se kurs, količina, pojedinačna cena, primenljivi porez i ukupan iznos. Svaki dodatni trošak mora biti prikazan pre poručivanja.</p><p>Kartično plaćanje obrađuje se na hostovanom servisu Raiffeisen Bank RaiAccept. HSE Training ne prima niti čuva puni broj kartice, sigurnosni kod ili 3-D Secure podatke. Ako kupac izabere direktnu uplatu, u potvrdi porudžbine dobija podatke računa i poziv na broj. Kreiranje porudžbine za direktnu uplatu ne znači da je kurs plaćen niti aktivira pristup; pristup počinje nakon prijema i potvrde sredstava.</p>',
 					'section_4_title'  => 'Koraci kupovine i zaključenje ugovora',
