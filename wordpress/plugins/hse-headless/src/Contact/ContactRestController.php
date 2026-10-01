@@ -8,6 +8,7 @@
 namespace HSETraining\Headless\Contact;
 
 use HSETraining\Headless\Infrastructure\SmtpMailer;
+use HSETraining\Headless\Infrastructure\SentryReporter;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -71,6 +72,7 @@ final class ContactRestController {
 		$recipient = SmtpMailer::get_recipient();
 		if ( '' === $recipient ) {
 			error_log( '[HSE Headless] Contact delivery unavailable. Request ID: ' . $request_id ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			self::report_delivery_failure( 'contact_delivery_unavailable', $request_id, $locale );
 			return self::public_error( 'hse_contact_unavailable', $locale, 503 );
 		}
 
@@ -84,16 +86,23 @@ final class ContactRestController {
 		$set_alt_body = static function ( $phpmailer ) use ( $text ) {
 			$phpmailer->AltBody = $text;
 		};
+		$failure_incident = 'contact_delivery_failed';
+		$failure_type     = '';
 
 		add_action( 'phpmailer_init', $set_alt_body, 20 );
 		try {
 			$sent = wp_mail( $recipient, $subject, $html, $headers );
+		} catch ( \Throwable $error ) {
+			$sent             = false;
+			$failure_incident = 'contact_delivery_exception';
+			$failure_type     = get_class( $error );
 		} finally {
 			remove_action( 'phpmailer_init', $set_alt_body, 20 );
 		}
 
 		if ( ! $sent ) {
 			error_log( '[HSE Headless] Contact delivery failed. Request ID: ' . $request_id ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			self::report_delivery_failure( $failure_incident, $request_id, $locale, $failure_type );
 			return self::public_error( 'hse_contact_delivery_failed', $locale, 503 );
 		}
 
@@ -105,6 +114,27 @@ final class ContactRestController {
 				'request_id' => $request_id,
 			),
 			202
+		);
+	}
+
+	/** Report infrastructure failures without transmitting enquiry or customer data. */
+	private static function report_delivery_failure( $incident, $request_id, $locale, $failure_type = '' ) {
+		$context = array(
+			'component'       => 'contact_delivery',
+			'fingerprint_key' => 'contact_delivery',
+			'request_id'      => sanitize_text_field( (string) $request_id ),
+			'locale'          => 'sr' === $locale ? 'sr' : 'en',
+		);
+		if ( '' !== $failure_type ) {
+			$context['failure_type'] = sanitize_text_field( (string) $failure_type );
+		}
+
+		SentryReporter::capture(
+			sanitize_key( (string) $incident ),
+			'error',
+			'Contact form delivery failed before the enquiry could be accepted.',
+			$context,
+			'contact:' . sanitize_key( (string) $incident ) . ':' . sanitize_text_field( (string) $request_id )
 		);
 	}
 

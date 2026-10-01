@@ -41,12 +41,26 @@ final class CommercePresentation {
 	private const COPY = array(
 		'en' => array(
 			'page_title'            => 'Secure checkout',
+			'retry_page_title'      => 'Retry payment',
 			'checkout_eyebrow'      => 'Course enrolment',
 			'checkout_title'        => 'Complete your order.',
 			'checkout_intro'        => 'Enter your billing details, review the course and choose your preferred payment method.',
+			'retry_eyebrow'         => 'Secure payment retry',
+			'retry_title'           => 'Retry your payment.',
+			'retry_intro'           => 'Review the existing order, confirm the payment method and continue to the secure RaiAccept payment page.',
+			'retry_action'          => 'Continue to secure payment',
+			'retry_review'          => 'Review your order',
+			'retry_payment'         => 'Choose payment method',
+			'retry_start_failed'    => 'A new secure payment attempt could not be started. Please try again.',
 			'confirmation_eyebrow'  => 'Order confirmation',
 			'confirmation_title'    => 'Your order status.',
 			'confirmation_intro'    => 'Review the current payment status and your order details below.',
+			'confirmation_title_paid' => 'Payment confirmed.',
+			'confirmation_intro_paid' => 'Your order is complete. We have sent the payment confirmation and the next course-access steps to your email address.',
+			'confirmation_title_pending' => 'Order received.',
+			'confirmation_intro_pending' => 'We have received your order. Payment confirmation is still pending and the current instructions are shown below.',
+			'confirmation_title_failed' => 'Payment not completed.',
+			'confirmation_intro_failed' => 'No successful payment has been confirmed. Review the status below or contact us if you need assistance.',
 			'secure'                => 'Secure checkout',
 			'back'                  => 'Back to HSE Training',
 			'contact'               => 'Need help? Contact us',
@@ -68,7 +82,7 @@ final class CommercePresentation {
 			'payment_title'         => 'Card payment',
 			'payment_description'   => 'Pay securely with an accepted credit or debit card.',
 			'bank_transfer_title'   => 'Direct bank transfer',
-			'bank_transfer_description' => 'Pay directly into our bank account. Payment details and the order reference will be shown after the order is placed and sent by email.',
+			'bank_transfer_description' => 'Pay directly into our bank account. Payment details will be shown after the order is placed and sent by email.',
 			'have_coupon'           => 'Have a coupon?',
 			'coupon_prompt'         => 'Click here to enter your code',
 			'coupon_code'           => 'Coupon code',
@@ -126,7 +140,11 @@ final class CommercePresentation {
 			'update_country'        => 'Update country / region',
 			'privacy_notice'        => 'Your personal data will be used to process this order and as described in our <a href="%s">Privacy Policy</a>.',
 			'terms_consent'         => 'I have read and agree to the <a href="%s">Purchase Terms</a> and <a href="%s">Privacy Policy</a>.',
+			'checkout_confirmations' => 'Review and confirm',
+			'checkout_confirmations_help' => 'Both confirmations are required before you can place the order.',
+			'terms_consent_title'   => 'Terms and privacy',
 			'terms_required'        => 'Please accept the Purchase Terms and Privacy Policy before continuing.',
+			'digital_consent_title' => 'Immediate course access',
 			'digital_consent'       => 'I expressly request immediate delivery of the digital course after confirmed payment. I understand that once digital delivery begins, I lose the right to withdraw to the extent provided by applicable law.',
 			'digital_consent_required' => 'Please confirm that you request immediate digital delivery and acknowledge the effect on your right to withdraw.',
 			'digital_consent_admin' => 'Immediate digital delivery consent',
@@ -137,6 +155,24 @@ final class CommercePresentation {
 			'next_steps_paid'       => 'Payment has been confirmed. Follow the instructions sent by email to create your account on the HSE e-learning platform and begin the course immediately.',
 			'next_steps_pending'    => 'Your order has been received. We are waiting for the payment provider to confirm the transaction.',
 			'next_steps_failed'     => 'Payment was not completed. Please try again or contact us if you need assistance.',
+			'next_step_paid_1_title' => 'Check your inbox',
+			'next_step_paid_1_text' => 'Your confirmation and fiscal receipt are sent to the email address entered at checkout.',
+			'next_step_paid_2_title' => 'Create your learning account',
+			'next_step_paid_2_text' => 'Follow the supplied instructions to create your account on the HSE e-learning platform.',
+			'next_step_paid_3_title' => 'Start your course',
+			'next_step_paid_3_text' => 'Course access begins immediately and remains available for the stated access period.',
+			'next_step_pending_1_title' => 'Keep your order number',
+			'next_step_pending_1_text' => 'Use it whenever you contact HSE Training about this order.',
+			'next_step_pending_2_title' => 'Follow the payment instructions',
+			'next_step_pending_2_text' => 'Complete the required payment step or wait for the payment provider confirmation.',
+			'next_step_pending_3_title' => 'Watch your inbox',
+			'next_step_pending_3_text' => 'We will email you when payment is confirmed and the course can be accessed.',
+			'next_step_failed_1_title' => 'Review the payment status',
+			'next_step_failed_1_text' => 'No completed charge has been confirmed for this order.',
+			'next_step_failed_2_title' => 'Try again safely',
+			'next_step_failed_2_text' => 'Return to the course page when you are ready to start a new payment attempt.',
+			'next_step_failed_3_title' => 'Contact support',
+			'next_step_failed_3_text' => 'Contact HSE Training if you need help before trying again.',
 			'order_received_paid'   => 'Thank you. Your payment has been confirmed.',
 			'order_received_pending'=> 'Thank you. Your order has been received and payment confirmation is pending.',
 			'order_received_failed' => 'Your payment was not completed.',
@@ -147,12 +183,26 @@ final class CommercePresentation {
 		),
 		'sr' => array(
 			'page_title'            => 'Bezbedno plaćanje',
+			'retry_page_title'      => 'Ponovno plaćanje',
 			'checkout_eyebrow'      => 'Prijava za kurs',
 			'checkout_title'        => 'Završite porudžbinu.',
 			'checkout_intro'        => 'Unesite podatke, proverite izabrani kurs i izaberite željeni način plaćanja.',
+			'retry_eyebrow'         => 'Bezbedan ponovni pokušaj',
+			'retry_title'           => 'Ponovite plaćanje.',
+			'retry_intro'           => 'Proverite postojeću porudžbinu, potvrdite način plaćanja i nastavite na bezbednu RaiAccept stranicu.',
+			'retry_action'          => 'Nastavite na bezbedno plaćanje',
+			'retry_review'          => 'Proverite porudžbinu',
+			'retry_payment'         => 'Izaberite način plaćanja',
+			'retry_start_failed'    => 'Novi bezbedan pokušaj plaćanja nije mogao da bude pokrenut. Pokušajte ponovo.',
 			'confirmation_eyebrow'  => 'Potvrda porudžbine',
 			'confirmation_title'    => 'Status vaše porudžbine.',
 			'confirmation_intro'    => 'U nastavku možete proveriti trenutni status plaćanja i podatke o porudžbini.',
+			'confirmation_title_paid' => 'Plaćanje je potvrđeno.',
+			'confirmation_intro_paid' => 'Porudžbina je završena. Potvrdu plaćanja i naredne korake za pristup kursu poslali smo na vašu email adresu.',
+			'confirmation_title_pending' => 'Porudžbina je primljena.',
+			'confirmation_intro_pending' => 'Primili smo porudžbinu. Potvrda plaćanja se još čeka, a trenutna uputstva nalaze se u nastavku.',
+			'confirmation_title_failed' => 'Plaćanje nije završeno.',
+			'confirmation_intro_failed' => 'Uspešno plaćanje nije potvrđeno. Proverite status u nastavku ili nas kontaktirajte ako vam je potrebna pomoć.',
 			'secure'                => 'Bezbedna kupovina',
 			'back'                  => 'Nazad na HSE Training',
 			'contact'               => 'Potrebna vam je pomoć? Kontaktirajte nas',
@@ -174,7 +224,7 @@ final class CommercePresentation {
 			'payment_title'         => 'Plaćanje karticom',
 			'payment_description'   => 'Platite bezbedno podržanom kreditnom ili debitnom karticom.',
 			'bank_transfer_title'   => 'Direktna uplata na račun',
-			'bank_transfer_description' => 'Uplatite direktno na naš bankovni račun. Podaci za uplatu i poziv na broj biće prikazani nakon kreiranja porudžbine i poslati emailom.',
+			'bank_transfer_description' => 'Uplatite direktno na naš bankovni račun. Podaci za uplatu biće prikazani nakon kreiranja porudžbine i poslati emailom.',
 			'have_coupon'           => 'Imate kupon?',
 			'coupon_prompt'         => 'Kliknite ovde da unesete kod',
 			'coupon_code'           => 'Kod kupona',
@@ -232,7 +282,11 @@ final class CommercePresentation {
 			'update_country'        => 'Ažurirajte državu / region',
 			'privacy_notice'        => 'Vaši lični podaci biće korišćeni za obradu porudžbine i na način opisan u našoj <a href="%s">Politici privatnosti</a>.',
 			'terms_consent'         => 'Pročitao/la sam i prihvatam <a href="%s">Uslove kupovine</a> i <a href="%s">Politiku privatnosti</a>.',
+			'checkout_confirmations' => 'Proverite i potvrdite',
+			'checkout_confirmations_help' => 'Obe potvrde su obavezne pre slanja porudžbine.',
+			'terms_consent_title'   => 'Uslovi i privatnost',
 			'terms_required'        => 'Pre nastavka prihvatite Uslove kupovine i Politiku privatnosti.',
+			'digital_consent_title' => 'Trenutni pristup kursu',
 			'digital_consent'       => 'Izričito zahtevam da isporuka digitalnog kursa počne odmah nakon potvrđenog plaćanja. Razumem da početkom digitalne isporuke gubim pravo na odustanak u meri propisanoj važećim zakonom.',
 			'digital_consent_required' => 'Potvrdite da zahtevate trenutnu digitalnu isporuku i da razumete njen uticaj na pravo na odustanak.',
 			'digital_consent_admin' => 'Saglasnost za trenutnu digitalnu isporuku',
@@ -243,6 +297,24 @@ final class CommercePresentation {
 			'next_steps_paid'       => 'Plaćanje je potvrđeno. Pratite uputstvo poslato emailom, kreirajte nalog na HSE e-learning platformi i odmah započnite kurs.',
 			'next_steps_pending'    => 'Porudžbina je primljena. Čekamo potvrdu transakcije od procesora plaćanja.',
 			'next_steps_failed'     => 'Plaćanje nije završeno. Pokušajte ponovo ili nas kontaktirajte ako vam je potrebna pomoć.',
+			'next_step_paid_1_title' => 'Proverite email',
+			'next_step_paid_1_text' => 'Potvrda i fiskalni račun šalju se na email adresu unetu prilikom kupovine.',
+			'next_step_paid_2_title' => 'Kreirajte nalog za učenje',
+			'next_step_paid_2_text' => 'Pratite dostavljeno uputstvo i kreirajte nalog na HSE e-learning platformi.',
+			'next_step_paid_3_title' => 'Započnite kurs',
+			'next_step_paid_3_text' => 'Pristup kursu počinje odmah i traje tokom navedenog perioda pristupa.',
+			'next_step_pending_1_title' => 'Sačuvajte broj porudžbine',
+			'next_step_pending_1_text' => 'Navedite ga kada kontaktirate HSE Training u vezi sa ovom porudžbinom.',
+			'next_step_pending_2_title' => 'Pratite uputstvo za plaćanje',
+			'next_step_pending_2_text' => 'Završite potrebni korak plaćanja ili sačekajte potvrdu procesora plaćanja.',
+			'next_step_pending_3_title' => 'Pratite email',
+			'next_step_pending_3_text' => 'Obavestićemo vas kada plaćanje bude potvrđeno i kurs bude dostupan.',
+			'next_step_failed_1_title' => 'Proverite status plaćanja',
+			'next_step_failed_1_text' => 'Za ovu porudžbinu nije potvrđeno uspešno zaduženje.',
+			'next_step_failed_2_title' => 'Pokušajte ponovo bezbedno',
+			'next_step_failed_2_text' => 'Vratite se na stranicu kursa kada budete spremni za novi pokušaj plaćanja.',
+			'next_step_failed_3_title' => 'Kontaktirajte podršku',
+			'next_step_failed_3_text' => 'Kontaktirajte HSE Training ako vam je potrebna pomoć pre novog pokušaja.',
 			'order_received_paid'   => 'Hvala. Vaše plaćanje je potvrđeno.',
 			'order_received_pending'=> 'Hvala. Porudžbina je primljena i čeka se potvrda plaćanja.',
 			'order_received_failed' => 'Plaćanje nije završeno.',
@@ -270,6 +342,7 @@ final class CommercePresentation {
 		add_filter( 'woocommerce_default_address_fields', array( self::class, 'localize_address_fields' ), 20 );
 		add_filter( 'woocommerce_get_country_locale', array( self::class, 'localize_country_locale' ), 20 );
 		add_filter( 'woocommerce_order_button_text', array( self::class, 'order_button_text' ) );
+		add_filter( 'woocommerce_pay_order_button_text', array( self::class, 'pay_order_button_text' ) );
 		add_filter( 'woocommerce_gateway_title', array( self::class, 'gateway_title' ), 20, 2 );
 		add_filter( 'woocommerce_gateway_description', array( self::class, 'gateway_description' ), 20, 2 );
 		add_filter( 'woocommerce_bacs_account_fields', array( self::class, 'filter_bacs_account_fields' ), 20, 2 );
@@ -331,6 +404,11 @@ final class CommercePresentation {
 		return function_exists( 'is_order_received_page' ) && is_order_received_page();
 	}
 
+	/** Report whether the checkout is securely retrying payment for an existing order. */
+	public static function is_payment_retry(): bool {
+		return function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page();
+	}
+
 	/** Replace the active theme with the stable, plugin-owned commerce shell. */
 	public static function use_checkout_shell( $template ) {
 		if ( self::is_checkout_request() ) {
@@ -354,7 +432,7 @@ final class CommercePresentation {
 		}
 
 		$plugin_url = plugin_dir_url( dirname( __DIR__, 2 ) . '/hse-headless.php' );
-		wp_enqueue_style( 'hse-commerce', $plugin_url . 'assets/commerce.css', array( 'woocommerce-layout', 'woocommerce-general' ), '0.26.6' );
+		wp_enqueue_style( 'hse-commerce', $plugin_url . 'assets/commerce.css', array( 'woocommerce-layout', 'woocommerce-general' ), '0.28.4' );
 
 		wp_add_inline_script(
 			'wc-checkout',
@@ -364,6 +442,8 @@ final class CommercePresentation {
 					'foreignTaxLabel'  => self::copy( 'foreign_tax_id' ),
 					'cardButtonLabel'  => self::copy( 'place_order_card' ),
 					'bankButtonLabel'  => self::copy( 'place_order_bank' ),
+					'retryReviewLabel' => self::copy( 'retry_review' ),
+					'retryPaymentLabel' => self::copy( 'retry_payment' ),
 				)
 			) . ';',
 			'before'
@@ -448,6 +528,35 @@ final class CommercePresentation {
 		}
 	}
 
+	function enhancePaymentMethods() {
+		document.querySelectorAll('#payment li.wc_payment_method').forEach(function (method) {
+			var label = method.querySelector(':scope > label');
+			if (!label || label.querySelector('.hse-payment-method__title')) return;
+
+			var titleParts = [];
+			Array.prototype.slice.call(label.childNodes).forEach(function (node) {
+				if (node.nodeType !== 3 || !node.textContent.trim()) return;
+				titleParts.push(node.textContent.trim());
+				node.remove();
+			});
+
+			if (titleParts.length) {
+				var title = document.createElement('span');
+				title.className = 'hse-payment-method__title';
+				title.textContent = titleParts.join(' ');
+				label.insertBefore(title, label.firstChild);
+			}
+
+			var images = Array.prototype.slice.call(label.querySelectorAll(':scope > img'));
+			if (images.length) {
+				var logos = document.createElement('span');
+				logos.className = 'hse-payment-method__logos';
+				images.forEach(function (image) { logos.appendChild(image); });
+				label.appendChild(logos);
+			}
+		});
+	}
+
 	function prepareCheckoutLayout() {
 		var form = document.querySelector('form.checkout');
 		var billingHeading = document.querySelector('.woocommerce-billing-fields > h3');
@@ -475,10 +584,43 @@ final class CommercePresentation {
 		summary.appendChild(review);
 	}
 
+	function prepareRetryLayout() {
+		if (!document.body.classList.contains('hse-commerce--retry')) return;
+		var form = document.querySelector('form#order_review');
+		if (!form || form.classList.contains('hse-retry-layout')) return;
+		var table = form.querySelector(':scope > table.shop_table');
+		var payment = form.querySelector(':scope > #payment');
+		if (!table || !payment) return;
+
+		function createCard(className, number, title) {
+			var card = document.createElement('section');
+			card.className = 'hse-retry-card ' + className;
+			var heading = document.createElement('h2');
+			var badge = document.createElement('span');
+			badge.className = 'hse-checkout-step';
+			badge.setAttribute('aria-hidden', 'true');
+			badge.textContent = number;
+			heading.appendChild(badge);
+			heading.appendChild(document.createTextNode(title));
+			card.appendChild(heading);
+			return card;
+		}
+
+		var reviewCard = createCard('hse-retry-card--review', '1', fieldCopy.retryReviewLabel || 'Review your order');
+		var paymentCard = createCard('hse-retry-card--payment', '2', fieldCopy.retryPaymentLabel || 'Choose payment method');
+		form.insertBefore(reviewCard, table);
+		reviewCard.appendChild(table);
+		form.insertBefore(paymentCard, payment);
+		paymentCard.appendChild(payment);
+		form.classList.add('hse-retry-layout');
+	}
+
 	document.addEventListener('DOMContentLoaded', function () {
 		prepareCheckoutLayout();
+		prepareRetryLayout();
 		updateCompanyFields();
 		updatePaymentAction();
+		enhancePaymentMethods();
 	});
 	document.addEventListener('click', function (event) {
 		if (!event.target || !(event.target instanceof Element)) return;
@@ -493,8 +635,10 @@ final class CommercePresentation {
 	});
 	if (window.jQuery) window.jQuery(document.body).on('updated_checkout', function () {
 		prepareCheckoutLayout();
+		prepareRetryLayout();
 		updateCompanyFields();
 		updatePaymentAction();
+		enhancePaymentMethods();
 	});
 })();
 JS;
@@ -506,7 +650,13 @@ JS;
 		if ( self::is_checkout_request() ) {
 			$classes[] = 'hse-commerce';
 			$classes[] = 'hse-commerce--' . CommerceLocale::current();
-			$classes[] = self::is_confirmation() ? 'hse-commerce--confirmation' : 'hse-commerce--checkout';
+			if ( self::is_confirmation() ) {
+				$classes[] = 'hse-commerce--confirmation';
+			} elseif ( self::is_payment_retry() ) {
+				$classes[] = 'hse-commerce--retry';
+			} else {
+				$classes[] = 'hse-commerce--checkout';
+			}
 		}
 		return $classes;
 	}
@@ -514,7 +664,9 @@ JS;
 	/** Set a localized browser title without changing the WordPress Checkout page. */
 	public static function document_title( array $parts ): array {
 		if ( self::is_checkout_request() ) {
-			$parts['title'] = self::is_confirmation() ? self::copy( 'confirmation_title' ) : self::copy( 'page_title' );
+			$parts['title'] = self::is_confirmation()
+				? self::copy( 'confirmation_title' )
+				: ( self::is_payment_retry() ? self::copy( 'retry_page_title' ) : self::copy( 'page_title' ) );
 			$parts['site']  = 'HSE Training';
 		}
 		return $parts;
@@ -818,6 +970,13 @@ JS;
 		return self::copy( 'place_order' );
 	}
 
+	/** Make the order-pay action explicit before RaiAccept opens. */
+	public static function pay_order_button_text( $text = '' ): string {
+		return self::is_checkout_request() && self::is_payment_retry()
+			? self::copy( 'retry_action' )
+			: ( is_scalar( $text ) ? (string) $text : '' );
+	}
+
 	/** Localize the configured RaiAccept label on this isolated surface. */
 	public static function gateway_title( $title, $gateway_id ) {
 		if ( ! self::is_checkout_request() ) {
@@ -902,20 +1061,24 @@ JS;
 			esc_url( self::public_url( '/privacy-policy/' ) )
 		);
 		?>
-		<p class="form-row validate-required hse-commerce__consent">
-			<label class="woocommerce-form__label woocommerce-form__label-for-checkbox checkbox" for="hse_terms_consent">
-				<input type="checkbox" class="woocommerce-form__input woocommerce-form__input-checkbox input-checkbox" name="hse_terms_consent" id="hse_terms_consent" value="1" <?php checked( $checked ); ?> required />
-				<span><?php echo wp_kses_post( $text ); ?></span>
-				<abbr class="required" title="required">*</abbr>
-			</label>
-		</p>
-		<p class="form-row validate-required hse-commerce__consent hse-commerce__consent--digital">
-			<label class="woocommerce-form__label woocommerce-form__label-for-checkbox checkbox" for="hse_digital_delivery_consent">
-				<input type="checkbox" class="woocommerce-form__input woocommerce-form__input-checkbox input-checkbox" name="hse_digital_delivery_consent" id="hse_digital_delivery_consent" value="1" <?php checked( $digital_checked ); ?> required />
-				<span><?php echo esc_html( self::copy( 'digital_consent' ) ); ?></span>
-				<abbr class="required" title="required">*</abbr>
-			</label>
-		</p>
+		<div class="hse-commerce__consents" role="group" aria-labelledby="hse-checkout-confirmations-title" aria-describedby="hse-checkout-confirmations-help">
+			<h3 id="hse-checkout-confirmations-title"><?php echo esc_html( self::copy( 'checkout_confirmations' ) ); ?></h3>
+			<p id="hse-checkout-confirmations-help" class="hse-commerce__consents-help"><?php echo esc_html( self::copy( 'checkout_confirmations_help' ) ); ?></p>
+			<p class="form-row validate-required hse-commerce__consent">
+				<label class="woocommerce-form__label woocommerce-form__label-for-checkbox checkbox" for="hse_terms_consent">
+					<input type="checkbox" class="woocommerce-form__input woocommerce-form__input-checkbox input-checkbox" name="hse_terms_consent" id="hse_terms_consent" value="1" <?php checked( $checked ); ?> required />
+					<span class="hse-commerce__consent-copy"><strong><?php echo esc_html( self::copy( 'terms_consent_title' ) ); ?></strong><span><?php echo wp_kses_post( $text ); ?></span></span>
+					<abbr class="required" title="<?php echo esc_attr( self::copy( 'required' ) ); ?>">*</abbr>
+				</label>
+			</p>
+			<p class="form-row validate-required hse-commerce__consent hse-commerce__consent--digital">
+				<label class="woocommerce-form__label woocommerce-form__label-for-checkbox checkbox" for="hse_digital_delivery_consent">
+					<input type="checkbox" class="woocommerce-form__input woocommerce-form__input-checkbox input-checkbox" name="hse_digital_delivery_consent" id="hse_digital_delivery_consent" value="1" <?php checked( $digital_checked ); ?> required />
+					<span class="hse-commerce__consent-copy"><strong><?php echo esc_html( self::copy( 'digital_consent_title' ) ); ?></strong><span><?php echo esc_html( self::copy( 'digital_consent' ) ); ?></span></span>
+					<abbr class="required" title="<?php echo esc_attr( self::copy( 'required' ) ); ?>">*</abbr>
+				</label>
+			</p>
+		</div>
 		<?php
 	}
 
@@ -950,7 +1113,7 @@ JS;
 
 	/** Keep the return page accurate if the provider notification is still pending. */
 	public static function order_received_text( $text, $order ) {
-		return self::copy( 'order_received_' . self::order_state( $order ) );
+		return self::copy( 'order_received_' . self::confirmation_state( $order ) );
 	}
 
 	/** Explain the operational next step without implying LMS access is automatic. */
@@ -960,11 +1123,31 @@ JS;
 			return;
 		}
 
-		$state = self::order_state( $order );
+		$state = self::confirmation_state( $order );
+		$icon  = 'paid' === $state ? '✓' : ( 'failed' === $state ? '!' : '…' );
 		?>
 		<section class="hse-commerce__next-steps hse-commerce__next-steps--<?php echo esc_attr( $state ); ?>">
-			<h2><?php echo esc_html( self::copy( 'next_steps_title' ) ); ?></h2>
-			<p><?php echo esc_html( self::copy( 'next_steps_' . $state ) ); ?></p>
+			<header class="hse-commerce__next-steps-header">
+				<span class="hse-commerce__status-icon" aria-hidden="true"><?php echo esc_html( $icon ); ?></span>
+				<div>
+					<h2><?php echo esc_html( self::copy( 'next_steps_title' ) ); ?></h2>
+					<p><?php echo esc_html( self::copy( 'next_steps_' . $state ) ); ?></p>
+				</div>
+			</header>
+			<ol class="hse-commerce__next-steps-list">
+				<?php for ( $step = 1; $step <= 3; $step++ ) : ?>
+					<li>
+						<span class="hse-commerce__step-number" aria-hidden="true"><?php echo esc_html( str_pad( (string) $step, 2, '0', STR_PAD_LEFT ) ); ?></span>
+						<div>
+							<strong><?php echo esc_html( self::copy( 'next_step_' . $state . '_' . $step . '_title' ) ); ?></strong>
+							<p><?php echo esc_html( self::copy( 'next_step_' . $state . '_' . $step . '_text' ) ); ?></p>
+						</div>
+					</li>
+				<?php endfor; ?>
+			</ol>
+			<a class="hse-commerce__support-link" href="<?php echo esc_url( self::public_url( '/contact/#contact-form' ) ); ?>">
+				<?php echo esc_html( self::copy( 'contact' ) ); ?> <span aria-hidden="true">→</span>
+			</a>
 		</section>
 		<?php
 	}
@@ -1104,7 +1287,7 @@ JS;
 	}
 
 	/** Map Woo statuses to honest customer-facing confirmation states. */
-	private static function order_state( $order ): string {
+	public static function confirmation_state( $order ): string {
 		if ( is_object( $order ) && method_exists( $order, 'has_status' ) ) {
 			if ( $order->has_status( array( 'processing', 'completed' ) ) ) {
 				return 'paid';

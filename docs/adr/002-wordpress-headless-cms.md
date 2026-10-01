@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted; the commerce boundary is amended by ADR-011
 
 ## Date
 
@@ -10,11 +10,15 @@ Proposed
 
 ## Context
 
-The owner needs an established editorial interface, but customer identity, payments, and course delivery do not belong in WordPress.
+The owner needs an established editorial interface, while customer identity and
+course delivery do not belong in WordPress. ADR-011 later selected WooCommerce
+inside the same installation as the transactional commerce runtime.
 
 ## Proposed Decision
 
-Keep WordPress as a headless CMS only. Customers are not WordPress users and must not use `wp_users`.
+Keep WordPress headless for public presentation. Customers are not WordPress
+users and must not use `wp_users`. WooCommerce may own commerce state under the
+separate controls recorded in ADR-011.
 
 ## Alternatives Considered
 
@@ -25,5 +29,5 @@ Keep WordPress as a headless CMS only. Customers are not WordPress users and mus
 
 - WordPress remains focused on editorial content.
 - Astro owns all public presentation.
-- Business and payment state must be stored outside WordPress.
-
+- Editorial content and WooCommerce transactional data remain separate logical
+  responsibilities even though they share the WordPress database/runtime.

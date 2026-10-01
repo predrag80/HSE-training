@@ -9,7 +9,7 @@ use HSETraining\Headless\Commerce\CommerceCustomerEmail;
 
 defined( 'ABSPATH' ) || exit;
 
-$locale     = CommerceCustomerEmail::order_locale( $order );
+$locale     = CommerceCustomerEmail::fiscal_receipt_locale( $order );
 $copy       = CommerceCustomerEmail::fiscal_receipt_copy( $locale );
 $currency   = $order->get_currency();
 $price_args = array( 'currency' => $currency );

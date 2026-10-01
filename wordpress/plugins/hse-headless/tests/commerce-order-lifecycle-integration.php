@@ -61,10 +61,15 @@ final class HseCommerceLifecycleTestItem {
 final class HseCommerceLifecycleTestOrder {
 	private $gateway;
 	private $items;
+	private $status;
+	private $paid;
+	private $status_note = '';
 
-	public function __construct( $gateway, array $items ) {
+	public function __construct( $gateway, array $items, $status = 'processing', $paid = true ) {
 		$this->gateway = $gateway;
 		$this->items   = $items;
+		$this->status  = $status;
+		$this->paid    = $paid;
 	}
 
 	public function get_payment_method() {
@@ -74,6 +79,24 @@ final class HseCommerceLifecycleTestOrder {
 	public function get_items( $type = '' ) {
 		unset( $type );
 		return $this->items;
+	}
+
+	public function get_status() {
+		return $this->status;
+	}
+
+	public function is_paid() {
+		return $this->paid;
+	}
+
+	public function update_status( $status, $note = '', $manual = false ) {
+		unset( $manual );
+		$this->status      = $status;
+		$this->status_note = $note;
+	}
+
+	public function get_status_note() {
+		return $this->status_note;
 	}
 }
 
@@ -128,6 +151,36 @@ try {
 			new HseCommerceLifecycleTestOrder( CommerceOrderLifecycle::CARD_GATEWAY, array() )
 		),
 		'An empty order is not completed by the Course-only rule.'
+	);
+
+	$direct_processing_order = new HseCommerceLifecycleTestOrder(
+		CommerceOrderLifecycle::CARD_GATEWAY,
+		array( $course_item )
+	);
+	CommerceOrderLifecycle::complete_processing_card_order( 5, $direct_processing_order );
+	hse_commerce_order_lifecycle_test_assert(
+		'completed' === $direct_processing_order->get_status()
+			&& false !== strpos( $direct_processing_order->get_status_note(), 'RaiAccept' ),
+		'A verified RaiAccept order set directly to processing is completed for immediate digital delivery.'
+	);
+
+	$unpaid_processing_order = new HseCommerceLifecycleTestOrder(
+		CommerceOrderLifecycle::CARD_GATEWAY,
+		array( $course_item ),
+		'processing',
+		false
+	);
+	CommerceOrderLifecycle::complete_processing_card_order( 6, $unpaid_processing_order );
+	hse_commerce_order_lifecycle_test_assert(
+		'processing' === $unpaid_processing_order->get_status(),
+		'An unpaid RaiAccept order is never auto-completed.'
+	);
+
+	$bank_processing_order = new HseCommerceLifecycleTestOrder( 'bacs', array( $course_item ) );
+	CommerceOrderLifecycle::complete_processing_card_order( 7, $bank_processing_order );
+	hse_commerce_order_lifecycle_test_assert(
+		'processing' === $bank_processing_order->get_status(),
+		'A bank-transfer order is never auto-completed by the card-payment fallback.'
 	);
 } catch ( Throwable $error ) {
 	hse_commerce_order_lifecycle_test_assert( false, 'Order lifecycle test failed: ' . $error->getMessage() );

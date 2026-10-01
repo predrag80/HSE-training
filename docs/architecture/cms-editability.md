@@ -1,6 +1,7 @@
 # CMS Editability Map
 
-Status: reflects `hse-headless` 0.23.1 and the Astro application on 2026-09-16
+Status: reflects the production WooCommerce architecture in ADR-011 on
+2026-10-01
 
 WordPress owns reviewed editorial content. Astro owns presentation, public
 routes, navigation behavior, and interface copy unless a field is explicitly
@@ -22,12 +23,11 @@ listed below.
 | References | Localized testimonial, author, role/organisation, order, stable key, Homepage visibility, and Homepage accent selection. |
 | Legal pages | Privacy Policy, Purchase Terms, and Copyright in English and Serbian: SEO fields, hero copy, last-updated text, and up to seven rich-text sections. The 0.23.1 migration supplies an e-commerce draft while preserving the previous Terms and Privacy values for rollback. |
 
-During the temporary ADR-010 staging evaluation, WooCommerce **Products** are
-not a second editorial source. Each published Course `course_key` is mirrored
-automatically into one hidden product. Editors continue to change Course
-content and purchase availability under **Courses**. Checked Courses receive
-their CMS checkout price in WooCommerce; unchecked Courses remain unavailable
-for purchase. The current content enables only IGC.
+WooCommerce **Products** are not a second editorial source. Each published
+Course `course_key` is mirrored automatically into one hidden product. Editors
+continue to change Course content and purchase availability under **Courses**.
+Checked Courses receive their CMS checkout price in WooCommerce; unchecked
+Courses remain unavailable for purchase. The current content enables only IGC.
 
 ## Partly editable in WordPress
 
@@ -51,8 +51,9 @@ for purchase. The current content enables only IGC.
 - Public URLs, page composition, section order, CSS, responsive behavior,
   typography, imagery that is part of the design rather than a CMS record,
   animations, and browser interactions.
-- Build, deployment, payment, customer, and LMS state. These are deliberately
-  outside WordPress under the project architecture.
+- Build, deployment, learner-account, and LMS state. WooCommerce order and
+  payment-reference state is deliberately managed in WordPress under ADR-011,
+  but is operational data rather than editable page content.
 
 ## Publishing behavior
 

@@ -11,21 +11,29 @@
 
 ## Architectural Rules
 
-- WordPress is CMS only.
+- WordPress is headless for public presentation and also hosts the approved
+  WooCommerce commerce runtime.
 - Customers must not use `wp_users`.
 - Astro is the public application.
 - WordPress post IDs are not cross-system business identifiers.
 - Use `course_key` as the stable course identifier.
-- PostgreSQL owns payment and business state.
+- WooCommerce owns orders, order status, checkout data, refunds, and operational
+  commerce evidence.
+- RaiAccept is authoritative for card-payment and card-refund outcomes.
+- BokaPOS is authoritative for fiscal receipts and fiscal refunds.
 - Course delivery remains external.
 - Do not build LMS functionality.
 - Do not build authentication without an explicit requirement.
 
 ## Payment and Security Rules
 
-- Payment confirmation must come from verified webhooks.
+- Card-payment confirmation must come from the RaiAccept server integration and
+  its authenticated provider-status retrieval, never from a browser redirect.
+- A direct-bank-transfer order remains `on-hold` until an administrator verifies
+  the incoming bank credit and moves it to `completed`.
 - Never trust checkout success redirects as payment confirmation.
-- Webhook processing must be idempotent.
+- Payment callbacks, status changes, emails, fulfillment, and fiscalization must
+  be idempotent.
 - Never expose secrets to browser code.
 
 ## Delivery Rules

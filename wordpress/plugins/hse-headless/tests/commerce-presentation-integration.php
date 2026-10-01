@@ -9,15 +9,55 @@ defined( 'ABSPATH' ) || exit;
 
 use HSETraining\Headless\Commerce\CommerceLocale;
 use HSETraining\Headless\Commerce\CommerceCheckoutSource;
+use HSETraining\Headless\Commerce\CommerceAdminCompatibility;
+use HSETraining\Headless\Commerce\CommerceBokaPosEmailCompatibility;
+use HSETraining\Headless\Commerce\CommerceBankTransfer;
 use HSETraining\Headless\Commerce\CommerceOrderNumber;
 use HSETraining\Headless\Commerce\CommercePresentation;
 use HSETraining\Headless\Commerce\CommerceCustomerEmail;
+use HSETraining\Headless\Commerce\CommerceRaiAcceptRetryCompatibility;
+use HSETraining\Headless\Commerce\CommerceRaiAcceptRetryGateway;
 
 if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	exit;
 }
 
 $failures = array();
+
+hse_commerce_presentation_test_assert(
+	CommerceAdminCompatibility::is_order_editor_request(
+		'woocommerce_page_wc-orders',
+		'woocommerce_page_wc-orders',
+		'wc-orders',
+		'edit'
+	)
+		&& CommerceAdminCompatibility::is_order_editor_request( 'post.php', 'shop_order', '', '' )
+		&& ! CommerceAdminCompatibility::is_order_editor_request( 'post.php', 'post', '', '' ),
+	'The BokaPOS compatibility asset is limited to HPOS and legacy order editors.'
+);
+hse_commerce_presentation_test_assert(
+	0 === has_action( 'wp_ajax_woocommerce_refund_line_items', array( CommerceAdminCompatibility::class, 'validate_fiscal_refund_lines' ) )
+		&& CommerceAdminCompatibility::has_refund_line_quantity( array( 123 => '1' ) )
+		&& ! CommerceAdminCompatibility::has_refund_line_quantity( array() )
+		&& ! CommerceAdminCompatibility::has_refund_line_quantity( array( 123 => '0' ) ),
+	'The fiscal-refund guard runs before WooCommerce and requires a positive refunded item quantity.'
+);
+hse_commerce_presentation_test_assert(
+	false !== has_action( 'bokapos_order_fiscalized', array( CommerceBokaPosEmailCompatibility::class, 'prepare_receipt_email' ) )
+		&& CommerceBokaPosEmailCompatibility::ensure_wordpress_file_helpers()
+		&& function_exists( 'wp_tempnam' ),
+	'The update-safe BokaPOS e-mail compatibility layer prepares PDF helpers before provider delivery.'
+);
+hse_commerce_presentation_test_assert(
+	false !== has_action( 'woocommerce_before_pay_action', array( CommerceRaiAcceptRetryCompatibility::class, 'prepare_fresh_payment_attempt' ) ),
+	'The update-safe RaiAccept retry compatibility runs immediately before an order-pay attempt.'
+);
+hse_commerce_presentation_test_assert(
+	array( CommerceRaiAcceptRetryGateway::class ) === CommerceRaiAcceptRetryCompatibility::replace_gateway_class( array( 'RaiAccept_Gateway' ) )
+		&& class_exists( CommerceRaiAcceptRetryGateway::class, false )
+		&& is_subclass_of( CommerceRaiAcceptRetryGateway::class, 'RaiAccept_Gateway' ),
+	'The official RaiAccept checkout gateway is replaced by an update-safe child that preserves the provider payment flow.'
+);
 
 /** Record a failed assertion while allowing all checks to run. */
 function hse_commerce_presentation_test_assert( $condition, $message ) {
@@ -129,6 +169,18 @@ hse_commerce_presentation_test_assert(
 CommerceLocale::capture( 'en' );
 hse_commerce_presentation_test_assert( 'Billing details' === CommercePresentation::copy( 'billing_details' ), 'English checkout copy is available.' );
 hse_commerce_presentation_test_assert(
+	'Retry your payment.' === CommercePresentation::copy( 'retry_title' )
+		&& 'Continue to secure payment' === CommercePresentation::copy( 'retry_action' )
+		&& 'Review your order' === CommercePresentation::copy( 'retry_review' )
+		&& 'Choose payment method' === CommercePresentation::copy( 'retry_payment' ),
+	'English order-pay page explains the secure retry step.'
+);
+hse_commerce_presentation_test_assert(
+	'Review and confirm' === CommercePresentation::copy( 'checkout_confirmations' )
+		&& 'Immediate course access' === CommercePresentation::copy( 'digital_consent_title' ),
+	'English checkout confirmations have clear visual headings.'
+);
+hse_commerce_presentation_test_assert(
 	'Direct bank transfer' === CommercePresentation::copy( 'bank_transfer_title' )
 		&& 'Place order with obligation to pay' === CommercePresentation::copy( 'place_order_bank' )
 		&& 'Order and pay' === CommercePresentation::copy( 'place_order_card' ),
@@ -150,6 +202,17 @@ hse_commerce_presentation_test_assert(
 	'Your payment was not completed.' === CommercePresentation::order_received_text( '', new HseCommercePresentationTestStatusOrder( 'failed' ) ),
 	'English failed confirmation copy is explicit.'
 );
+hse_commerce_presentation_test_assert(
+	'paid' === CommercePresentation::confirmation_state( new HseCommercePresentationTestStatusOrder( 'completed' ) )
+		&& 'pending' === CommercePresentation::confirmation_state( new HseCommercePresentationTestStatusOrder( 'on-hold' ) )
+		&& 'failed' === CommercePresentation::confirmation_state( new HseCommercePresentationTestStatusOrder( 'cancelled' ) ),
+	'Order confirmation state matches the underlying WooCommerce payment state.'
+);
+hse_commerce_presentation_test_assert(
+	'Payment confirmed.' === CommercePresentation::copy( 'confirmation_title_paid' )
+		&& 'Check your inbox' === CommercePresentation::copy( 'next_step_paid_1_title' ),
+	'English confirmation page uses state-aware headings and actionable next steps.'
+);
 
 CommerceLocale::capture( 'sr' );
 hse_commerce_presentation_test_assert(
@@ -157,6 +220,18 @@ hse_commerce_presentation_test_assert(
 		&& 'Potvrdite porudžbinu sa obavezom plaćanja' === CommercePresentation::copy( 'place_order_bank' )
 		&& 'Poručite i platite' === CommercePresentation::copy( 'place_order_card' ),
 	'Serbian bank-transfer checkout copy is localized.'
+);
+hse_commerce_presentation_test_assert(
+	'Ponovite plaćanje.' === CommercePresentation::copy( 'retry_title' )
+		&& 'Nastavite na bezbedno plaćanje' === CommercePresentation::copy( 'retry_action' )
+		&& 'Proverite porudžbinu' === CommercePresentation::copy( 'retry_review' )
+		&& 'Izaberite način plaćanja' === CommercePresentation::copy( 'retry_payment' ),
+	'Serbian order-pay page explains the secure retry step.'
+);
+hse_commerce_presentation_test_assert(
+	'Proverite i potvrdite' === CommercePresentation::copy( 'checkout_confirmations' )
+		&& 'Trenutni pristup kursu' === CommercePresentation::copy( 'digital_consent_title' ),
+	'Serbian checkout confirmations have clear visual headings.'
 );
 
 $_POST['hse_digital_delivery_consent'] = '1';
@@ -361,9 +436,21 @@ hse_commerce_presentation_test_assert(
 	'BokaPOS receipt notifications force the localized branded HTML body and MIME type.'
 );
 hse_commerce_presentation_test_assert(
-	'plain' === CommerceCustomerEmail::force_branded_email_type( 'plain', (object) array( 'id' => 'customer_failed_order' ), 'plain', 'email_type' )
-		&& 'text/plain' === CommerceCustomerEmail::force_branded_content_type( 'text/plain', (object) array( 'id' => 'customer_failed_order' ) ),
-	'Unrelated WooCommerce emails retain their configured format.'
+	'html' === CommerceCustomerEmail::force_branded_email_type( 'plain', (object) array( 'id' => 'customer_on_hold_order' ), 'plain', 'email_type' )
+		&& 'text/html' === CommerceCustomerEmail::force_branded_content_type( 'text/plain', (object) array( 'id' => 'customer_on_hold_order' ) ),
+	'Direct-bank-transfer instructions force the branded HTML body and MIME type.'
+);
+hse_commerce_presentation_test_assert(
+	'html' === CommerceCustomerEmail::force_branded_email_type( 'plain', (object) array( 'id' => 'customer_failed_order' ), 'plain', 'email_type' )
+		&& 'text/html' === CommerceCustomerEmail::force_branded_content_type( 'text/plain', (object) array( 'id' => 'customer_failed_order' ) )
+		&& 'html' === CommerceCustomerEmail::force_branded_email_type( 'plain', (object) array( 'id' => 'customer_cancelled_order' ), 'plain', 'email_type' ),
+	'Failed and cancelled payment notifications force the branded HTML body and MIME type.'
+);
+hse_commerce_presentation_test_assert(
+	'html' === CommerceCustomerEmail::force_branded_email_type( 'plain', (object) array( 'id' => 'customer_refunded_order' ), 'plain', 'email_type' )
+		&& 'html' === CommerceCustomerEmail::force_branded_email_type( 'plain', (object) array( 'id' => 'customer_partially_refunded_order' ), 'plain', 'email_type' )
+		&& 'text/html' === CommerceCustomerEmail::force_branded_content_type( 'text/plain', (object) array( 'id' => 'customer_refunded_order' ) ),
+	'Full and partial refund notifications force the branded HTML body and MIME type.'
 );
 hse_commerce_presentation_test_assert(
 	'HSE TRAINING D.O.O.' === ( CommerceCustomerEmail::merchant_copy()['company'] ?? '' )
@@ -375,6 +462,52 @@ hse_commerce_presentation_test_assert(
 	'RSD prices use an unambiguous Latin currency code.'
 );
 
+$retry_order = wc_create_order();
+if ( is_wp_error( $retry_order ) ) {
+	hse_commerce_presentation_test_assert( false, 'A temporary order can be created for RaiAccept retry checks.' );
+} else {
+	$retry_order->set_payment_method( 'raiaccept' );
+	$retry_order->set_transaction_id( 'P-001-ORD-INACTIVE-TEST' );
+	$retry_order->set_status( 'failed' );
+	$retry_order->update_meta_data( 'raiaccept_return_url', 'https://example.test/inactive-session' );
+	$retry_order->update_meta_data( 'raiaccept_iframe_visited', '123456' );
+	$retry_order->save();
+
+	hse_commerce_presentation_test_assert(
+		CommerceRaiAcceptRetryCompatibility::is_retryable_order( $retry_order, 'raiaccept' )
+			&& ! CommerceRaiAcceptRetryCompatibility::is_retryable_order( $retry_order, 'bacs' ),
+		'Only a failed order submitted again with RaiAccept is prepared for a fresh provider retry.'
+	);
+	$retry_order->set_transaction_id( '' );
+	hse_commerce_presentation_test_assert(
+		CommerceRaiAcceptRetryCompatibility::is_retryable_order( $retry_order, 'raiaccept' ),
+		'A failed retry remains recoverable when an earlier compatibility release already cleared its provider order ID.'
+	);
+	$retry_order->set_transaction_id( 'P-001-ORD-INACTIVE-TEST' );
+
+	$retry_reference = CommerceRaiAcceptRetryCompatibility::build_retry_reference( $retry_order->get_id() );
+	CommerceRaiAcceptRetryCompatibility::record_retry_reference(
+		$retry_order,
+		'P-001-ORD-INACTIVE-TEST',
+		$retry_reference
+	);
+	$retry_order = wc_get_order( $retry_order->get_id() );
+
+	hse_commerce_presentation_test_assert(
+		'' === (string) $retry_order->get_transaction_id()
+			&& $retry_reference === (string) $retry_order->get_meta( CommerceRaiAcceptRetryCompatibility::ACTIVE_REFERENCE_META, true )
+			&& array( 'P-001-ORD-INACTIVE-TEST' ) === $retry_order->get_meta( CommerceRaiAcceptRetryCompatibility::PREVIOUS_ORDER_IDS_META, true )
+			&& array( $retry_reference ) === $retry_order->get_meta( CommerceRaiAcceptRetryCompatibility::RETRY_REFERENCES_META, true )
+			&& 1 === preg_match( '/^' . $retry_order->get_id() . '-retry-[0-9]{14}-[a-zA-Z0-9]{1,10}$/', $retry_reference )
+			&& 1 === (int) $retry_order->get_meta( CommerceRaiAcceptRetryCompatibility::RETRY_COUNT_META, true )
+			&& '' !== (string) $retry_order->get_meta( CommerceRaiAcceptRetryCompatibility::LAST_RETRY_META, true )
+			&& '' === (string) $retry_order->get_meta( 'raiaccept_return_url', true )
+			&& '' === (string) $retry_order->get_meta( 'raiaccept_iframe_visited', true ),
+		'The retry hook preserves audit evidence and prepares one unique reference for the official provider order and session calls.'
+	);
+	$retry_order->delete( true );
+}
+
 $email_order = wc_create_order();
 if ( is_wp_error( $email_order ) ) {
 	hse_commerce_presentation_test_assert( false, 'A temporary order can be created for email-evidence checks.' );
@@ -383,7 +516,13 @@ if ( is_wp_error( $email_order ) ) {
 	$email_order->update_meta_data( CommercePresentation::BUYER_TYPE_META, 'company' );
 	$email_order->update_meta_data( CommercePresentation::COMPANY_TAX_ID_META, '123456789' );
 	$email_order->update_meta_data( CommercePresentation::COMPANY_REG_NUMBER_META, '12345678' );
+	$email_order->set_payment_method( 'bacs' );
+	$email_order->set_billing_country( 'RS' );
+	$email_order->set_billing_company( 'Test Company' );
+	$email_order->set_billing_first_name( 'Test' );
+	$email_order->set_billing_last_name( 'Buyer' );
 	$email_order->save();
+	$email_order = wc_get_order( $email_order->get_id() );
 	hse_commerce_presentation_test_assert(
 		1 === preg_match( '/^HSE-[0-9]{6,}$/', $email_order->get_order_number() )
 			&& '' !== (string) $email_order->get_meta( CommerceOrderNumber::SEQUENCE_META, true ),
@@ -394,8 +533,69 @@ if ( is_wp_error( $email_order ) ) {
 		'Completed receipt subject follows the Serbian order locale.'
 	);
 	hse_commerce_presentation_test_assert(
+		'Plaćanje nije uspelo za porudžbinu #' . $email_order->get_order_number() === CommerceCustomerEmail::failed_order_subject( 'Fallback', $email_order )
+			&& 'Plaćanje nije uspelo' === CommerceCustomerEmail::failed_order_heading( 'Fallback', $email_order )
+			&& 'Porudžbina #' . $email_order->get_order_number() . ' je otkazana' === CommerceCustomerEmail::cancelled_order_subject( 'Fallback', $email_order )
+			&& 'Porudžbina je otkazana' === CommerceCustomerEmail::cancelled_order_heading( 'Fallback', $email_order ),
+		'Unsuccessful-payment subjects and headings follow the Serbian order locale.'
+	);
+	hse_commerce_presentation_test_assert(
+		'Podaci za uplatu porudžbine #' . $email_order->get_order_number() === CommerceCustomerEmail::on_hold_order_subject( 'Fallback', $email_order )
+			&& 'Podaci za uplatu' === CommerceCustomerEmail::on_hold_order_heading( 'Fallback', $email_order ),
+		'Bank-transfer instructions subject and heading follow the Serbian order locale.'
+	);
+	$bank_data = CommerceBankTransfer::instructions_for_order(
+		$email_order,
+		array(
+			'account_name'   => 'HSE TRAINING D.O.O.',
+			'bank_name'      => 'Test Bank',
+			'account_number' => '000-0000000000000-00',
+			'iban'           => 'RS000000000000000000',
+			'bic'            => 'TESTBIC',
+		)
+	);
+	hse_commerce_presentation_test_assert(
+		'221' === ( $bank_data['payment_code'] ?? '' )
+			&& CommerceBankTransfer::DOMESTIC_ACCOUNT === ( $bank_data['account_number'] ?? '' )
+			&& 'Nalog za prenos za pravno lice' === ( $bank_data['form_title'] ?? '' )
+			&& CommerceBankTransfer::BENEFICIARY_NAME === ( $bank_data['recipient'] ?? '' )
+			&& false !== strpos( (string) ( $bank_data['purpose'] ?? '' ), $email_order->get_order_number() ),
+		'A Serbian legal-entity order receives the verified domestic account and approved transfer fields without a payment reference.'
+	);
+	hse_commerce_presentation_test_assert(
+		array() === CommerceCustomerEmail::attach_international_bank_instructions( array(), 'customer_on_hold_order', $email_order ),
+		'The domestic bank-transfer email does not attach the EUR instructions.'
+	);
+	$email_order->update_meta_data( CommercePresentation::BUYER_TYPE_META, 'individual' );
+	$individual_bank_data = CommerceBankTransfer::instructions_for_order( $email_order, array() );
+	hse_commerce_presentation_test_assert(
+		'Uplatnica za fizičko lice' === ( $individual_bank_data['form_title'] ?? '' )
+			&& 'Test Buyer' === ( $individual_bank_data['payer'] ?? '' ),
+		'A Serbian individual receives the individual payment-slip variant.'
+	);
+	$email_order->update_meta_data( CommercePresentation::BUYER_TYPE_META, 'company' );
+	$email_order->set_billing_country( 'SI' );
+	$email_order->save();
+	$foreign_bank_data = CommerceBankTransfer::instructions_for_order( $email_order, array() );
+	$attachments       = CommerceCustomerEmail::attach_international_bank_instructions( array(), 'customer_on_hold_order', $email_order );
+	hse_commerce_presentation_test_assert(
+		CommerceBankTransfer::INTERNATIONAL_IBAN === ( $foreign_bank_data['iban'] ?? '' )
+			&& CommerceBankTransfer::INTERNATIONAL_BIC === ( $foreign_bank_data['bic'] ?? '' )
+			&& array( CommerceBankTransfer::euro_instructions_path() ) === $attachments,
+		'Foreign bank-transfer emails use the official EUR account and attach the Raiffeisen instructions once.'
+	);
+	$email_order->set_billing_country( 'RS' );
+	$email_order->save();
+	hse_commerce_presentation_test_assert(
 		'Potvrda o plaćanju' === CommerceCustomerEmail::completed_order_heading( 'Fallback', $email_order ),
 		'Completed receipt heading follows the Serbian order locale.'
+	);
+	$refund_email_stub = (object) array( 'partial_refund' => false );
+	hse_commerce_presentation_test_assert(
+		'Refundacija porudžbine #' . $email_order->get_order_number() === CommerceCustomerEmail::refunded_order_subject( 'Fallback', $email_order, $refund_email_stub )
+			&& 'Refundacija je izvršena' === CommerceCustomerEmail::refunded_order_heading( 'Fallback', $email_order, $refund_email_stub )
+			&& 'DELIMIČNA REFUNDACIJA IZVRŠENA' === ( CommerceCustomerEmail::refund_copy( 'sr', true )['status'] ?? '' ),
+		'Refund subjects, headings and body copy follow the order locale and refund scope.'
 	);
 	hse_commerce_presentation_test_assert(
 		'Fiskalni račun za porudžbinu #' . $email_order->get_order_number() === CommerceCustomerEmail::fiscal_receipt_subject( 'Fallback', $email_order )
@@ -412,6 +612,11 @@ if ( is_wp_error( $email_order ) ) {
 		'Serbian receipt labels are available without relying on the administrator locale.'
 	);
 	hse_commerce_presentation_test_assert(
+		'PLAĆANJE ODBIJENO' === ( CommerceCustomerEmail::unsuccessful_payment_copy( 'sr', 'failed' )['status'] ?? '' )
+			&& 'ORDER CANCELLED' === ( CommerceCustomerEmail::unsuccessful_payment_copy( 'en', 'cancelled' )['status'] ?? '' ),
+		'Failed and cancelled payment guidance is available in both checkout languages.'
+	);
+	hse_commerce_presentation_test_assert(
 		'Proverite račun kod Poreske uprave' === ( CommerceCustomerEmail::fiscal_receipt_copy( 'sr' )['verify'] ?? '' )
 			&& 'Verify with the Serbian Tax Administration' === ( CommerceCustomerEmail::fiscal_receipt_copy( 'en' )['verify'] ?? '' ),
 		'Fiscal receipt labels are available in both checkout languages.'
@@ -424,6 +629,55 @@ if ( is_wp_error( $email_order ) ) {
 		is_readable( $receipt_template ) && false !== strpos( $receipt_template, 'hse-headless/templates/emails/customer-completed-order.php' ),
 		'The plugin-owned completed receipt template is selected.'
 	);
+	$failed_template = CommerceCustomerEmail::locate_completed_order_template(
+		'/tmp/fallback.php',
+		'emails/customer-failed-order.php'
+	);
+	hse_commerce_presentation_test_assert(
+		is_readable( $failed_template ) && false !== strpos( $failed_template, 'hse-headless/templates/emails/customer-failed-order.php' ),
+		'The plugin-owned failed-payment template is selected.'
+	);
+	$refund_template = CommerceCustomerEmail::locate_completed_order_template(
+		'/tmp/fallback.php',
+		'emails/customer-refunded-order.php'
+	);
+	hse_commerce_presentation_test_assert(
+		is_readable( $refund_template ) && false !== strpos( $refund_template, 'hse-headless/templates/emails/customer-refunded-order.php' ),
+		'The plugin-owned customer refund template is selected.'
+	);
+	$bank_template = CommerceCustomerEmail::locate_completed_order_template(
+		'/tmp/fallback.php',
+		'emails/customer-on-hold-order.php'
+	);
+	hse_commerce_presentation_test_assert(
+		is_readable( $bank_template ) && false !== strpos( $bank_template, 'hse-headless/templates/emails/customer-on-hold-order.php' ),
+		'The plugin-owned bank-transfer instructions template is selected.'
+	);
+	$on_hold_email = WC()->mailer()->get_emails()['WC_Email_Customer_On_Hold_Order'] ?? null;
+	if ( $on_hold_email ) {
+		$bank_html = wc_get_template_html(
+			'emails/customer-on-hold-order.php',
+			array(
+				'order'              => $email_order,
+				'email_heading'      => CommerceCustomerEmail::on_hold_order_heading( '', $email_order ),
+				'additional_content' => '',
+				'sent_to_admin'      => false,
+				'plain_text'         => false,
+				'email'              => $on_hold_email,
+			)
+		);
+		hse_commerce_presentation_test_assert(
+			false !== strpos( $bank_html, 'Nalog za prenos za pravno lice' )
+				&& false !== strpos( $bank_html, 'Šifra plaćanja' )
+				&& false !== strpos( $bank_html, CommerceBankTransfer::BENEFICIARY_NAME )
+				&& false === strpos( $bank_html, 'Poziv na broj odobrenja' )
+				&& false !== strpos( $bank_html, '<!doctype html>' )
+				&& false !== strpos( $bank_html, '<!--[if mso]>' ),
+			'The Serbian company bank-transfer email renders approved payment details without a reference field.'
+		);
+	} else {
+		hse_commerce_presentation_test_assert( false, 'WooCommerce on-hold email is available for transfer-instruction rendering.' );
+	}
 	$merchant_template = CommerceCustomerEmail::locate_completed_order_template(
 		'/tmp/fallback.php',
 		'emails/admin-new-order.php'
@@ -464,6 +718,60 @@ if ( is_wp_error( $email_order ) ) {
 		);
 	} else {
 		hse_commerce_presentation_test_assert( false, 'WooCommerce completed-order email is available for receipt rendering.' );
+	}
+
+	$refunded_email = WC()->mailer()->get_emails()['WC_Email_Customer_Refunded_Order'] ?? null;
+	if ( $refunded_email ) {
+		$refunded_email->partial_refund = false;
+		$refund_html = wc_get_template_html(
+			'emails/customer-refunded-order.php',
+			array(
+				'order'              => $email_order,
+				'refund'             => false,
+				'partial_refund'     => false,
+				'email_heading'      => CommerceCustomerEmail::refunded_order_heading( '', $email_order, $refunded_email ),
+				'additional_content' => '',
+				'sent_to_admin'      => false,
+				'plain_text'         => false,
+				'email'              => $refunded_email,
+			)
+		);
+		hse_commerce_presentation_test_assert(
+			false !== strpos( $refund_html, 'Refundacija je izvršena' )
+				&& false !== strpos( $refund_html, 'REFUNDACIJA IZVRŠENA' )
+				&& false !== strpos( $refund_html, 'BokaPOS fiskalizacije' )
+				&& false !== strpos( $refund_html, '<!doctype html>' )
+				&& false !== strpos( $refund_html, '<!--[if mso]>' ),
+			'The Serbian customer refund email renders the branded responsive template and fiscal guidance.'
+		);
+	} else {
+		hse_commerce_presentation_test_assert( false, 'WooCommerce refunded-order email is available for branded rendering.' );
+	}
+
+	$failed_email = WC()->mailer()->get_emails()['WC_Email_Customer_Failed_Order'] ?? null;
+	if ( $failed_email ) {
+		$failed_html = wc_get_template_html(
+			'emails/customer-failed-order.php',
+			array(
+				'order'              => $email_order,
+				'email_heading'      => CommerceCustomerEmail::failed_order_heading( '', $email_order ),
+				'additional_content' => '',
+				'sent_to_admin'      => false,
+				'plain_text'         => false,
+				'email'              => $failed_email,
+			)
+		);
+		hse_commerce_presentation_test_assert(
+			false !== strpos( $failed_html, 'Plaćanje nije završeno' )
+				&& false !== strpos( $failed_html, 'PLAĆANJE ODBIJENO' )
+				&& false !== strpos( $failed_html, 'Pregledajte i ponovite plaćanje' )
+				&& false !== strpos( $failed_html, 'order-pay' )
+				&& false !== strpos( $failed_html, '<!doctype html>' )
+				&& false !== strpos( $failed_html, '<!--[if mso]>' ),
+			'The Serbian failed-payment email renders the branded retry guidance and secure payment link.'
+		);
+	} else {
+		hse_commerce_presentation_test_assert( false, 'WooCommerce failed-order email is available for branded rendering.' );
 	}
 
 	$new_order_email = WC()->mailer()->get_emails()['WC_Email_New_Order'] ?? null;
@@ -519,6 +827,11 @@ if ( is_wp_error( $email_order ) ) {
 	$email_order->update_meta_data( CommerceLocale::ORDER_META, 'en' );
 	$email_order->save();
 	hse_commerce_presentation_test_assert(
+		'Payment failed for order #' . $email_order->get_order_number() === CommerceCustomerEmail::failed_order_subject( 'Fallback', $email_order )
+			&& 'Payment failed' === CommerceCustomerEmail::failed_order_heading( 'Fallback', $email_order ),
+		'Failed-payment subject and heading follow the English order locale.'
+	);
+	hse_commerce_presentation_test_assert(
 		'Fiscal receipt for order #' . $email_order->get_order_number() === CommerceCustomerEmail::fiscal_receipt_subject( 'Fallback', $email_order )
 			&& 'Your fiscal receipt' === CommerceCustomerEmail::fiscal_receipt_heading( 'Fallback', $email_order ),
 		'BokaPOS fiscal receipt subject and heading follow the English order locale.'
@@ -546,6 +859,15 @@ if ( is_wp_error( $email_order ) ) {
 		'The English BokaPOS receipt renders localized guidance while retaining the official document.'
 	);
 
+	$email_order->update_meta_data( CommerceLocale::ORDER_META, 'sr' );
+	$email_order->set_billing_country( 'SI' );
+	$email_order->save();
+	hse_commerce_presentation_test_assert(
+		'en' === CommerceCustomerEmail::fiscal_receipt_locale( $email_order )
+			&& 'Fiscal receipt for order #' . $email_order->get_order_number() === CommerceCustomerEmail::fiscal_receipt_subject( 'Fallback', $email_order ),
+		'Foreign buyers receive the fiscal-receipt wrapper in English even if checkout locale metadata is Serbian.'
+	);
+
 	$email = (object) array( 'object' => $email_order );
 	CommerceCustomerEmail::record_email_delivery( true, 'customer_failed_order', $email );
 	$email_order = wc_get_order( $email_order->get_id() );
@@ -553,7 +875,33 @@ if ( is_wp_error( $email_order ) ) {
 		'' !== (string) $email_order->get_meta( '_hse_customer_email_customer_failed_order_sent_at', true ),
 		'Successfully delivered payment-status email evidence is retained on the order.'
 	);
+	$completed_email->object = $email_order;
+	hse_commerce_presentation_test_assert(
+		true === CommerceCustomerEmail::prevent_duplicate_completed_order_email( true, $email_order, $completed_email ),
+		'The first completed-order customer email is allowed.'
+	);
+	hse_commerce_presentation_test_assert(
+		false === CommerceCustomerEmail::prevent_duplicate_completed_order_email( true, $email_order, $completed_email ),
+		'A concurrent completed-order callback cannot claim the same customer email.'
+	);
+	CommerceCustomerEmail::record_email_delivery( false, 'customer_completed_order', $completed_email );
+	hse_commerce_presentation_test_assert(
+		true === CommerceCustomerEmail::prevent_duplicate_completed_order_email( true, $email_order, $completed_email ),
+		'A failed completed-order send releases its claim for a later retry.'
+	);
+	CommerceCustomerEmail::record_email_delivery( true, 'customer_completed_order', $completed_email );
+	$email_order = wc_get_order( $email_order->get_id() );
+	hse_commerce_presentation_test_assert(
+		false === CommerceCustomerEmail::prevent_duplicate_completed_order_email( true, $email_order, $completed_email ),
+		'A successfully delivered completed-order email cannot be sent again for the same order.'
+	);
+	hse_commerce_presentation_test_assert(
+		true === CommerceCustomerEmail::prevent_duplicate_completed_order_email( true, $email_order, (object) array( 'id' => 'bokapos_receipt' ) ),
+		'The completed-order safeguard does not suppress the separate BokaPOS fiscal receipt email.'
+	);
+	$order_id = $email_order->get_id();
 	$email_order->delete( true );
+	CommerceCustomerEmail::delete_completed_email_claim( $order_id );
 }
 
 if ( $failures ) {

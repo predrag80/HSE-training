@@ -38,9 +38,9 @@ scalar values under `meta`:
 | `meta.featured_on_homepage` | boolean | Explicit Homepage selection |
 
 `visible_price` is a UTF-8 display string such as `€499`. Consumers must not
-parse it into authoritative currency or amount values. The selected payment provider will own
-checkout pricing; any future machine-readable price mapping belongs to the
-payment integration, not this CMS field.
+parse it into authoritative currency or amount values. The Course editor's
+separate online-purchase price is synchronized into the derived WooCommerce
+product, whose store currency and price are authoritative at checkout.
 
 ## CPT configuration
 

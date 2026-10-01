@@ -1,7 +1,7 @@
 # HSE Training Project Constraints
 
 Status: Application quality tooling active; numerical gates expand with functional slices
-Last reviewed: 2026-09-01
+Last reviewed: 2026-10-01
 
 This file defines the minimum quality, security, architecture, and scope bar for
 all project work. It must be read with `AGENTS.md`, `SPEC.md`, and the ADRs before
@@ -34,7 +34,8 @@ These rules apply immediately and require no application tooling:
 
 ### Public application
 
-- Astro is the only public application.
+- Astro is the only public marketing application. The CMS exposes only the
+  minimum WooCommerce commerce routes approved by ADR-011.
 - Prefer static Astro pages. Use server endpoints only for work that requires a
   trusted server environment.
 - Client-side JavaScript must be justified by a documented interaction.
@@ -42,20 +43,24 @@ These rules apply immediately and require no application tooling:
 - Astro may render course marketing content but must not host instructional
   content or implement learner functionality.
 
-### WordPress
+### WordPress and WooCommerce
 
-- WordPress is a headless editorial CMS only.
+- WordPress is headless for public presentation and owns editorial content.
+- The same installation hosts the approved WooCommerce commerce runtime defined
+  by ADR-011.
 - Customers must not be created in or represented by `wp_users`.
-- WordPress must not own payments, purchases, fulfillment, or authentication for
-  public customers.
+- WooCommerce owns orders, billing details, operational order state, payment
+  references, refunds, and notification evidence; it does not own learner
+  authentication or course delivery.
 - Astro consumes WordPress through a documented API boundary, never by querying
   the WordPress database directly.
 - WordPress post IDs must not cross the CMS boundary as business identifiers.
 
 ### Stable identifiers
 
-- `course_key` is the stable course identifier across WordPress, Astro,
-  PostgreSQL, payment metadata, and external fulfillment.
+- `course_key` is the stable course identifier across WordPress Course records,
+  derived WooCommerce product SKUs, Astro, payment metadata, and external
+  fulfillment.
 - A course title, slug, WordPress post ID, provider product ID, or LMS ID must
   not replace `course_key`.
 - `course_key` is immutable after publication.
@@ -64,16 +69,20 @@ These rules apply immediately and require no application tooling:
 
 ### Business and payment state
 
-- PostgreSQL owns payment, purchase, webhook-processing, and fulfillment state.
-- Browser code and WordPress must not connect directly to PostgreSQL.
-- Payment confirmation must come from a verified provider webhook.
+- WooCommerce owns the order and business-workflow state.
+- RaiAccept owns card-payment and card-refund outcomes; BokaPOS owns fiscal
+  receipt and fiscal-refund outcomes.
+- Card-payment confirmation must come from the RaiAccept server integration and
+  authenticated provider-status retrieval.
 - A checkout success or cancellation redirect must never mutate authoritative
   payment or fulfillment state.
-- Webhook processing must be idempotent. The provider event identifier requires
-  a database uniqueness guarantee, and duplicate delivery must not duplicate a
-  purchase or fulfillment action.
-- Every database schema change requires a reviewed migration and an explicit
-  rollback or forward-recovery plan.
+- Notification, callback, status, email, fulfillment, fiscalization, and refund
+  processing must be idempotent. Duplicate delivery must not duplicate any
+  business outcome.
+- Direct bank transfer remains `on-hold` until an administrator verifies the
+  incoming credit and explicitly changes the order to `completed`.
+- Every WooCommerce data/schema change requires a reviewed migration and an
+  explicit rollback or forward-recovery plan.
 
 ### Course delivery
 
@@ -128,8 +137,9 @@ provided the rendered result closely matches the approved reference.
 
 - Treat browser input, WordPress responses, webhook payloads, provider metadata,
   and LMS data as untrusted until validated.
-- Verify webhook authenticity before accepting provider claims or changing
-  business state.
+- Accept provider claims only after signature/message-authentication validation
+  or authenticated server-to-server retrieval of the authoritative provider
+  state; never change business state from an unverified callback body.
 - Keep payment, database, CMS, email, and LMS credentials in server-only secret
   storage. Never expose them through client bundles, public environment
   variables, HTML, logs, or API responses.
@@ -142,9 +152,10 @@ provided the rendered result closely matches the approved reference.
 - Logs may contain correlation identifiers and state transitions but must not
   contain credentials, webhook signatures, full payment payloads, or unnecessary
   personal data.
-- Production PostgreSQL and administrative interfaces require appropriate
-  access controls. The unauthenticated CMS surface is limited to explicitly
-  published content APIs.
+- Production WordPress/WooCommerce and provider administrative interfaces
+  require appropriate access controls. The unauthenticated CMS surface is
+  limited to published content APIs and the minimum checkout, payment-return,
+  callback, REST, AJAX, and cron routes required by ADR-011.
 
 ## Explicit Scope Exclusions
 
@@ -159,7 +170,7 @@ why the current architecture cannot meet it:
 - customer authentication
 - complex Docker infrastructure
 - an HSE-hosted LMS
-- Elementor, Crafto, WooCommerce, or a WordPress page-builder architecture
+- Elementor, Crafto, or a WordPress page-builder architecture
 
 An exclusion is not permission to build a home-grown substitute. Prefer the
 simplest design that meets the current requirement.

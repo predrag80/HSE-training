@@ -130,8 +130,8 @@ The native services are active and configured to restart at login:
 - Nginx default Homebrew server: port 8080
 
 PostgreSQL 15 was already installed and running locally on port 5432 before this
-task. It was neither installed nor reconfigured here; application use remains
-deferred until the commerce/payment domain needs it.
+task. It was neither installed nor reconfigured here and is not used by the
+current WooCommerce commerce architecture selected in ADR-011.
 
 OrbStack and DDEV from an earlier setup have been uninstalled. The old DDEV
 configuration and the pre-existing WordPress configuration/core directories

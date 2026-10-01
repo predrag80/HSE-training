@@ -56,7 +56,8 @@ rendering mechanism. This field is editor-authored WordPress marketing content
 validated by the CMS adapter; visitor-provided HTML must never be mixed into
 it.
 
-The domain `courseKey` remains the Course business identity for future payment
-and business-state integrations. The `(courseKey, locale)` pair selects an
-editorial translation, while the locale-specific slug is only a route input.
-WordPress post IDs do not cross the CMS boundary.
+The domain `courseKey` remains the Course business identity across the Course
+record, its derived WooCommerce product SKU, payment metadata, and fulfillment.
+The `(courseKey, locale)` pair selects an editorial translation, while the
+locale-specific slug is only a route input. WordPress post IDs do not cross the
+CMS boundary.

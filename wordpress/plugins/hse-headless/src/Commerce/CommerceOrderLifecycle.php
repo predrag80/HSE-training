@@ -16,6 +16,7 @@ final class CommerceOrderLifecycle {
 	/** Register the paid-order status rule. */
 	public static function register_hooks(): void {
 		add_filter( 'woocommerce_payment_complete_order_status', array( self::class, 'payment_complete_status' ), 20, 3 );
+		add_action( 'woocommerce_order_status_processing', array( self::class, 'complete_processing_card_order' ), 999, 2 );
 	}
 
 	/**
@@ -31,20 +32,60 @@ final class CommerceOrderLifecycle {
 			return $status;
 		}
 
+		$order = self::resolve_order( $order_id, $order );
+		return self::is_course_card_order( $order ) ? 'completed' : $status;
+	}
+
+	/**
+	 * Some RaiAccept versions persist `processing` directly instead of asking
+	 * WooCommerce for its payment-complete status. Finish that verified paid
+	 * transition after other processing-status listeners (including fiscal
+	 * integrations) have received the event.
+	 */
+	public static function complete_processing_card_order( $order_id, $order = null ): void {
+		if ( ! CommerceConfiguration::is_enabled() ) {
+			return;
+		}
+
+		$order = self::resolve_order( $order_id, $order );
+		if ( ! self::is_course_card_order( $order )
+			|| ! method_exists( $order, 'get_status' )
+			|| 'processing' !== sanitize_key( (string) $order->get_status() )
+			|| ! method_exists( $order, 'is_paid' )
+			|| ! $order->is_paid()
+			|| ! method_exists( $order, 'update_status' ) ) {
+			return;
+		}
+
+		$order->update_status(
+			'completed',
+			__( 'Verified RaiAccept card payment automatically completed for immediate digital course delivery.', 'hse-headless' ),
+			true
+		);
+	}
+
+	/** Resolve a callback order without trusting the supplied object. */
+	private static function resolve_order( $order_id, $order = null ) {
 		if ( ! is_object( $order ) && function_exists( 'wc_get_order' ) ) {
 			$order = wc_get_order( absint( $order_id ) );
 		}
+
+		return is_object( $order ) ? $order : null;
+	}
+
+	/** Return whether an order contains only plugin-synchronized virtual Courses paid by card. */
+	private static function is_course_card_order( $order ): bool {
 		if ( ! is_object( $order ) || ! method_exists( $order, 'get_payment_method' ) || ! method_exists( $order, 'get_items' ) ) {
-			return $status;
+			return false;
 		}
 
 		if ( self::CARD_GATEWAY !== sanitize_key( (string) $order->get_payment_method() ) ) {
-			return $status;
+			return false;
 		}
 
 		$items = $order->get_items( 'line_item' );
 		if ( ! is_iterable( $items ) ) {
-			return $status;
+			return false;
 		}
 
 		$has_course = false;
@@ -55,11 +96,11 @@ final class CommerceOrderLifecycle {
 				|| ! method_exists( $product, 'is_virtual' )
 				|| ! $product->is_virtual()
 				|| '1' !== (string) get_post_meta( (int) $product->get_id(), CommerceProductSync::SYNCED_META, true ) ) {
-				return $status;
+				return false;
 			}
 			$has_course = true;
 		}
 
-		return $has_course ? 'completed' : $status;
+		return $has_course;
 	}
 }

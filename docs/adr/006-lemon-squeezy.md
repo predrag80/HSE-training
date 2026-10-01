@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Superseded by ADR-011 on 2026-10-01
 
 ## Date
 
@@ -27,4 +27,3 @@ Use Lemon Squeezy as the expected payment provider. Confirm payments only from v
 - Webhook signature verification is mandatory.
 - Provider event identifiers and processing outcomes must be persisted.
 - Success redirects may communicate pending status but cannot grant course access.
-

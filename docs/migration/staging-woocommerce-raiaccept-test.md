@@ -1,7 +1,12 @@
 # Staging WooCommerce/RaiAccept deployment and test
 
-This runbook deploys the temporary experiment in ADR-010. It does not authorize
-production payment processing.
+Status: historical sandbox/regression runbook. ADR-011 supersedes its
+architecture restriction and authorizes WooCommerce as the production commerce
+store, but this document still does not authorize using sandbox commands,
+versions, amounts, or credentials in production.
+
+This runbook deploys the original ADR-010 experiment and remains useful for
+non-production regression testing.
 
 ## Inputs
 

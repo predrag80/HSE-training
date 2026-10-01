@@ -2,8 +2,8 @@
 
 ## Status
 
-Accepted for staging; WooCommerce and RaiAccept selected for production subject
-to the readiness gates below
+Superseded by ADR-011 on 2026-10-01. Retained as the historical sandbox
+evaluation record.
 
 ## Date
 
@@ -72,10 +72,11 @@ delivery-evidence retention, and rollback checks have passed.
   and rollback contracts. Customers must not be represented as WordPress users,
   and course delivery remains external.
 
-## Production promotion gate
+## Production promotion gate (completed by ADR-011)
 
-Promote the bridge through a reviewed production ADR and matching updates to
-`SPEC.md`, `CONSTRAINTS.md`, and `AGENTS.md` only after the sandbox results and
-Raiffeisen production requirements have been reviewed. Until then, production
-payment processing remains disabled even though WooCommerce and RaiAccept are
-the selected production direction.
+This gate required a reviewed production ADR plus matching updates to
+`SPEC.md`, `CONSTRAINTS.md`, and `AGENTS.md` after the sandbox results and
+Raiffeisen requirements were reviewed. ADR-011 and the 2026-10-01 baseline
+documentation update complete the architecture-promotion portion of that gate;
+the operational security and production-credential launch checks remain
+separate requirements.

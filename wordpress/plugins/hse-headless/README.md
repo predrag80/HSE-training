@@ -31,6 +31,10 @@ explicit English and Serbian variants without a third-party translation plugin.
 - Headless CMS integration
 - Closed, non-indexable WordPress theme frontend
 - Customer-facing WooCommerce order numbers with an environment-local `HSE-000001` sequence
+- WooCommerce checkout, order-status, notification, RaiAccept compatibility,
+  and BokaPOS compatibility for the production commerce architecture in ADR-011
+- Privacy-bounded Sentry reporting for contact delivery, exceptional checkout
+  failures, RaiAccept request failures, BokaPOS reconciliation, and cron health
 
 Hero Slide featured images must be at least 1600 × 900 pixels. The editor
 recommends 1920 × 1080 pixels and automatically keeps a slide in draft when a
@@ -41,10 +45,12 @@ Media Library.
 ## Headless Access Boundary
 
 Normal theme requests return HTTP 404 and a minimal non-indexable response.
-WordPress administration, login processing, AJAX, cron, XML-RPC, and REST API
-requests remain available because they do not render the public theme.
-When the explicit staging-only commerce flag is enabled, WooCommerce checkout
-and payment-return requests are the only additional public theme surface.
+WordPress administration, login processing, AJAX, cron, and approved REST API
+requests remain available because they do not render the public theme. XML-RPC
+is disabled because no approved CMS, commerce, payment, or fiscal integration
+uses it.
+When the explicit commerce flag is enabled, WooCommerce checkout and
+payment-return requests are the only additional public theme surface.
 
 Run the focused local check with:
 
@@ -298,15 +304,17 @@ Run the endpoint checks without sending a real message:
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/contact-rest-integration.php
 ```
 
-## Staging WooCommerce evaluation
+## WooCommerce commerce integration
 
-The temporary WooCommerce/RaiAccept bridge is disabled by default. It may be
-enabled only on the staging CMS by defining the following untracked server
-configuration before WordPress loads `wp-settings.php`:
+The WooCommerce/RaiAccept commerce surface is disabled by default. Enable it on
+an approved environment by defining the following untracked server
+configuration before WordPress loads `wp-settings.php`. The constant retains
+its historical staging name for backward compatibility; ADR-011 approves the
+same boundary for production:
 
 ```php
 define( 'HSE_WOOCOMMERCE_STAGING_BRIDGE', true );
-define( 'HSE_PUBLIC_SITE_URL', 'https://staging.hsetraining.rs' );
+define( 'HSE_PUBLIC_SITE_URL', 'https://hsetraining.rs' );
 ```
 
 Astro reads a public projection by stable `course_key`; WooCommerce API keys,
@@ -346,6 +354,13 @@ platform account-creation step.
 `https://staging.hsetraining.rs` on staging and `https://hsetraining.rs` in
 production. Local WordPress defaults to `http://localhost:4321`; other
 unconfigured environments default to the production origin.
+
+The CMS exposes only the WooCommerce checkout surfaces required by the
+headless purchase flow. Unused storefront routes (`cart`, `shop`, product and
+product-taxonomy pages, `my-account` and order tracking) return a temporary,
+non-cacheable redirect to the configured Astro homepage. Checkout,
+`order-pay`, `order-received`, WooCommerce API/callback, REST, AJAX and cron
+requests remain available and are never covered by this redirect.
 
 Published **Courses** are the editorial source for a derived, hidden
 WooCommerce catalogue. A Course save automatically synchronizes the product
@@ -407,29 +422,81 @@ The checkout and confirmation shell packages the same transparent HSE Training
 wordmark used by the Astro header, so it does not depend on an Astro public
 asset URL or retain the earlier plugin-only logo treatment.
 
+The checkout payment methods use equal, selectable cards with persistent helper
+copy. Purchase Terms and immediate digital delivery are presented as two
+separate required confirmation cards. The digital-delivery checkbox is never
+preselected and its accepted text version and UTC timestamp remain stored on
+the order.
+
 The successful customer flow suppresses WooCommerce's intermediate processing
 email and sends the final completed-order payment receipt only. Pending,
 failed, cancelled and refunded outcomes keep their own notifications. The
 verified RaiAccept payment-complete event moves an order containing only
-plugin-synchronized virtual Course products directly to `completed`; this
-starts immediate fulfilment and lets BokaPOS issue the final fiscal receipt.
+plugin-synchronized virtual Course products directly to `completed`. A late
+fallback also promotes a verified paid RaiAccept order if that gateway version
+persists `processing` directly instead of using WooCommerce's standard
+payment-complete status filter. This starts immediate fulfilment and lets
+BokaPOS issue the final fiscal receipt.
 The rule never auto-completes `bacs` orders. Direct bank transfer orders remain
 `on-hold` until the merchant verifies the incoming credit on the bank account
 and manually changes the order to `completed`.
 
+The customer `on-hold` notification uses a plugin-owned responsive HTML and
+plain-text template: Serbian individuals receive an **Uplatnica** presentation,
+while Serbian legal entities receive a **Nalog za prenos** presentation. Both
+include payment code `221`, purpose, amount and the verified domestic beneficiary
+account `265-6040310000144-40`. Model and payment-reference fields are
+intentionally omitted until HSE Training supplies an approved reference convention.
+International customers receive the official Raiffeisen beneficiary name,
+address, IBAN `RS35265100000016397028` and SWIFT/BIC `RZBSRSBG`, plus the bank's
+official EUR incoming-payment instructions as a PDF attachment. WooCommerce
+sends this existing `customer_on_hold_order` email once when the BACS order
+enters `on-hold`; the plugin does not trigger a second message. The
+order-received page repeats the applicable payment details.
+
 BokaPOS must therefore auto-fiscalize only on `completed`, have no advance or
 proforma gateways, and map `raiaccept` to `CARD` and `bacs` to
-`WIRE_TRANSFER`. Use one fiscal-email sender: the current setup sends the
-plugin-branded WooCommerce BokaPOS receipt with its PDF attachment and disables
-the duplicate BokaPOS portal email. Do not enable Direct bank transfer until
-the beneficiary name, domestic account number, bank name, IBAN and SWIFT/BIC
-have been verified and entered in WooCommerce.
+`WIRE_TRANSFER`. Use one fiscal-email sender: the production direction enables
+the BokaPOS portal e-mail for the official sale and refund fiscal documents and
+disables the separate WooCommerce BokaPOS fiscal-receipt e-mail. WooCommerce
+continues to send the distinct order confirmation/status or refund message.
+
+On the WooCommerce order editor, an admin-only compatibility script removes
+native browser `required` validation from BokaPOS refund-buyer controls only
+while those controls are hidden. This prevents a hidden
+`bokapos_refund_buyer_value` field from blocking an ordinary **Update** action;
+the requirement is restored automatically whenever the refund control becomes
+visible.
 
 The completed receipt is rendered by plugin-owned HTML and plain-text templates;
 its subject, body, Course title and labels use the `en` or `sr` locale stored on
 the order. It includes the customer billing details, payment method, order
 number and date, line items, subtotal, total paid, payment status and HSE
-contact details. Merchant new-order notifications use their own branded HTML
+contact details. Failed and cancelled card-payment notifications use the same
+responsive HSE presentation and stored checkout language. The failed-payment
+message states that access and fiscalization did not start, summarizes the
+attempt and provides WooCommerce's signed retry-payment URL for the same order;
+the cancelled variant directs the customer to start a new purchase instead.
+The signed link intentionally opens a localized `order-pay` review step before
+RaiAccept. It uses the same responsive card, typography, payment-method and CTA
+design as the main checkout, with separate order-review and payment steps. This
+lets WooCommerce create a fresh gateway transaction for the existing order and
+avoids initiating payment from an email-prefetched GET request.
+The official RaiAccept plugin retains its provider order ID after a declined
+attempt, but the provider refuses a later checkout session for that inactive
+attempt. An update-safe compatibility hook therefore runs only after the
+customer submits the signed `order-pay` form with RaiAccept selected and only
+while the WooCommerce order is `failed`. It archives the previous provider
+order ID, prepares a unique reference such as
+`1553-retry-20260930211530-a1b2c3d4` and clears the inactive iframe/session
+metadata. An update-safe child of the official gateway changes only its
+merchant-reference mapping, so the inherited provider-order and payment-session
+requests use that exact same retry reference. The official provider plugin is
+not edited. Opening or prefetching the e-mail link does not mutate the order,
+bank-transfer attempts are untouched, and both the provider-order and
+retry-reference histories remain on the WooCommerce order for operational
+review.
+Merchant new-order notifications use their own branded HTML
 and plain-text templates with customer identity, payment and transaction data,
 line items, total, checkout language and current order status. The plugin
 forces both branded message types to render
@@ -439,17 +506,91 @@ valid address and otherwise fall back to `info@hsetraining.rs`, so an imported
 WordPress administrator address cannot become the recipient. Orders initiated
 from the dev Astro build use `HSE_COMMERCE_DEV_ADMIN_EMAIL` when configured and
 otherwise fall back to `predo.vuckovic@gmail.com`; staging orders retain the
-standard merchant recipient. After WordPress
+standard merchant recipient. Customer order-status and BokaPOS receipt emails
+always retain the actual billing email address entered at checkout. After WordPress
 reports a successful send, the plugin stores only the customer notification
 identifier and UTC timestamp on the order as operational evidence.
+RaiAccept can deliver overlapping status callbacks, so the completed-order
+notification also takes an atomic, non-autoloaded database claim before sending.
+Only the first callback can acquire it; a failed send releases the claim, while
+a successful send keeps a durable marker and prevents a duplicate `Thank you`
+message even when another callback is already running with stale order data.
+
+Full and partial customer refund notifications use the same responsive HSE
+HTML and plain-text design as the other order messages. They state the amount
+returned to the original payment method, explain that bank posting time can
+vary, and distinguish the WooCommerce refund confirmation from the separate
+BokaPOS fiscal-refund document.
+
+A BokaPOS fiscal refund must contain at least one returned line quantity that
+maps back to the original fiscal receipt. An amount-only WooCommerce refund can
+return money through the payment gateway but cannot be fiscalized. The HSE
+compatibility layer therefore validates this before WooCommerce invokes the
+gateway whenever `Fiscalize this refund` is selected. Both a browser-side guard
+and an authoritative AJAX guard require an administrator to enter a positive
+quantity beside the refunded course. Provider plugin files remain unmodified.
+If an older amount-only refund already succeeded financially and failed with
+`NO_REFUND_LINES`, never invoke the gateway refund a second time; reconcile its
+fiscal document with BokaPOS support or use a controlled manual-only correction.
 
 The separate BokaPOS fiscal-receipt notification also uses plugin-owned HTML
 and plain-text templates. Its subject, heading, explanatory copy, course title
 and actions follow the immutable `en` or `sr` checkout locale stored on the
-order. The official PFR PDF, QR data and Tax Administration verification link
+order, while a non-Serbian billing country always selects the English wrapper.
+The official PFR PDF, QR data and Tax Administration verification link
 remain unchanged. An English checkout translates only the surrounding message
 and explains that the attached fiscal document retains its legally prescribed
 original language and format.
+
+The provider plugin remains unmodified. Before its `bokapos_order_fiscalized`
+email handler runs, an HSE compatibility hook loads WordPress's file helpers so
+the provider can create its temporary PDF attachment during WP-Cron as well as
+an async request. A delayed watchdog checks the existing WooCommerce delivery
+evidence and makes one idempotent retry only when the fiscal receipt exists but
+the `bokapos_receipt` email was not recorded as sent. Remove the workaround
+after a BokaPOS release officially loads `wp-admin/includes/file.php` in its
+background delivery path and the same sandbox scenarios pass without it.
+
+### BokaPOS operational monitoring
+
+The plugin runs a separate read-only watchdog every five minutes. It observes
+the local BokaPOS fiscal journal and WooCommerce order/refund state without
+issuing, retrying or altering fiscal documents. It reports final sale, refund
+and receipt-delivery failures; sale/refund delays longer than ten minutes;
+delivery delays longer than thirty minutes; completed orders without a fiscal
+receipt; expected refund operations that never appeared; and configured
+BokaPOS receipt e-mails for which no delivery operation was created.
+
+Alerts contain only internal operational ids, state, failure code, environment
+and an administrator link. Customer identity, customer e-mail, PIB/TIN,
+provider payloads, secrets and fiscal contents are excluded. Each failure
+signature is claimed durably and uses a deterministic Sentry event id, so a
+retry does not create a second alert. A recovered operation produces one
+recovery event.
+
+Configure the independent Sentry channel and its fallback recipient through
+server-owned values before WordPress loads:
+
+```php
+define( 'HSE_MONITORING_SENTRY_DSN', getenv( 'HSE_MONITORING_SENTRY_DSN' ) );
+define( 'HSE_MONITORING_ENVIRONMENT', 'production' );
+define( 'HSE_MONITORING_ALERT_EMAIL', 'alerts@hsetraining.rs' );
+```
+
+When Sentry is unavailable or not configured, the same bounded incident is
+sent through WordPress mail. The official BokaPOS administrator notification
+remains enabled and unchanged.
+
+Production must use a real server cron. First add and manually test the cron
+command, then set `DISABLE_WP_CRON` to `true`; never reverse that order. The
+server command must run all due WordPress events, not only the monitoring group,
+so WooCommerce and BokaPOS retry/poll dependencies preserve their order. Check
+the queue under **WooCommerce → Status → Scheduled Actions** and run the focused
+integration check with:
+
+```sh
+wp eval-file wp-content/plugins/hse-headless/tests/commerce-bokapos-monitoring-integration.php
+```
 
 The email palette can be aligned to the HSE checkout with:
 
@@ -460,23 +601,25 @@ wp option update woocommerce_email_body_background_color '#ffffff'
 wp option update woocommerce_email_text_color '#292d36'
 ```
 
-The current staging IGC can be enabled with the idempotent provisioning script;
-future changes should be made through the Course editor, then synchronized in
-bulk after first deployment:
+The initial IGC product can be provisioned idempotently in a non-production
+environment; production changes should be made through the Course editor, then
+synchronized in bulk after first deployment:
 
 ```sh
 HSE_IGC_TEST_PRICE=117000.00 wp eval-file wp-content/plugins/hse-headless/scripts/provision-nebosh-igc-product.php
 wp eval-file wp-content/plugins/hse-headless/scripts/sync-course-products.php
 ```
 
-This bridge is for staging gateway validation only. It does not approve
-WooCommerce as the production payment-state authority; see ADR-010.
+WooCommerce is the production order and business-workflow authority under
+ADR-011. RaiAccept remains authoritative for card-payment/refund outcomes, and
+BokaPOS remains authoritative for fiscal documents.
 
 ## Not Responsible For
 
 - Astro frontend
 - Customer accounts
-- Production payments and payment-provider integration
+- Card processing and provider settlement performed by RaiAccept
+- Fiscal document issuance performed by BokaPOS
 - Course delivery
 - LMS functionality
 

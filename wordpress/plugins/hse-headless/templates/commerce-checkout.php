@@ -11,10 +11,14 @@ use HSETraining\Headless\Commerce\CommercePresentation;
 defined( 'ABSPATH' ) || exit;
 
 $is_confirmation = CommercePresentation::is_confirmation();
+$is_payment_retry = CommercePresentation::is_payment_retry();
 $locale           = CommerceLocale::current();
-$eyebrow          = CommercePresentation::copy( $is_confirmation ? 'confirmation_eyebrow' : 'checkout_eyebrow' );
-$title            = CommercePresentation::copy( $is_confirmation ? 'confirmation_title' : 'checkout_title' );
-$intro            = CommercePresentation::copy( $is_confirmation ? 'confirmation_intro' : 'checkout_intro' );
+$confirmation_id  = $is_confirmation ? absint( get_query_var( 'order-received' ) ) : 0;
+$confirmation_order = $confirmation_id && function_exists( 'wc_get_order' ) ? wc_get_order( $confirmation_id ) : false;
+$confirmation_state = $is_confirmation ? CommercePresentation::confirmation_state( $confirmation_order ) : '';
+$eyebrow          = CommercePresentation::copy( $is_confirmation ? 'confirmation_eyebrow' : ( $is_payment_retry ? 'retry_eyebrow' : 'checkout_eyebrow' ) );
+$title            = CommercePresentation::copy( $is_confirmation ? 'confirmation_title_' . $confirmation_state : ( $is_payment_retry ? 'retry_title' : 'checkout_title' ) );
+$intro            = CommercePresentation::copy( $is_confirmation ? 'confirmation_intro_' . $confirmation_state : ( $is_payment_retry ? 'retry_intro' : 'checkout_intro' ) );
 $home_url         = CommercePresentation::public_url( '/' );
 $plugin_file      = dirname( __DIR__ ) . '/hse-headless.php';
 $payment_asset    = static function ( string $filename ) use ( $plugin_file ): string {
@@ -45,7 +49,7 @@ $payment_asset    = static function ( string $filename ) use ( $plugin_file ): s
 	</header>
 
 	<main id="hse-commerce-content" class="hse-commerce__main">
-		<section class="hse-commerce__hero">
+		<section class="hse-commerce__hero<?php echo $is_confirmation ? ' hse-commerce__hero--confirmation hse-commerce__hero--' . esc_attr( $confirmation_state ) : ( $is_payment_retry ? ' hse-commerce__hero--retry' : '' ); ?>">
 			<div>
 				<p class="hse-commerce__eyebrow"><?php echo esc_html( $eyebrow ); ?></p>
 				<h1><?php echo esc_html( $title ); ?></h1>
@@ -64,6 +68,7 @@ $payment_asset    = static function ( string $filename ) use ( $plugin_file ): s
 		</section>
 	</main>
 
+	<?php if ( ! $is_confirmation ) : ?>
 	<section class="hse-commerce__payments" aria-labelledby="hse-commerce-payment-title">
 		<h2 id="hse-commerce-payment-title"><?php echo esc_html( CommercePresentation::copy( 'payment_security' ) ); ?></h2>
 		<div class="hse-commerce__payment-groups">
@@ -95,6 +100,7 @@ $payment_asset    = static function ( string $filename ) use ( $plugin_file ): s
 			</div>
 		</div>
 	</section>
+	<?php endif; ?>
 
 	<footer class="hse-commerce__footer">
 		<div>

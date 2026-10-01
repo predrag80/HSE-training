@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Superseded by ADR-011 on 2026-10-01
 
 ## Date
 
@@ -27,4 +27,3 @@ Use PostgreSQL as the system of record for payment and business state. Reference
 - Business-state schema changes require explicit migrations.
 - WordPress remains independent of transactional state.
 - Duplicate webhook deliveries can be detected and handled safely.
-
