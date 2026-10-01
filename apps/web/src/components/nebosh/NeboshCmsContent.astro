@@ -1,0 +1,45 @@
+---
+import { splitEditorialContent } from '../../lib/editorial-content';
+
+interface Props {
+	html: string;
+	kicker: string;
+	title: string;
+	titleId: string;
+	muted?: boolean;
+}
+
+const { html, kicker, title, titleId, muted = false } = Astro.props;
+const content = splitEditorialContent(html);
+---
+
+<section class:list={['nebosh-cms-content', { 'nebosh-cms-content--muted': muted }]} aria-labelledby={titleId}>
+	<div class="nebosh-container nebosh-cms-content__inner">
+		<header class="nebosh-cms-content__header" data-nebosh-reveal="up">
+			<p class="nebosh-kicker">{kicker}</p>
+			<h2 id={titleId}>{title}</h2>
+		</header>
+
+		{content.introHtml && (
+			<div class="nebosh-cms-content__lead" data-nebosh-reveal="up">
+				<Fragment set:html={content.introHtml} />
+			</div>
+		)}
+
+		{content.sections.length > 0 && (
+			<div class="nebosh-cms-content__grid">
+				{content.sections.map((section, index) => (
+					<article class="nebosh-cms-content__card" data-nebosh-reveal="up">
+						<span class="nebosh-cms-content__number" aria-hidden="true">
+							{String(index + 1).padStart(2, '0')}
+						</span>
+						<h3><Fragment set:html={section.headingHtml} /></h3>
+						<div class="nebosh-cms-content__body">
+							<Fragment set:html={section.bodyHtml} />
+						</div>
+					</article>
+				))}
+			</div>
+		)}
+	</div>
+</section>

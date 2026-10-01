@@ -15,7 +15,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^7.2.10"
+    "@sentry/astro": "^11.2.0",
+    "astro": "^7.3.5"
   },
   "allowScripts": {
     "esbuild": true

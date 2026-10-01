@@ -32,6 +32,8 @@ jobs:
       DEPLOY_URL: https://dev.hsetraining.rs
       WORDPRESS_API_URL: https://cms.hsetraining.rs
       HSE_CHECKOUT_SOURCE: dev
+      PUBLIC_SENTRY_DSN: https://5df1889a9c77a842f0811138c8e018c3@o4512174212972544.ingest.de.sentry.io/4512181397946448
+      PUBLIC_SENTRY_ENVIRONMENT: dev
       SSH_HOST: s83.unlimited.rs
       SSH_PORT: "9780"
       SSH_USER: sbb22122

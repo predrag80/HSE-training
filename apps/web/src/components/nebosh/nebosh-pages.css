@@ -187,19 +187,38 @@
 .nebosh-icon-list strong { color: #292d36; font-size: 1rem; }
 .nebosh-icon-list small { margin-top: 0.2rem; color: #808291; font-size: 0.9375rem; line-height: 1.5; }
 
-.nebosh-cms-content { padding: 6.25rem 0; border-top: 1px solid #e4e4e4; }
-.nebosh-cms-content--muted { background: #f7f7f7; }
-.nebosh-cms-content__inner { max-width: 55rem; }
-.nebosh-cms-content h2 { margin: 0 0 2rem; color: #292d36; font-size: clamp(2.6rem, 4vw, 3.6rem); font-weight: 600; line-height: 1.02; }
-.nebosh-cms-content__body { color: #808291; line-height: 1.8; }
-.nebosh-cms-content__body h2,
+.nebosh-cms-content { position: relative; padding: 6.75rem 0 7rem; overflow: hidden; background: #f7f7f7; border-top: 1px solid #e4e4e4; }
+.nebosh-cms-content::before { position: absolute; top: -10rem; right: -7rem; width: 26rem; height: 26rem; content: ''; background: rgb(221 101 49 / 6%); border-radius: 50%; }
+.nebosh-cms-content--muted { background: #f2f3f5; }
+.nebosh-cms-content__inner { position: relative; z-index: 1; }
+.nebosh-cms-content__header { margin-bottom: 3.5rem; text-align: center; }
+.nebosh-cms-content__header .nebosh-kicker { margin: 0 0 0.75rem; text-align: center; }
+.nebosh-cms-content__header h2 { max-width: none; margin: 0; color: #292d36; font-size: clamp(2.35rem, 4vw, 3.6rem); font-weight: 600; letter-spacing: -0.045em; line-height: 1.03; white-space: nowrap; }
+.nebosh-cms-content__lead { max-width: 54rem; padding: 0 0 2.5rem; color: #70737f; font-size: 1.0625rem; line-height: 1.8; }
+.nebosh-cms-content__lead > :first-child { margin-top: 0; }
+.nebosh-cms-content__lead > :last-child { margin-bottom: 0; }
+.nebosh-cms-content__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+.nebosh-cms-content__card { position: relative; min-height: 18rem; padding: 2.35rem 2.5rem 2.5rem 6rem; overflow: hidden; background: #fff; border: 1px solid #e3e3e3; box-shadow: 0 1.25rem 3.5rem rgb(25 28 35 / 6%); transition: border-color 300ms ease, box-shadow 300ms ease, transform 300ms ease; }
+.nebosh-cms-content__card:last-child:nth-child(odd) { min-height: 12rem; grid-column: 1 / -1; }
+.nebosh-cms-content__card:last-child:nth-child(odd) .nebosh-cms-content__body { max-width: 65rem; }
+.nebosh-cms-content__card::after { position: absolute; right: 0; bottom: 0; width: 4.5rem; height: 0.1875rem; content: ''; background: #dd6531; transition: width 300ms ease; }
+.nebosh-cms-content__card:hover { border-color: #d8c9c2; box-shadow: 0 1.5rem 4rem rgb(25 28 35 / 10%); transform: translateY(-0.3rem); }
+.nebosh-cms-content__card:hover::after { width: 100%; }
+.nebosh-cms-content__number { position: absolute; top: 2.25rem; left: 2.25rem; color: #dd6531; font-size: 1.35rem; font-weight: 500; line-height: 1; }
+.nebosh-cms-content__card h3 { max-width: 22ch; margin: 0 0 1rem; color: #292d36; font-size: clamp(1.35rem, 2vw, 1.75rem); font-weight: 600; letter-spacing: -0.025em; line-height: 1.2; }
+.nebosh-cms-content__body { color: #767985; font-size: 0.9875rem; line-height: 1.75; }
 .nebosh-cms-content__body h3,
-.nebosh-cms-content__body h4 { margin: 2.25rem 0 0.8rem; color: #292d36; }
+.nebosh-cms-content__body h4 { margin: 1.6rem 0 0.65rem; color: #292d36; font-size: 1.05rem; }
 .nebosh-cms-content__body p,
 .nebosh-cms-content__body ul,
-.nebosh-cms-content__body ol { max-width: none; margin: 0 0 1rem; }
-.nebosh-cms-content__body img { width: 100%; height: auto; margin: 2rem 0; }
-.nebosh-cms-content__body a { color: #292d36; text-decoration-color: #dd6531; text-underline-offset: 0.25rem; }
+.nebosh-cms-content__body ol { max-width: none; margin: 0 0 0.9rem; }
+.nebosh-cms-content__body ul,
+.nebosh-cms-content__body ol { padding-left: 0; list-style: none; }
+.nebosh-cms-content__body li { position: relative; padding-left: 1.25rem; margin-top: 0.45rem; }
+.nebosh-cms-content__body li::before { position: absolute; top: 0.72em; left: 0; width: 0.35rem; height: 0.35rem; content: ''; background: #dd6531; border-radius: 50%; transform: translateY(-50%); }
+.nebosh-cms-content__body img { width: 100%; height: auto; margin: 1.5rem 0; }
+.nebosh-cms-content__body a,
+.nebosh-cms-content__lead a { color: #292d36; text-decoration-color: #dd6531; text-underline-offset: 0.25rem; }
 
 .nebosh-outcomes { padding: 6.25rem 0 6.75rem; border-top: 1px solid #e4e4e4; }
 .nebosh-outcomes__inner { display: grid; grid-template-columns: 0.75fr 1.25fr; gap: 5.5rem; }
@@ -337,6 +356,9 @@
 	.nebosh-courses { padding-block: 5rem; }
 	.nebosh-courses__grid { grid-template-columns: 1fr; }
 	.nebosh-course-card { min-height: 27rem; }
+	.nebosh-cms-content__grid { grid-template-columns: 1fr; }
+	.nebosh-cms-content__card,
+	.nebosh-cms-content__card:last-child:nth-child(odd) { min-height: 0; grid-column: auto; }
 	.nebosh-quote { padding-block: 5rem; }
 	.nebosh-quote__inner { grid-template-columns: 3.5rem 1fr; }
 	.nebosh-detail-intro__image { width: calc(100% - 1.5rem); margin-left: 1.5rem; }
@@ -368,6 +390,10 @@
 	.nebosh-section-heading h2 { font-size: 2.35rem; }
 	.nebosh-course-card__content { padding: 1.75rem; }
 	.nebosh-course-card h3 { font-size: 1.75rem; }
+	.nebosh-cms-content__header { margin-bottom: 2.5rem; }
+	.nebosh-cms-content__header h2 { font-size: 2.35rem; }
+	.nebosh-cms-content__card { padding: 4.75rem 1.5rem 2rem; }
+	.nebosh-cms-content__number { top: 1.65rem; left: 1.5rem; }
 	.nebosh-quote__inner { display: block; }
 	.nebosh-quote__inner > span { display: block; height: 3.25rem; }
 	.nebosh-outcomes__grid { grid-template-columns: 1fr; }
@@ -380,6 +406,10 @@
 	.iogc-band__content h2 { font-size: 2.45rem; }
 	.iogc-audience__grid { grid-template-columns: 1fr; }
 	.iogc-audience__grid article { padding-right: 1.5rem; }
+}
+
+@media (max-width: 48rem) {
+	.nebosh-cms-content__header h2 { white-space: normal; }
 }
 
 @media (prefers-reduced-motion: reduce) {

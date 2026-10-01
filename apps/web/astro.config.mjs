@@ -1,8 +1,21 @@
 // @ts-check
 import { defineConfig, envField } from 'astro/config';
+import sentry from '@sentry/astro';
 
 // https://astro.build/config
 export default defineConfig({
+	integrations: [
+		sentry({
+			enabled: { client: true, server: false },
+			sourcemaps: { disable: true },
+			telemetry: false,
+			bundleSizeOptimizations: {
+				excludeReplayIframe: true,
+				excludeReplayShadowDom: true,
+				excludeReplayWorker: true,
+			},
+		}),
+	],
 	i18n: {
 		locales: ['en', 'sr'],
 		defaultLocale: 'en',

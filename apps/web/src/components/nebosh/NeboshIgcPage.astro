@@ -7,6 +7,7 @@ import { getContactFormPath } from '../../i18n/routes';
 import { getCourseUiTranslations } from '../../i18n/course-ui';
 import { contactDetails } from '../../lib/contact';
 import NeboshHero from './NeboshHero.astro';
+import NeboshCmsContent from './NeboshCmsContent.astro';
 import NeboshMotion from './NeboshMotion.astro';
 import NeboshPartnerBadge from './NeboshPartnerBadge.astro';
 import CourseDownloads from '../course/CourseDownloads.astro';
@@ -68,16 +69,12 @@ const downloads = locale === 'sr'
 
 {
 	course?.descriptionHtml && (
-		<section class="nebosh-cms-content" aria-labelledby="igc-cms-content-title">
-			<div class="nebosh-container nebosh-cms-content__inner" data-nebosh-reveal="up">
-				<p class="nebosh-kicker">{igc.cmsKicker}</p>
-				<h2 id="igc-cms-content-title">{igc.cmsTitle}</h2>
-				{/* This HTML is trusted editor-authored content validated at the CMS boundary. */}
-				<div class="nebosh-cms-content__body">
-					<Fragment set:html={course.descriptionHtml} />
-				</div>
-			</div>
-		</section>
+		<NeboshCmsContent
+			html={course.descriptionHtml}
+			kicker={igc.cmsKicker}
+			title={igc.cmsTitle}
+			titleId="igc-cms-content-title"
+		/>
 	)
 }
 

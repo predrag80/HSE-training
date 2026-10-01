@@ -137,6 +137,7 @@ const contactItems: readonly ContactItem[] = [
 </section>
 
 <script>
+	import * as Sentry from '@sentry/astro';
 	import { sendContactEnquiry, type ContactEnquiry } from '../../lib/contact-form';
 	import { allowsExternalMedia } from '../../lib/cookie-consent';
 
@@ -212,16 +213,33 @@ const contactItems: readonly ContactItem[] = [
 			submit.disabled = true;
 			status.dataset.state = 'sending';
 			status.textContent = form.dataset.sendingMessage ?? '';
-			const result = await sendContactEnquiry(endpoint, enquiry);
+			const result = await Sentry.startSpan(
+				{ name: 'contact-form.submit', op: 'http.client' },
+				() => sendContactEnquiry(endpoint, enquiry),
+			);
 
 			if (result === 'success') {
 				form.reset();
 				status.dataset.state = 'success';
 				status.textContent = form.dataset.successMessage ?? '';
 			} else if (result === 'rate-limited') {
+				Sentry.withScope((scope) => {
+					scope.setTag('component', 'contact-form');
+					scope.setTag('submission_result', result);
+					scope.setTag('locale', enquiry.locale);
+					scope.setFingerprint(['contact-form', result]);
+					Sentry.captureMessage('Contact form submission was rate limited.', 'info');
+				});
 				status.dataset.state = 'error';
 				status.textContent = form.dataset.rateLimitMessage ?? '';
 			} else {
+				Sentry.withScope((scope) => {
+					scope.setTag('component', 'contact-form');
+					scope.setTag('submission_result', result);
+					scope.setTag('locale', enquiry.locale);
+					scope.setFingerprint(['contact-form', result]);
+					Sentry.captureMessage('Contact form submission failed.', 'error');
+				});
 				status.dataset.state = 'error';
 				status.textContent = form.dataset.errorMessage ?? '';
 			}

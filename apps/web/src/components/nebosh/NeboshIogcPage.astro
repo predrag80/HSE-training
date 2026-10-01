@@ -6,6 +6,7 @@ import type { Locale } from '../../i18n/config';
 import { getContactFormPath } from '../../i18n/routes';
 import { getCourseUiTranslations } from '../../i18n/course-ui';
 import { formatCommercePrice } from '../../lib/cms';
+import NeboshCmsContent from './NeboshCmsContent.astro';
 import NeboshHero from './NeboshHero.astro';
 import NeboshMotion from './NeboshMotion.astro';
 
@@ -49,16 +50,13 @@ const heroImage = course?.featuredImageUrl ?? '/images/nebosh-iogc-hero.jpg';
 
 {
 	course?.descriptionHtml && (
-		<section class="nebosh-cms-content nebosh-cms-content--muted" aria-labelledby="iogc-cms-content-title">
-			<div class="nebosh-container nebosh-cms-content__inner" data-nebosh-reveal="up">
-				<p class="nebosh-kicker">{iogc.cmsKicker}</p>
-				<h2 id="iogc-cms-content-title">{iogc.cmsTitle}</h2>
-				{/* This HTML is trusted editor-authored content validated at the CMS boundary. */}
-				<div class="nebosh-cms-content__body">
-					<Fragment set:html={course.descriptionHtml} />
-				</div>
-			</div>
-		</section>
+		<NeboshCmsContent
+			html={course.descriptionHtml}
+			kicker={iogc.cmsKicker}
+			title={iogc.cmsTitle}
+			titleId="iogc-cms-content-title"
+			muted
+		/>
 	)
 }
 

@@ -55,6 +55,8 @@
 }
 
 .course-downloads strong {
+	font-size: clamp(1rem, 1.6vw, 1.25rem);
+	line-height: 1.2;
 	overflow-wrap: anywhere;
 }
 
@@ -79,6 +81,12 @@
 	font-style: normal;
 }
 
+@media (max-width: 64rem) {
+	.course-downloads ul {
+		grid-template-columns: 1fr;
+	}
+}
+
 @media (max-width: 47.999rem) {
 	.course-downloads {
 		width: calc(100% - 1.875rem);
@@ -91,11 +99,29 @@
 
 	.course-downloads a {
 		grid-template-columns: auto minmax(0, 1fr);
+		align-items: start;
 	}
 
 	.course-downloads__action {
 		grid-column: 2;
 		grid-row: auto;
 		justify-self: start;
+	}
+}
+
+@media (max-width: 35.999rem) {
+	.course-downloads a {
+		gap: 0.5rem 0.85rem;
+		min-height: 0;
+		padding: 1rem;
+	}
+
+	.course-downloads__format {
+		align-self: start;
+	}
+
+	.course-downloads strong {
+		font-size: 1rem;
+		line-height: 1.18;
 	}
 }

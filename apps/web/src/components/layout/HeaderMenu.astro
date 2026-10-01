@@ -16,7 +16,8 @@ const copy = locale === 'sr'
 		closeMenu: 'Zatvori glavni meni',
 		openPanel: 'Otvori informativni panel',
 		closePanel: 'Zatvori informativni panel',
-		titleLeading: 'Profesionalne HSE',
+		titleLeading: 'Profesionalne',
+		titleQualifier: 'HSE',
 		titleEmphasis: 'obuke',
 		panelNavigation: 'Navigacija informativnog panela',
 		courses: 'Pogledajte kurseve',
@@ -34,7 +35,8 @@ const copy = locale === 'sr'
 		closeMenu: 'Close main menu',
 		openPanel: 'Open information panel',
 		closePanel: 'Close information panel',
-		titleLeading: 'Professional HSE',
+		titleLeading: 'Professional',
+		titleQualifier: 'HSE',
 		titleEmphasis: 'training',
 		panelNavigation: 'Information panel navigation',
 		courses: 'View courses',
@@ -84,7 +86,12 @@ const copy = locale === 'sr'
 		</button>
 
 		<div class="site-drawer__content">
-			<h2 id="site-drawer-title">{copy.titleLeading} <span>{copy.titleEmphasis}</span></h2>
+			<h2 id="site-drawer-title">
+				{copy.titleLeading}
+				<span class="site-drawer__title-line">
+					{copy.titleQualifier} <strong>{copy.titleEmphasis}</strong>
+				</span>
+			</h2>
 
 			<nav aria-label={copy.panelNavigation}>
 				<details class="site-drawer__course-menu">
@@ -392,7 +399,6 @@ const copy = locale === 'sr'
 	}
 
 	.site-drawer h2 {
-		max-width: 7ch;
 		padding-top: 1.6875rem;
 		margin: 0;
 		color: var(--color-text-on-strong);
@@ -401,7 +407,12 @@ const copy = locale === 'sr'
 		line-height: 2.5rem;
 	}
 
-	.site-drawer h2 span {
+	.site-drawer__title-line {
+		display: block;
+		white-space: nowrap;
+	}
+
+	.site-drawer h2 strong {
 		font-weight: var(--font-weight-semibold);
 		border-bottom: 3px solid var(--color-accent);
 	}
@@ -529,6 +540,18 @@ const copy = locale === 'sr'
 		.site-menu-button[aria-expanded='true'] .site-menu-button__icon > span:nth-child(3) {
 			width: 1.25rem;
 			transform: rotate(-45deg);
+		}
+	}
+
+	@media (max-width: 25rem) {
+		.site-drawer__panel {
+			padding-right: 2rem;
+			padding-left: 2rem;
+		}
+
+		.site-drawer h2 {
+			font-size: clamp(2rem, 10vw, 2.375rem);
+			line-height: 1.1;
 		}
 	}
 
