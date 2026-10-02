@@ -43,6 +43,10 @@ document: BokaPOS remains authoritative for those outcomes.
   e-mail to the configured operational recipient. If the project has not yet
   enabled Sentry Cron Monitoring, raise a one-time setup incident and keep a
   WooCommerce administrator warning visible until check-ins are accepted.
+- Keep the five-minute heartbeat schedule, but allow a ten-minute check-in
+  margin before Sentry reports a missed run. This absorbs bounded shared-host
+  scheduler drift while still alerting when the watchdog has not completed for
+  approximately fifteen minutes.
 - Deduplicate alerts durably by monitored object and failure signature. Use a
   deterministic Sentry event id so a network retry cannot create another Sentry
   event. Send one recovery event when the observed state becomes healthy.

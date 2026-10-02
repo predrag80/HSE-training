@@ -14,7 +14,7 @@ workflows. All Astro builds read published content from
 
 ## Required GitHub environment secrets
 
-Both workflows connect with these non-secret values:
+The Unlimited dev and production workflows connect with these non-secret values:
 
 | Setting | Value |
 |---|---|
@@ -40,6 +40,13 @@ optional secrets below. Leave both unset when the environment is public.
 
 Never commit the private key, hosting password, or an unverified host key.
 Authorize only the matching public key in the Unlimited account.
+
+Staging remains on Hetzner and uses `HETZNER_SSH_PRIVATE_KEY`. When its Nginx
+virtual host is protected with HTTP Basic Authentication, the staging GitHub
+environment must also contain `STAGING_HTTP_AUTH_USER` and
+`STAGING_HTTP_AUTH_PASSWORD` so post-deployment smoke tests can authenticate.
+HTTP authentication is limited to the Astro preview hosts; the WordPress CMS,
+REST API and payment callback hosts remain reachable by approved integrations.
 
 ## Deployment behavior
 
