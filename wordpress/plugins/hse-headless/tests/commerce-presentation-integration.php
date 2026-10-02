@@ -131,8 +131,14 @@ hse_commerce_presentation_test_assert( 'en' === CommerceLocale::sanitize( 'de' )
 hse_commerce_presentation_test_assert( 'sr' === CommerceLocale::sanitize( 'SR' ), 'Serbian checkout locale is normalized.' );
 hse_commerce_presentation_test_assert(
 	'dev' === CommerceCheckoutSource::sanitize( 'DEV' )
+		&& 'production' === CommerceCheckoutSource::sanitize( 'PRODUCTION' )
 		&& 'staging' === CommerceCheckoutSource::sanitize( 'unexpected' ),
-	'Checkout source accepts only dev and staging.'
+	'Checkout source accepts only dev, staging and production.'
+);
+hse_commerce_presentation_test_assert(
+	-11 === has_action( 'template_redirect', array( CommerceCheckoutSource::class, 'bootstrap_checkout_source' ) )
+		&& 19 === has_action( 'wp_loaded', array( CommerceCheckoutSource::class, 'bootstrap_checkout_ajax_source' ) ),
+	'Checkout source is restored before HTML and AJAX checkout rendering.'
 );
 $source_order = new HseCommercePresentationTestOrder();
 $source_order->update_meta_data( CommerceCheckoutSource::ORDER_META, 'dev' );

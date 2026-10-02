@@ -1,6 +1,6 @@
 <?php
 /**
- * Staging checkout bridge from an Astro Course CTA to WooCommerce.
+ * Checkout bridge from an Astro Course CTA to WooCommerce.
  *
  * @package HSETraining\Headless
  */

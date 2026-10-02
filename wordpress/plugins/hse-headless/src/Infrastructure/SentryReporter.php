@@ -61,7 +61,7 @@ final class SentryReporter {
 				'extra'       => $context,
 				'sdk'         => array(
 					'name'    => 'hse-headless-monitoring',
-					'version' => '0.31.0',
+					'version' => '0.32.0',
 				),
 			);
 			$header   = array(
@@ -190,7 +190,7 @@ final class SentryReporter {
 			'sent_at'  => gmdate( 'Y-m-d\TH:i:s\Z' ),
 			'sdk'     => array(
 				'name'    => 'hse-headless-monitoring',
-				'version' => '0.31.0',
+				'version' => '0.32.0',
 			),
 		);
 		$payload  = wp_json_encode( $body );

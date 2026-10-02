@@ -67,8 +67,8 @@ function mapCommerceProduct(value: unknown, expectedCourseKey: string, locale: L
 }
 
 /**
- * Read a staging commerce projection. A missing route is an intentional signal
- * that the environment has not enabled the temporary WooCommerce bridge.
+ * Read a commerce projection. A missing route is an intentional signal that
+ * the shared WooCommerce bridge is unavailable.
  */
 export async function getOptionalCommerceProduct(courseKey: string, locale: Locale = 'en'): Promise<CommerceProduct | null> {
 	if (!isCanonicalCourseKey(courseKey)) {

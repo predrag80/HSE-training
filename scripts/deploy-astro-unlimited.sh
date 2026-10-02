@@ -29,7 +29,7 @@ if [[ -n "${DEPLOY_HTTP_AUTH_USER:-}" || -n "${DEPLOY_HTTP_AUTH_PASSWORD:-}" ]];
 fi
 
 case "${DEPLOY_ROOT}" in
-	/home/sbb22122/dev.hsetraining.rs|/home/sbb22122/staging.hsetraining.rs) ;;
+	/home/sbb22122/dev.hsetraining.rs|/home/sbb22122/staging.hsetraining.rs|/home/sbb22122/public_html) ;;
 	*)
 		echo "Refusing to deploy to unexpected root: ${DEPLOY_ROOT}" >&2
 		exit 1
@@ -48,6 +48,11 @@ if [[ ! -f apps/web/dist/index.html ]]; then
 	exit 1
 fi
 
+if [[ "${DEPLOY_ENVIRONMENT}" == "production" && ! -f apps/web/dist/.htaccess ]]; then
+	echo "Production security and routing rules are missing from the build output." >&2
+	exit 1
+fi
+
 ssh_target="${SSH_USER}@${SSH_HOST}"
 ssh_options=(
 	-i "${SSH_PRIVATE_KEY_PATH}"
@@ -57,27 +62,36 @@ ssh_options=(
 )
 rsync_shell="ssh -i ${SSH_PRIVATE_KEY_PATH} -p ${SSH_PORT} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes"
 preserved_paths=(
-	--exclude=.htaccess
 	--exclude=.htpasswd
 	--exclude=.well-known/
 	--exclude=cgi-bin/
 	--exclude=.user.ini
 	--exclude=php.ini
 	--exclude=error_log
+	--exclude=.ftpquota
 )
+
+if [[ "${DEPLOY_ENVIRONMENT}" != "production" ]]; then
+	preserved_paths+=(--exclude=.htaccess)
+fi
 
 ssh "${ssh_options[@]}" "${ssh_target}" \
 	"command -v rsync >/dev/null && test -d '${DEPLOY_ROOT}' && test -w '${DEPLOY_ROOT}'"
 
 previous_site="$(
 	ssh "${ssh_options[@]}" "${ssh_target}" \
-		"test -f '${DEPLOY_ROOT}/index.html' && printf yes || printf no"
+		"test -n \"\$(find '${DEPLOY_ROOT}' -mindepth 1 -maxdepth 1 -print -quit)\" && printf yes || printf no"
 )"
 previous_site="${previous_site//[[:space:]]/}"
 
 if [[ "${previous_site}" == "yes" ]]; then
-	ssh "${ssh_options[@]}" "${ssh_target}" \
-		"mkdir -p \"\$HOME/${REMOTE_BACKUP_PATH}\" && rsync -a --delete --exclude='.htaccess' --exclude='.htpasswd' --exclude='.well-known/' --exclude='cgi-bin/' --exclude='.user.ini' --exclude='php.ini' --exclude='error_log' '${DEPLOY_ROOT}/' \"\$HOME/${REMOTE_BACKUP_PATH}/\""
+	if [[ "${DEPLOY_ENVIRONMENT}" == "production" ]]; then
+		ssh "${ssh_options[@]}" "${ssh_target}" \
+			"mkdir -p \"\$HOME/${REMOTE_BACKUP_PATH}\" && rsync -a --delete --exclude='.htpasswd' --exclude='.well-known/' --exclude='cgi-bin/' --exclude='.user.ini' --exclude='php.ini' --exclude='error_log' --exclude='.ftpquota' '${DEPLOY_ROOT}/' \"\$HOME/${REMOTE_BACKUP_PATH}/\""
+	else
+		ssh "${ssh_options[@]}" "${ssh_target}" \
+			"mkdir -p \"\$HOME/${REMOTE_BACKUP_PATH}\" && rsync -a --delete --exclude='.htaccess' --exclude='.htpasswd' --exclude='.well-known/' --exclude='cgi-bin/' --exclude='.user.ini' --exclude='php.ini' --exclude='error_log' --exclude='.ftpquota' '${DEPLOY_ROOT}/' \"\$HOME/${REMOTE_BACKUP_PATH}/\""
+	fi
 fi
 
 rsync -az --delete-delay --delay-updates \
@@ -95,9 +109,14 @@ fi
 echo "Smoke tests failed for ${DEPLOY_URL}." >&2
 if [[ "${previous_site}" == "yes" ]]; then
 	echo "Restoring the previous ${DEPLOY_ENVIRONMENT} release." >&2
-	ssh "${ssh_options[@]}" "${ssh_target}" \
-		"rsync -a --delete --exclude='.htaccess' --exclude='.htpasswd' --exclude='.well-known/' --exclude='cgi-bin/' --exclude='.user.ini' --exclude='php.ini' --exclude='error_log' \"\$HOME/${REMOTE_BACKUP_PATH}/\" '${DEPLOY_ROOT}/'"
+	if [[ "${DEPLOY_ENVIRONMENT}" == "production" ]]; then
+		ssh "${ssh_options[@]}" "${ssh_target}" \
+			"rsync -a --delete --exclude='.htpasswd' --exclude='.well-known/' --exclude='cgi-bin/' --exclude='.user.ini' --exclude='php.ini' --exclude='error_log' --exclude='.ftpquota' \"\$HOME/${REMOTE_BACKUP_PATH}/\" '${DEPLOY_ROOT}/'"
+	else
+		ssh "${ssh_options[@]}" "${ssh_target}" \
+			"rsync -a --delete --exclude='.htaccess' --exclude='.htpasswd' --exclude='.well-known/' --exclude='cgi-bin/' --exclude='.user.ini' --exclude='php.ini' --exclude='error_log' --exclude='.ftpquota' \"\$HOME/${REMOTE_BACKUP_PATH}/\" '${DEPLOY_ROOT}/'"
+	fi
 else
-	echo "Rollback is unavailable because no previous index.html existed." >&2
+	echo "Rollback is unavailable because no previous site content existed." >&2
 fi
 exit 1

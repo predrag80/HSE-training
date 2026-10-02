@@ -1,6 +1,6 @@
 <?php
 /**
- * Staging-only WooCommerce bridge configuration.
+ * Shared WooCommerce bridge configuration.
  *
  * @package HSETraining\Headless
  */
@@ -13,16 +13,30 @@ defined( 'ABSPATH' ) || exit;
 final class CommerceConfiguration {
 	public const ENABLE_FLAG = 'HSE_WOOCOMMERCE_STAGING_BRIDGE';
 	public const PUBLIC_SITE_URL = 'HSE_PUBLIC_SITE_URL';
+	public const DEV_PUBLIC_SITE_URL = 'HSE_PUBLIC_SITE_DEV_URL';
+	public const STAGING_PUBLIC_SITE_URL = 'HSE_PUBLIC_SITE_STAGING_URL';
 
-	/** Whether this environment may expose the staging commerce bridge. */
+	/** Whether this CMS may expose the approved commerce bridge. */
 	public static function is_enabled(): bool {
 		return defined( self::ENABLE_FLAG ) && true === constant( self::ENABLE_FLAG );
 	}
 
-	/** Return the environment-owned Astro origin used by checkout navigation. */
-	public static function public_site_url(): string {
-		if ( defined( self::PUBLIC_SITE_URL ) ) {
-			$configured = esc_url_raw( (string) constant( self::PUBLIC_SITE_URL ) );
+	/** Return the Astro origin owned by one allowlisted checkout source. */
+	public static function public_site_url( ?string $source = null ): string {
+		$source        = null === $source ? 'production' : CommerceCheckoutSource::sanitize( $source );
+		$constant_name = self::PUBLIC_SITE_URL;
+		$fallback      = 'https://hsetraining.rs';
+
+		if ( 'dev' === $source ) {
+			$constant_name = self::DEV_PUBLIC_SITE_URL;
+			$fallback      = 'https://dev.hsetraining.rs';
+		} elseif ( 'staging' === $source ) {
+			$constant_name = self::STAGING_PUBLIC_SITE_URL;
+			$fallback      = 'https://staging.hsetraining.rs';
+		}
+
+		if ( defined( $constant_name ) ) {
+			$configured = esc_url_raw( (string) constant( $constant_name ) );
 			if ( '' !== $configured ) {
 				return untrailingslashit( $configured );
 			}
@@ -32,6 +46,19 @@ final class CommerceConfiguration {
 			return 'http://localhost:4321';
 		}
 
-		return 'https://hsetraining.rs';
+		return $fallback;
+	}
+
+	/** Return every public Astro origin that is safe for CMS redirects. */
+	public static function public_site_urls(): array {
+		return array_values(
+			array_unique(
+				array(
+					self::public_site_url( 'dev' ),
+					self::public_site_url( 'staging' ),
+					self::public_site_url( 'production' ),
+				)
+			)
+		);
 	}
 }

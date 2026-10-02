@@ -47,9 +47,11 @@ final class HeadlessMode {
 
 	/** Permit safe redirects only to the configured public Astro hostname. */
 	public static function allow_public_site_redirect_host( array $hosts ): array {
-		$host = wp_parse_url( CommerceConfiguration::public_site_url(), PHP_URL_HOST );
-		if ( is_string( $host ) && '' !== $host && ! in_array( $host, $hosts, true ) ) {
-			$hosts[] = $host;
+		foreach ( CommerceConfiguration::public_site_urls() as $url ) {
+			$host = wp_parse_url( $url, PHP_URL_HOST );
+			if ( is_string( $host ) && '' !== $host && ! in_array( $host, $hosts, true ) ) {
+				$hosts[] = $host;
+			}
 		}
 
 		return $hosts;

@@ -315,6 +315,8 @@ same boundary for production:
 ```php
 define( 'HSE_WOOCOMMERCE_STAGING_BRIDGE', true );
 define( 'HSE_PUBLIC_SITE_URL', 'https://hsetraining.rs' );
+define( 'HSE_PUBLIC_SITE_DEV_URL', 'https://dev.hsetraining.rs' );
+define( 'HSE_PUBLIC_SITE_STAGING_URL', 'https://staging.hsetraining.rs' );
 ```
 
 Astro reads a public projection by stable `course_key`; WooCommerce API keys,
@@ -339,7 +341,8 @@ Astro appends `lang=en` or `lang=sr` and the allowlisted `hse_source` environmen
 to checkout initiation. The plugin keeps
 that allowlisted locale in the Woo session, an HTTP-only cookie, and the order
 so checkout and the gateway return use the same reviewed English or
-Serbian-Latin copy. It also stores the initiating `dev` or `staging` source on
+Serbian-Latin copy. It also stores the initiating `dev`, `staging`, or
+`production` source on
 the order so shared WooCommerce checkout notifications can use separate
 merchant recipients. Checkout and the order-received endpoint render inside a
 plugin-owned, non-indexable HSE shell and use the classic Woo checkout renderer;
@@ -350,10 +353,12 @@ immediate digital delivery, including the UTC timestamp and wording version,
 and the completed-order email confirms that acknowledgement and the external
 platform account-creation step.
 
-`HSE_PUBLIC_SITE_URL` owns checkout links back to Astro. Set it to
-`https://staging.hsetraining.rs` on staging and `https://hsetraining.rs` in
-production. Local WordPress defaults to `http://localhost:4321`; other
-unconfigured environments default to the production origin.
+`HSE_PUBLIC_SITE_URL` owns production links back to Astro. The optional
+`HSE_PUBLIC_SITE_DEV_URL` and `HSE_PUBLIC_SITE_STAGING_URL` constants keep
+return links attached to the initiating frontend while all three environments
+share one WooCommerce runtime. Local WordPress defaults to
+`http://localhost:4321`; unconfigured deployed sources use their known public
+origin.
 
 The CMS exposes only the WooCommerce checkout surfaces required by the
 headless purchase flow. Unused storefront routes (`cart`, `shop`, product and

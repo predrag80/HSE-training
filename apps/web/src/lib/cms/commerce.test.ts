@@ -49,7 +49,7 @@ describe('getOptionalCommerceProduct', () => {
 		});
 	});
 
-	it('returns null when the staging bridge is disabled', async () => {
+	it('returns null when the commerce bridge is unavailable', async () => {
 		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 404 })));
 		await expect(getOptionalCommerceProduct('nebosh-igc')).resolves.toBeNull();
 	});

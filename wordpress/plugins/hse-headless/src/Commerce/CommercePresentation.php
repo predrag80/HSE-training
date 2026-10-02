@@ -391,7 +391,7 @@ final class CommercePresentation {
 
 	/** Return the public Astro route for the current checkout locale. */
 	public static function public_url( string $path = '/' ): string {
-		$base = CommerceConfiguration::public_site_url();
+		$base = CommerceConfiguration::public_site_url( CommerceCheckoutSource::current() );
 		$path = '/' . ltrim( $path, '/' );
 		if ( 'sr' === CommerceLocale::current() && 0 !== strpos( $path, '/sr/' ) ) {
 			$path = '/sr' . $path;

@@ -1,0 +1,121 @@
+name: Prepare and deploy Astro to production
+
+on:
+  push:
+    branches:
+      - production
+    paths:
+      - .github/workflows/deploy-production.yml
+      - .node-version
+      - apps/web/**
+      - infra/apache/hsetraining-production.htaccess
+      - scripts/deploy-astro-unlimited.sh
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hsetraining-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and prepare production
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment:
+      name: production
+      url: https://hsetraining.rs
+    env:
+      DEPLOY_ENVIRONMENT: production
+      DEPLOY_ROOT: /home/sbb22122/public_html
+      DEPLOY_URL: https://hsetraining.rs
+      PREPARED_ROOT: /home/sbb22122/.hse-astro-releases/production
+      WORDPRESS_API_URL: https://cms.hsetraining.rs
+      HSE_CHECKOUT_SOURCE: production
+      PUBLIC_SENTRY_DSN: https://5df1889a9c77a842f0811138c8e018c3@o4512174212972544.ingest.de.sentry.io/4512181397946448
+      PUBLIC_SENTRY_ENVIRONMENT: production
+      SSH_HOST: s83.unlimited.rs
+      SSH_PORT: "9780"
+      SSH_USER: sbb22122
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: apps/web
+
+      - name: Run tests
+        run: npm run test
+        working-directory: apps/web
+
+      - name: Check Astro and TypeScript
+        run: npm run check
+        working-directory: apps/web
+
+      - name: Lint application
+        run: npm run lint
+        working-directory: apps/web
+
+      - name: Build static site
+        run: npm run build
+        working-directory: apps/web
+
+      - name: Add production Apache rules
+        run: install -m 644 infra/apache/hsetraining-production.htaccess apps/web/dist/.htaccess
+
+      - name: Configure Unlimited SSH access
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.UNLIMITED_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.UNLIMITED_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_HOST"
+          test -n "$SSH_USER"
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/unlimited_deploy"
+          chmod 600 "$HOME/.ssh/unlimited_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Upload non-public production release
+        env:
+          RELEASE_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          ssh_target="${SSH_USER}@${SSH_HOST}"
+          release_path="${PREPARED_ROOT}/${RELEASE_ID}"
+          ssh_options=(-i "$HOME/.ssh/unlimited_deploy" -p "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes)
+          rsync_shell="ssh -i $HOME/.ssh/unlimited_deploy -p $SSH_PORT -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes"
+
+          ssh "${ssh_options[@]}" "$ssh_target" "mkdir -p '$release_path'"
+          rsync -az --delete -e "$rsync_shell" apps/web/dist/ "$ssh_target:$release_path/"
+          ssh "${ssh_options[@]}" "$ssh_target" \
+            "test -f '$release_path/index.html' && test -f '$release_path/.htaccess' && ln -sfn '$release_path' '${PREPARED_ROOT}/latest.next' && mv -Tf '${PREPARED_ROOT}/latest.next' '${PREPARED_ROOT}/latest'"
+          echo "Prepared production release without changing public_html: $release_path"
+
+      - name: Activate production release and verify
+        if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}
+        run: |
+          export SSH_PRIVATE_KEY_PATH="$HOME/.ssh/unlimited_deploy"
+          bash scripts/deploy-astro-unlimited.sh
+
+      - name: Confirm activation remains locked
+        if: ${{ vars.PRODUCTION_DEPLOY_ENABLED != 'true' }}
+        run: echo "Production release is prepared; the existing public_html site remains active."
+
+      - name: Remove deployment key
+        if: always()
+        run: rm -f "$HOME/.ssh/unlimited_deploy"

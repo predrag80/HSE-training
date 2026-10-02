@@ -1,0 +1,33 @@
+Options -Indexes
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on [OR]
+  RewriteCond %{HTTP_HOST} ^www\.hsetraining\.rs$ [NC]
+  RewriteRule ^ https://hsetraining.rs%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+<IfModule mod_authz_core.c>
+  <FilesMatch "(^xmlrpc\.php$|^readme\.html$|^license\.txt$|^error_log$|^debug\.log$|^php_errors\.log$|\.log$)">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+  <FilesMatch "(^xmlrpc\.php$|^readme\.html$|^license\.txt$|^error_log$|^debug\.log$|^php_errors\.log$|\.log$)">
+    Order allow,deny
+    Deny from all
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always unset X-Powered-By
+  Header always set Strict-Transport-Security "max-age=31536000"
+  Header always set Content-Security-Policy "base-uri 'self'; object-src 'none'; frame-ancestors 'self'; upgrade-insecure-requests"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), usb=()"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-Permitted-Cross-Domain-Policies "none"
+</IfModule>

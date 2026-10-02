@@ -5,10 +5,11 @@ The Astro frontend is deployed independently from WordPress:
 | Branch | GitHub environment | Public URL | Document root |
 |---|---|---|---|
 | `develop` | `dev` | `https://dev.hsetraining.rs` | `/home/sbb22122/dev.hsetraining.rs` |
-| `main` | `staging` | `https://staging.hsetraining.rs` | `/home/sbb22122/staging.hsetraining.rs` |
+| `main` | `staging` | `https://staging.hsetraining.rs` | Hetzner `/var/www/hsetraining-staging/current` |
+| `production` | `production` | `https://hsetraining.rs` | `/home/sbb22122/public_html` |
 
 WordPress, the HSE plugin, uploads, and the database are not deployed by these
-workflows. Both Astro builds read published content from
+workflows. All Astro builds read published content from
 `https://cms.hsetraining.rs`.
 
 ## Required GitHub environment secrets
@@ -21,8 +22,8 @@ Both workflows connect with these non-secret values:
 | SSH port | `9780` |
 | SSH user | `sbb22122` |
 
-Create GitHub environments named `dev` and `staging`. Add these secrets to each
-environment:
+Create GitHub environments named `dev` and `production` for Unlimited. Add
+these secrets to each environment:
 
 | Secret | Purpose |
 |---|---|
@@ -43,15 +44,25 @@ Authorize only the matching public key in the Unlimited account.
 ## Deployment behavior
 
 An Astro source change pushed to `develop` deploys only dev. An Astro source
-change pushed to `main` deploys only staging. Both workflows can also be run
-manually from GitHub Actions, which is useful after publishing CMS content.
+change pushed to `main` deploys only staging on Hetzner. A push to `production`
+builds the production configuration and uploads it under the non-public
+`~/.hse-astro-releases/production/` directory on Unlimited.
+
+Production activation is deliberately locked while the existing PHP website
+must remain online. The workflow changes `/home/sbb22122/public_html` only when
+the GitHub environment variable `PRODUCTION_DEPLOY_ENABLED` is exactly `true`.
+Keep it `false` until production payment and fiscalization credentials are
+configured, a final release is prepared, and the launch window begins. Once it
+is enabled, every later push to `production` deploys automatically.
 
 Every run installs locked dependencies, runs tests, performs Astro/TypeScript
-checks, lints the application, and creates a new static build. Before upload,
-the current frontend is copied to a server-side backup. The deployment keeps
-server-managed `.htaccess`, `.htpasswd`, `.well-known`, `cgi-bin`, and PHP configuration
-files untouched. Homepage, contact, and resources smoke tests run after upload;
-the previous frontend is restored automatically if they fail.
+checks, lints the application, and creates a new static build. Before an active
+deployment, the current frontend is copied to a server-side backup. Dev keeps
+its server-managed `.htaccess`; production installs the repository-owned
+security and canonical-host rules while preserving `.htpasswd`, `.well-known`,
+`cgi-bin`, and PHP configuration files. Homepage, contact, and resources smoke
+tests run after activation; the previous site is restored automatically if
+they fail.
 
 Server backups are stored outside the public document roots under
 `~/.hse-astro-backups/`. Review and prune old successful backups periodically
@@ -61,10 +72,13 @@ after confirming the active release.
 
 1. Create and authorize a dedicated SSH deployment key.
 2. Verify the Unlimited SSH hostname, port, user, and host fingerprint.
-3. Configure the two required secrets in both GitHub environments.
-4. Run the dev workflow manually and verify the site.
-5. Run the staging workflow manually and verify the site.
-6. Only after both checks pass, rely on branch-triggered deployments.
+3. Configure the two required secrets in the `dev` and `production` GitHub environments.
+4. Keep `PRODUCTION_DEPLOY_ENABLED=false` and push the release to `production`.
+5. Verify that the workflow prepared a release without changing `public_html`.
+6. Configure and verify the production RaiAccept and BokaPOS credentials.
+7. Take the final database and `public_html` backup.
+8. Set `PRODUCTION_DEPLOY_ENABLED=true` and manually rerun the production workflow.
+9. Complete the real low-value payment, fiscal receipt, email and refund checks before opening the site publicly.
 
 Changes to a workflow or the shared deployment script trigger the matching
 environment as well, so configure and verify its secrets before pushing the
