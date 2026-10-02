@@ -9,8 +9,19 @@ The Astro frontend is deployed independently from WordPress:
 | `production` | `production` | `https://hsetraining.rs` | `/home/sbb22122/public_html` |
 
 WordPress, the HSE plugin, uploads, and the database are not deployed by these
-workflows. All Astro builds read published content from
-`https://cms.hsetraining.rs`.
+workflows. The CMS origin is selected per frontend environment:
+
+| Frontend | WordPress origin | Data isolation |
+|---|---|---|
+| dev | `https://dev-cms.hsetraining.rs` | Separate WordPress files and database copied from the shared CMS; sandbox payments only |
+| staging | `https://cms.hsetraining.rs` | Existing shared CMS |
+| production | `https://cms.hsetraining.rs` | Existing shared CMS until the production CMS migration is planned separately |
+
+The dev CMS has its own salts, administrator sessions, database and uploads
+copy. Search indexing and WordPress cron are disabled there. Its order IDs and
+public order numbers use a reserved high test range so requests sent with the
+shared sandbox credentials cannot collide with staging orders. Content changes
+made in one CMS no longer appear in the other CMS automatically.
 
 ## Required GitHub environment secrets
 
@@ -47,6 +58,11 @@ An Astro source change pushed to `develop` deploys only dev. An Astro source
 change pushed to `main` deploys only staging on Hetzner. A push to `production`
 builds the production configuration and uploads it under the non-public
 `~/.hse-astro-releases/production/` directory on Unlimited.
+
+The dev workflow builds against `dev-cms.hsetraining.rs`; the staging and
+production workflows continue to build against `cms.hsetraining.rs`. Updating
+the HSE WordPress plugin or publishing CMS content is therefore a separate
+operation for dev and for the shared staging/production CMS.
 
 Production activation is deliberately locked while the existing PHP website
 must remain online. The workflow changes `/home/sbb22122/public_html` only when
