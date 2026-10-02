@@ -61,7 +61,7 @@ final class SentryReporter {
 				'extra'       => $context,
 				'sdk'         => array(
 					'name'    => 'hse-headless-monitoring',
-					'version' => '0.32.0',
+					'version' => '0.32.1',
 				),
 			);
 			$header   = array(
@@ -178,7 +178,7 @@ final class SentryReporter {
 					'value' => 5,
 					'unit'  => 'minute',
 				),
-				'checkin_margin' => 2,
+				'checkin_margin' => 10,
 				'max_runtime'    => 5,
 				'timezone'       => 'UTC',
 			);
@@ -190,7 +190,7 @@ final class SentryReporter {
 			'sent_at'  => gmdate( 'Y-m-d\TH:i:s\Z' ),
 			'sdk'     => array(
 				'name'    => 'hse-headless-monitoring',
-				'version' => '0.32.0',
+				'version' => '0.32.1',
 			),
 		);
 		$payload  = wp_json_encode( $body );

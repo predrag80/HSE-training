@@ -13,6 +13,7 @@ defined( 'ABSPATH' ) || exit;
 final class CommerceCustomerEmail {
 	public const DEFAULT_ADMIN_EMAIL = 'info@hsetraining.rs';
 	public const DEFAULT_DEV_ADMIN_EMAIL = 'predo.vuckovic@gmail.com';
+	public const DEFAULT_STAGING_ADMIN_EMAIL = 'predo.vuckovic@gmail.com';
 	private const COMPLETED_EMAIL_CLAIM_PREFIX = 'hse_customer_completed_email_claim_';
 	private const COMPLETED_EMAIL_CLAIM_TTL = 600;
 
@@ -227,9 +228,14 @@ final class CommerceCustomerEmail {
 			return sanitize_email( is_scalar( $recipient ) ? (string) $recipient : '' );
 		}
 
-		if ( 'dev' === CommerceCheckoutSource::for_order( $order ) ) {
+		$checkout_source = CommerceCheckoutSource::for_order( $order );
+		if ( 'dev' === $checkout_source ) {
 			$configured_dev = defined( 'HSE_COMMERCE_DEV_ADMIN_EMAIL' ) ? sanitize_email( (string) constant( 'HSE_COMMERCE_DEV_ADMIN_EMAIL' ) ) : '';
 			return is_email( $configured_dev ) ? $configured_dev : self::DEFAULT_DEV_ADMIN_EMAIL;
+		}
+		if ( 'staging' === $checkout_source ) {
+			$configured_staging = defined( 'HSE_COMMERCE_STAGING_ADMIN_EMAIL' ) ? sanitize_email( (string) constant( 'HSE_COMMERCE_STAGING_ADMIN_EMAIL' ) ) : '';
+			return is_email( $configured_staging ) ? $configured_staging : self::DEFAULT_STAGING_ADMIN_EMAIL;
 		}
 
 		$configured = defined( 'HSE_COMMERCE_ADMIN_EMAIL' ) ? sanitize_email( (string) constant( 'HSE_COMMERCE_ADMIN_EMAIL' ) ) : '';
