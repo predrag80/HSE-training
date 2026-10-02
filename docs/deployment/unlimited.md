@@ -18,10 +18,12 @@ workflows. The CMS origin is selected per frontend environment:
 | production | `https://cms.hsetraining.rs` | Existing shared CMS until the production CMS migration is planned separately |
 
 The dev CMS has its own salts, administrator sessions, database and uploads
-copy. Search indexing and WordPress cron are disabled there. Its order IDs and
-public order numbers use a reserved high test range so requests sent with the
-shared sandbox credentials cannot collide with staging orders. Content changes
-made in one CMS no longer appear in the other CMS automatically.
+copy. Search indexing and request-triggered WP-Cron are disabled there; a
+separate server cron runs its due jobs once per minute with a dedicated lock.
+Its order IDs and public order numbers use a reserved high test range so
+requests sent with the shared sandbox credentials cannot collide with staging
+orders. Content changes made in one CMS no longer appear in the other CMS
+automatically.
 
 ## Required GitHub environment secrets
 
