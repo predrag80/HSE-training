@@ -142,6 +142,10 @@ hse_commerce_presentation_test_assert(
 );
 $source_order = new HseCommercePresentationTestOrder();
 $source_order->update_meta_data( CommerceCheckoutSource::ORDER_META, 'dev' );
+$staging_source_order = new HseCommercePresentationTestOrder();
+$staging_source_order->update_meta_data( CommerceCheckoutSource::ORDER_META, 'staging' );
+$production_source_order = new HseCommercePresentationTestOrder();
+$production_source_order->update_meta_data( CommerceCheckoutSource::ORDER_META, 'production' );
 hse_commerce_presentation_test_assert(
 	'dev' === CommerceCheckoutSource::for_order( $source_order ),
 	'Checkout source is read from immutable order metadata.'
@@ -423,12 +427,20 @@ hse_commerce_presentation_test_assert(
 	'The customer order-details action is removed while the merchant resend action remains available.'
 );
 hse_commerce_presentation_test_assert(
-	CommerceCustomerEmail::DEFAULT_ADMIN_EMAIL === CommerceCustomerEmail::new_order_recipient( 'legacy-admin@example.test' ),
+	CommerceCustomerEmail::DEFAULT_STAGING_ADMIN_EMAIL === CommerceCustomerEmail::new_order_recipient( 'legacy-admin@example.test', $staging_source_order ),
 	'Staging merchant notifications replace imported placeholder recipients.'
 );
 hse_commerce_presentation_test_assert(
 	CommerceCustomerEmail::DEFAULT_DEV_ADMIN_EMAIL === CommerceCustomerEmail::new_order_recipient( 'legacy-admin@example.test', $source_order ),
 	'Dev merchant notifications use the dedicated development recipient.'
+);
+hse_commerce_presentation_test_assert(
+	(
+		defined( 'HSE_COMMERCE_ADMIN_EMAIL' ) && is_email( sanitize_email( (string) constant( 'HSE_COMMERCE_ADMIN_EMAIL' ) ) )
+			? sanitize_email( (string) constant( 'HSE_COMMERCE_ADMIN_EMAIL' ) )
+			: CommerceCustomerEmail::DEFAULT_ADMIN_EMAIL
+	) === CommerceCustomerEmail::new_order_recipient( 'legacy-admin@example.test', $production_source_order ),
+	'Production merchant notifications retain the business recipient.'
 );
 $merchant_email_stub = (object) array( 'id' => 'new_order' );
 hse_commerce_presentation_test_assert(

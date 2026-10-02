@@ -35,6 +35,8 @@ jobs:
       HSE_CHECKOUT_SOURCE: staging
       PUBLIC_SENTRY_DSN: https://5df1889a9c77a842f0811138c8e018c3@o4512174212972544.ingest.de.sentry.io/4512181397946448
       PUBLIC_SENTRY_ENVIRONMENT: staging
+      STAGING_HTTP_AUTH_USER: ${{ secrets.STAGING_HTTP_AUTH_USER }}
+      STAGING_HTTP_AUTH_PASSWORD: ${{ secrets.STAGING_HTTP_AUTH_PASSWORD }}
 
     steps:
       - name: Check out repository
@@ -87,6 +89,13 @@ jobs:
           release_path="${DEPLOY_ROOT}/releases/${RELEASE_ID}"
           ssh_target="${DEPLOY_USER}@${DEPLOY_HOST}"
           ssh_options=(-i "$HOME/.ssh/id_ed25519" -o IdentitiesOnly=yes)
+          curl_options=(--fail --show-error --silent --retry 5 --retry-delay 2 --output /dev/null)
+
+          if [[ -n "$STAGING_HTTP_AUTH_USER" || -n "$STAGING_HTTP_AUTH_PASSWORD" ]]; then
+            test -n "$STAGING_HTTP_AUTH_USER"
+            test -n "$STAGING_HTTP_AUTH_PASSWORD"
+            curl_options+=(--user "${STAGING_HTTP_AUTH_USER}:${STAGING_HTTP_AUTH_PASSWORD}")
+          fi
 
           previous_release="$(
             ssh "${ssh_options[@]}" "$ssh_target" \
@@ -101,12 +110,9 @@ jobs:
           ssh "${ssh_options[@]}" "$ssh_target" \
             "ln -sfn '$release_path' '${DEPLOY_ROOT}/current.next' && mv -Tf '${DEPLOY_ROOT}/current.next' '${DEPLOY_ROOT}/current'"
 
-          if curl --fail --show-error --silent --retry 5 --retry-delay 2 \
-              --output /dev/null "${STAGING_URL}/" \
-            && curl --fail --show-error --silent --retry 5 --retry-delay 2 \
-              --output /dev/null "${STAGING_URL}/contact/" \
-            && curl --fail --show-error --silent --retry 5 --retry-delay 2 \
-              --output /dev/null "${STAGING_URL}/resources/"; then
+          if curl "${curl_options[@]}" "${STAGING_URL}/" \
+            && curl "${curl_options[@]}" "${STAGING_URL}/contact/" \
+            && curl "${curl_options[@]}" "${STAGING_URL}/resources/"; then
             echo "Staging deployment is healthy: $release_path"
             exit 0
           fi
