@@ -75,7 +75,7 @@ final class SentryReporter {
 				'extra'       => $context,
 				'sdk'         => array(
 					'name'    => 'hse-headless-monitoring',
-					'version' => '0.33.0',
+					'version' => '0.34.0',
 				),
 			);
 			$header   = array(
