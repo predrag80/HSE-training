@@ -612,6 +612,34 @@ WooCommerce is the production order and business-workflow authority under
 ADR-011. RaiAccept remains authoritative for card-payment/refund outcomes, and
 BokaPOS remains authoritative for fiscal documents.
 
+### Automatic production content deploys
+
+Astro reads CMS content during a static build. On production, enable the
+repository-owned content trigger so approved editorial saves queue the existing
+production GitHub Actions workflow through the real once-per-minute server
+cron:
+
+```php
+define( 'HSE_CONTENT_DEPLOY_ENABLED', true );
+define( 'HSE_CONTENT_DEPLOY_GITHUB_TOKEN', getenv( 'HSE_CONTENT_DEPLOY_GITHUB_TOKEN' ) );
+```
+
+`HSE_CONTENT_DEPLOY_GITHUB_TOKEN` must be a dedicated fine-grained GitHub token
+restricted to the `predrag80/HSE-training` repository with **Actions: Read and
+write** permission. Keep it in private server configuration; never place it in
+the database, plugin ZIP, Astro environment, repository, or browser code. Do
+not define the enable flag on dev or staging CMS instances.
+
+The trigger covers Course, Training, Hero Slide, Service, Reference, Resource,
+Media Library, Company Page, Course Page, and Legal Page content. It never runs
+for WooCommerce orders. Rapid edits are collapsed into one build, temporary
+dispatch failures receive bounded retries, and configuration failures appear as
+an administrator notice. Verify without contacting GitHub:
+
+```sh
+wp eval-file wp-content/plugins/hse-headless/tests/content-deploy-trigger-integration.php
+```
+
 ## Not Responsible For
 
 - Astro frontend

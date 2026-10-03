@@ -178,8 +178,9 @@ remain private to the CMS module; Astro components receive a camelCase domain
 model.
 
 The browser does not request WordPress directly. Production builds must be able
-to reach `https://cms.hsetraining.rs`, and a later deployment task will define
-the authenticated rebuild trigger used after an editor publishes content.
+to reach `https://cms.hsetraining.rs`. The authenticated, production-only CMS
+deploy trigger documented in ADR-014 queues the Astro rebuild automatically
+after an editor changes public content.
 
 ## Local verification
 

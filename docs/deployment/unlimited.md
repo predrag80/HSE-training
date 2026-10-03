@@ -75,6 +75,38 @@ change pushed to `main` deploys only staging on Hetzner. A push to `production`
 builds the production configuration and uploads it under the non-public
 `~/.hse-astro-releases/production/` directory on Unlimited.
 
+The dev workflow builds against `dev-cms.hsetraining.rs`; the staging and
+production workflows continue to build against `cms.hsetraining.rs`. Updating
+the HSE WordPress plugin or publishing CMS content is therefore a separate
+operation for dev and for the shared staging/production CMS.
+
+### Production CMS content trigger
+
+Production remains a validated static Astro build. Install `hse-headless`
+0.34.0 or later and configure the production CMS with a dedicated fine-grained
+GitHub token restricted to this repository with **Actions: Read and write**:
+
+```php
+define( 'HSE_CONTENT_DEPLOY_ENABLED', true );
+define( 'HSE_CONTENT_DEPLOY_GITHUB_TOKEN', getenv( 'HSE_CONTENT_DEPLOY_GITHUB_TOKEN' ) );
+```
+
+The token value must remain in private server configuration. Do not enable the
+trigger on dev or staging. An editorial save queues one debounced WP-Cron event;
+the once-per-minute server cron dispatches `deploy-production.yml` against the
+`production` branch. The public change appears after the workflow validates and
+atomically activates the new release, normally within a few minutes.
+
+Verify the integration without contacting GitHub:
+
+```sh
+wp eval-file wp-content/plugins/hse-headless/tests/content-deploy-trigger-integration.php
+```
+
+For rollback, set `HSE_CONTENT_DEPLOY_ENABLED` to `false` and run production
+deploys manually. This stops automatic builds without changing stored CMS
+content or the active frontend release.
+
 Production activation is deliberately locked while the existing PHP website
 must remain online. The workflow changes `/home/sbb22122/public_html` only when
 the GitHub environment variable `PRODUCTION_DEPLOY_ENABLED` is exactly `true`.
