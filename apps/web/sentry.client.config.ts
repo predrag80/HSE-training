@@ -21,6 +21,7 @@ Sentry.init({
 	},
 	integrations: enabled ? [Sentry.browserTracingIntegration()] : [],
 	tracesSampleRate: enabled ? 1 : 0,
+	traceLifecycle: 'static',
 	beforeSend: sanitizeSentryEvent,
 	beforeSendTransaction: sanitizeSentryEvent,
 });
