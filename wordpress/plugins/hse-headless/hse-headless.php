@@ -2,7 +2,7 @@
 /**
  * Plugin Name: HSE Training Headless
  * Description: Custom headless CMS functionality for the HSE Training platform.
- * Version: 0.32.1
+ * Version: 0.33.0
  * Text Domain: hse-headless
  *
  * @package HSETraining\Headless
@@ -46,6 +46,7 @@ require_once __DIR__ . '/src/Homepage/HomepageMigration.php';
 require_once __DIR__ . '/src/Infrastructure/HeadlessMode.php';
 require_once __DIR__ . '/src/Infrastructure/SmtpMailer.php';
 require_once __DIR__ . '/src/Infrastructure/SentryReporter.php';
+require_once __DIR__ . '/src/Infrastructure/LegacySentryMonitoringCleanup.php';
 require_once __DIR__ . '/src/Contact/ContactEmailTemplate.php';
 require_once __DIR__ . '/src/Contact/ContactRestController.php';
 require_once __DIR__ . '/src/Commerce/CommerceConfiguration.php';
@@ -61,7 +62,6 @@ require_once __DIR__ . '/src/Commerce/CommerceCheckout.php';
 require_once __DIR__ . '/src/Commerce/CommercePresentation.php';
 require_once __DIR__ . '/src/Commerce/CommerceAdminCompatibility.php';
 require_once __DIR__ . '/src/Commerce/CommerceBokaPosEmailCompatibility.php';
-require_once __DIR__ . '/src/Commerce/CommerceBokaPosMonitoring.php';
 require_once __DIR__ . '/src/Commerce/CommerceCheckoutMonitoring.php';
 require_once __DIR__ . '/src/Commerce/CommerceRaiAcceptRetryCompatibility.php';
 require_once __DIR__ . '/src/Commerce/CommerceCustomerEmail.php';
@@ -96,6 +96,7 @@ Content\ContentLocale::register_hooks();
 Content\ContentLocaleMigration::register_hooks();
 Infrastructure\HeadlessMode::register_hooks();
 Infrastructure\SmtpMailer::register_hooks();
+Infrastructure\LegacySentryMonitoringCleanup::register_hooks();
 Contact\ContactRestController::register_hooks();
 Commerce\CommerceRestController::register_hooks();
 Commerce\CommerceLocale::register_hooks();
@@ -106,11 +107,8 @@ Commerce\CommerceCheckout::register_hooks();
 Commerce\CommercePresentation::register_hooks();
 Commerce\CommerceAdminCompatibility::register_hooks();
 Commerce\CommerceBokaPosEmailCompatibility::register_hooks();
-Commerce\CommerceBokaPosMonitoring::register_hooks();
 Commerce\CommerceCheckoutMonitoring::register_hooks();
 Commerce\CommerceRaiAcceptRetryCompatibility::register_hooks();
 Commerce\CommerceProductSync::register_hooks();
 Commerce\CommerceOrderLifecycle::register_hooks();
 Commerce\CommerceCustomerEmail::register_hooks();
-
-register_deactivation_hook( __FILE__, array( Commerce\CommerceBokaPosMonitoring::class, 'deactivate' ) );

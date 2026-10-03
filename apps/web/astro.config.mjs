@@ -2,9 +2,14 @@
 import { defineConfig, envField } from 'astro/config';
 import sentry from '@sentry/astro';
 
+const runtime = /** @type {{ process?: { env?: Record<string, string | undefined> } }} */ (globalThis);
+const processEnvironment = runtime.process?.env ?? {};
+const isProductionSentryBuild = processEnvironment.PUBLIC_SENTRY_ENVIRONMENT === 'production'
+	&& Boolean(processEnvironment.PUBLIC_SENTRY_DSN?.trim());
+
 // https://astro.build/config
 export default defineConfig({
-	integrations: [
+	integrations: isProductionSentryBuild ? [
 		sentry({
 			enabled: { client: true, server: false },
 			sourcemaps: { disable: true },
@@ -15,7 +20,7 @@ export default defineConfig({
 				excludeReplayWorker: true,
 			},
 		}),
-	],
+	] : [],
 	i18n: {
 		locales: ['en', 'sr'],
 		defaultLocale: 'en',

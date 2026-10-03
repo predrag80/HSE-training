@@ -76,10 +76,13 @@ final class CommerceCheckoutSource {
 	/** Read the immutable source stored on an order. */
 	public static function for_order( $order ): string {
 		if ( is_object( $order ) && method_exists( $order, 'get_meta' ) ) {
-			return self::sanitize( $order->get_meta( self::ORDER_META, true ) );
+			$source = (string) $order->get_meta( self::ORDER_META, true );
+			if ( in_array( $source, array( 'dev', 'staging', 'production' ), true ) ) {
+				return $source;
+			}
 		}
 
-		return 'staging';
+		return self::current();
 	}
 
 	/** Resolve explicit query, verified order return, then the Woo session. */
