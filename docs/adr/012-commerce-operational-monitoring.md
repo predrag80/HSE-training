@@ -96,6 +96,33 @@ disabled until a narrowly scoped Sentry build token is explicitly approved and
 stored as a protected CI secret; runtime error and trace ingestion does not
 require that token.
 
+## Production scheduler
+
+Production uses the repository-owned
+`scripts/run-wordpress-operations.sh` wrapper from the private
+`~/.hse-ops/run-cms-cron.sh` path. The wrapper writes bounded private logs and
+atomic heartbeat files below `~/.hse-ops/`, applies a hard timeout to every
+invocation, and has two modes:
+
+- `general` runs due WP-Cron events every minute while excluding the Action
+  Scheduler bridge, then processes one bounded Action Scheduler batch outside
+  the `hse-monitoring` group;
+- `monitor` checks only the `hse-monitoring` group every minute with a separate
+  lock. Action Scheduler executes the recurring watchdog when its five-minute
+  interval is due, without a boundary race and without letting a busy commerce
+  queue delay the Sentry heartbeat.
+
+The production crontab is:
+
+```cron
+* * * * * /usr/bin/flock -n /home/sbb22122/.hse-ops/general.lock /home/sbb22122/.hse-ops/run-cms-cron.sh general >>/home/sbb22122/.hse-ops/logs/launcher.log 2>&1
+* * * * * /usr/bin/flock -n /home/sbb22122/.hse-ops/monitor.lock /home/sbb22122/.hse-ops/run-cms-cron.sh monitor >>/home/sbb22122/.hse-ops/logs/launcher.log 2>&1
+```
+
+`DISABLE_WP_CRON` remains enabled only while these server jobs are installed and
+their `status=0` heartbeat files continue to advance. The dev CMS keeps its
+separate cron, lock and sandbox monitoring environment.
+
 ## Verification
 
 1. Run the plugin monitoring integration check.
@@ -112,16 +139,24 @@ require that token.
 9. Simulate a contact delivery failure without real enquiry data and confirm
    one grouped `contact_delivery_*` issue appears in
    `hse-training-commerce`.
+10. Confirm both `~/.hse-ops/state/general.heartbeat` and
+    `~/.hse-ops/state/monitor.heartbeat` advance each minute with `status=0`;
+    verify at least three consecutive completed watchdog actions at the
+    approximately five-minute recurring interval before launch.
 
 ## Rollback and recovery
 
-Re-enable request-triggered WP-Cron before removing the server cron. Deactivating
-`hse-headless` removes only its recurring monitoring action and lock; it does
-not change BokaPOS operations or fiscal documents. Removing the Sentry constants
-causes incident reporting to fall back to operational e-mail. Monitoring state
-can be removed without affecting WooCommerce or BokaPOS business state.
-Removing the Astro integration and its two public environment variables
-disables browser telemetry without affecting the static application.
+Re-enable request-triggered WP-Cron before removing the server cron. A dated
+crontab and `wp-config.php` copy must be kept under the private
+`~/.hse-ops/backups/` directory before scheduler changes. To roll back the
+split scheduler, restore that crontab and only then remove or disable the
+wrapper. Deactivating `hse-headless` removes only its recurring monitoring
+action and lock; it does not change BokaPOS operations or fiscal documents.
+Removing the Sentry constants causes incident reporting to fall back to
+operational e-mail. Monitoring state can be removed without affecting
+WooCommerce or BokaPOS business state. Removing the Astro integration and its
+two public environment variables disables browser telemetry without affecting
+the static application.
 
 ## Consequences
 
