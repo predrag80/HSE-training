@@ -1,0 +1,79 @@
+name: Configure production CMS content deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  configure:
+    name: Configure production WordPress
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+    env:
+      SSH_HOST: s83.unlimited.rs
+      SSH_PORT: "9780"
+      SSH_USER: sbb22122
+      WORDPRESS_ROOT: /home/sbb22122/cms.hsetraining.rs
+      PRIVATE_CONFIG: /home/sbb22122/.hse-content-deploy.php
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Configure Unlimited SSH access
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.UNLIMITED_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.UNLIMITED_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/unlimited_deploy"
+          chmod 600 "$HOME/.ssh/unlimited_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Prepare private WordPress configuration
+        env:
+          CONTENT_DEPLOY_TOKEN: ${{ secrets.HSE_CONTENT_DEPLOY_GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$CONTENT_DEPLOY_TOKEN"
+          export CONTENT_DEPLOY_TOKEN
+          export OUTPUT_PATH="$RUNNER_TEMP/hse-content-deploy.php"
+          php -r '
+            $token = getenv("CONTENT_DEPLOY_TOKEN");
+            $path = getenv("OUTPUT_PATH");
+            $contents = "<?php\n\n";
+            $contents .= "define( \"HSE_CONTENT_DEPLOY_ENABLED\", true );\n";
+            $contents .= "define( \"HSE_CONTENT_DEPLOY_GITHUB_TOKEN\", " . var_export($token, true) . " );\n";
+            if (file_put_contents($path, $contents, LOCK_EX) === false) {
+                fwrite(STDERR, "Unable to prepare the private configuration.\n");
+                exit(1);
+            }
+          '
+          chmod 600 "$OUTPUT_PATH"
+
+      - name: Install private configuration on production CMS
+        run: |
+          set -euo pipefail
+          ssh_target="${SSH_USER}@${SSH_HOST}"
+          ssh_options=(-i "$HOME/.ssh/unlimited_deploy" -p "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes)
+          scp_options=(-i "$HOME/.ssh/unlimited_deploy" -P "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes)
+
+          scp "${scp_options[@]}" "$RUNNER_TEMP/hse-content-deploy.php" "$ssh_target:${PRIVATE_CONFIG}.next"
+          scp "${scp_options[@]}" scripts/configure-hse-content-deploy.php "$ssh_target:/home/${SSH_USER}/.configure-hse-content-deploy.php"
+
+          ssh "${ssh_options[@]}" "$ssh_target" \
+            "set -eu; chmod 600 '${PRIVATE_CONFIG}.next'; mv '${PRIVATE_CONFIG}.next' '${PRIVATE_CONFIG}'; php '/home/${SSH_USER}/.configure-hse-content-deploy.php' '${WORDPRESS_ROOT}/wp-config.php' '${PRIVATE_CONFIG}'; php -l '${WORDPRESS_ROOT}/wp-config.php'; php -r 'require \"${PRIVATE_CONFIG}\"; exit(defined(\"HSE_CONTENT_DEPLOY_ENABLED\") && HSE_CONTENT_DEPLOY_ENABLED && defined(\"HSE_CONTENT_DEPLOY_GITHUB_TOKEN\") && HSE_CONTENT_DEPLOY_GITHUB_TOKEN !== \"\" ? 0 : 1);'; rm '/home/${SSH_USER}/.configure-hse-content-deploy.php'"
+
+      - name: Remove deployment key and local private configuration
+        if: always()
+        run: |
+          rm -f "$HOME/.ssh/unlimited_deploy"
+          rm -f "$RUNNER_TEMP/hse-content-deploy.php"
