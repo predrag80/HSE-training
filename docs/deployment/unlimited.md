@@ -97,6 +97,13 @@ the once-per-minute server cron dispatches `deploy-production.yml` against the
 `production` branch. The public change appears after the workflow validates and
 atomically activates the new release, normally within a few minutes.
 
+Store the token as the encrypted GitHub Actions secret
+`HSE_CONTENT_DEPLOY_GITHUB_TOKEN`, then run the manual
+`configure-production-cms.yml` workflow. The workflow uses the production SSH
+environment, writes the token to `/home/sbb22122/.hse-content-deploy.php` with
+private permissions, backs up `wp-config.php`, and connects that private file to
+WordPress. Re-run the workflow when rotating the token.
+
 Verify the integration without contacting GitHub:
 
 ```sh
