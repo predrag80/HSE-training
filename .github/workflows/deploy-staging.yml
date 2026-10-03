@@ -33,8 +33,6 @@ jobs:
       STAGING_URL: https://staging.hsetraining.rs
       WORDPRESS_API_URL: https://cms.hsetraining.rs
       HSE_CHECKOUT_SOURCE: staging
-      PUBLIC_SENTRY_DSN: https://5df1889a9c77a842f0811138c8e018c3@o4512174212972544.ingest.de.sentry.io/4512181397946448
-      PUBLIC_SENTRY_ENVIRONMENT: staging
       STAGING_HTTP_AUTH_USER: ${{ secrets.STAGING_HTTP_AUTH_USER }}
       STAGING_HTTP_AUTH_PASSWORD: ${{ secrets.STAGING_HTTP_AUTH_PASSWORD }}
 

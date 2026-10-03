@@ -55,6 +55,11 @@ hse_contact_rest_test_assert( 1 === count( $mail_calls ), 'A valid enquiry invok
 hse_contact_rest_test_assert( 'info@hsetraining.rs' === $mail['to'], 'Contact enquiries always use the approved HSE recipient.' );
 hse_contact_rest_test_assert( false !== strpos( $mail['message'], '<!doctype html>' ), 'The branded HTML template is delivered.' );
 hse_contact_rest_test_assert( in_array( 'Reply-To: predrag@example.com', $mail['headers'], true ), 'The visitor is configured as Reply-To.' );
+hse_contact_rest_test_assert(
+	'production' === HSETraining\Headless\Contact\ContactRestController::monitoring_environment_for_origin( 'https://hsetraining.rs' )
+		&& 'non-production' === HSETraining\Headless\Contact\ContactRestController::monitoring_environment_for_origin( 'https://staging.hsetraining.rs' ),
+	'Contact monitoring distinguishes production from preview origins.'
+);
 
 $invalid_request = new WP_REST_Request( 'POST', '/hse/v1/contact' );
 $invalid_request->set_header( 'Origin', 'http://localhost:4321' );

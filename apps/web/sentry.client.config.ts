@@ -1,12 +1,15 @@
 import * as Sentry from '@sentry/astro';
 import { sanitizeSentryEvent } from './src/lib/sentry-privacy';
+import { shouldEnableContactSentry } from './src/lib/sentry-scope';
 
 const dsn = import.meta.env.PUBLIC_SENTRY_DSN?.trim();
 const environment = import.meta.env.PUBLIC_SENTRY_ENVIRONMENT?.trim() || 'local';
+const pathname = typeof window === 'undefined' ? '' : window.location.pathname;
+const enabled = shouldEnableContactSentry(dsn, environment, pathname);
 
 Sentry.init({
 	dsn,
-	enabled: Boolean(dsn),
+	enabled,
 	environment,
 	dataCollection: {
 		userInfo: false,
@@ -16,7 +19,8 @@ Sentry.init({
 		urlQueryParams: false,
 		stackFrameVariables: false,
 	},
-	integrations: [Sentry.browserTracingIntegration()],
-	tracesSampler: ({ name }) => name.includes('/contact') ? 1 : 0.1,
+	integrations: enabled ? [Sentry.browserTracingIntegration()] : [],
+	tracesSampleRate: enabled ? 1 : 0,
 	beforeSend: sanitizeSentryEvent,
+	beforeSendTransaction: sanitizeSentryEvent,
 });

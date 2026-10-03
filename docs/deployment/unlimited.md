@@ -17,6 +17,13 @@ workflows. The CMS origin is selected per frontend environment:
 | staging | `https://cms.hsetraining.rs` | Existing shared CMS |
 | production | `https://cms.hsetraining.rs` | Existing shared CMS until the production CMS migration is planned separately |
 
+After the production launch is stable, staging will move to
+`https://staging-cms.hsetraining.rs` with a separate database, files and uploads
+copied from production at a controlled point in time. The clone will use only
+sandbox RaiAccept/BokaPOS credentials and no Sentry DSN. Until then, explicit
+checkout-source and contact-origin filtering prevents staging requests against
+the shared CMS from entering production Sentry.
+
 The dev CMS has its own salts, administrator sessions, database and uploads
 copy. Search indexing and request-triggered WP-Cron are disabled there; a
 separate server cron runs its due jobs once per minute with a dedicated lock.

@@ -33,8 +33,8 @@ explicit English and Serbian variants without a third-party translation plugin.
 - Customer-facing WooCommerce order numbers with an environment-local `HSE-000001` sequence
 - WooCommerce checkout, order-status, notification, RaiAccept compatibility,
   and BokaPOS compatibility for the production commerce architecture in ADR-011
-- Privacy-bounded Sentry reporting for contact delivery, exceptional checkout
-  failures, RaiAccept request failures, BokaPOS reconciliation, and cron health
+- Production-only, privacy-bounded Sentry reporting for contact delivery,
+  exceptional checkout failures, and RaiAccept request failures
 
 Hero Slide featured images must be at least 1600 × 900 pixels. The editor
 recommends 1920 × 1080 pixels and automatically keeps a slide in draft when a
@@ -556,45 +556,38 @@ the `bokapos_receipt` email was not recorded as sent. Remove the workaround
 after a BokaPOS release officially loads `wp-admin/includes/file.php` in its
 background delivery path and the same sandbox scenarios pass without it.
 
-### BokaPOS operational monitoring
+### Production checkout and contact monitoring
 
-The plugin runs a separate read-only watchdog every five minutes. It observes
-the local BokaPOS fiscal journal and WooCommerce order/refund state without
-issuing, retrying or altering fiscal documents. It reports final sale, refund
-and receipt-delivery failures; sale/refund delays longer than ten minutes;
-delivery delays longer than thirty minutes; completed orders without a fiscal
-receipt; expected refund operations that never appeared; and configured
-BokaPOS receipt e-mails for which no delivery operation was created.
+Sentry is limited to exceptional production order creation, RaiAccept hosted
+payment requests and contact-form delivery failures. Every event must carry an
+explicit production checkout source or production contact origin; dev, staging
+and unclassified activity is discarded before transport. Normal card declines,
+validation responses, successful submissions, BokaPOS fiscal operations and
+general CMS activity are not Sentry events.
 
-Alerts contain only internal operational ids, state, failure code, environment
-and an administrator link. Customer identity, customer e-mail, PIB/TIN,
-provider payloads, secrets and fiscal contents are excluded. Each failure
-signature is claimed durably and uses a deterministic Sentry event id, so a
-retry does not create a second alert. A recovered operation produces one
-recovery event.
-
-Configure the independent Sentry channel and its fallback recipient through
+Configure the production-only Sentry channel and its fallback recipient through
 server-owned values before WordPress loads:
 
 ```php
 define( 'HSE_MONITORING_SENTRY_DSN', getenv( 'HSE_MONITORING_SENTRY_DSN' ) );
 define( 'HSE_MONITORING_ENVIRONMENT', 'production' );
-define( 'HSE_MONITORING_ALERT_EMAIL', 'alerts@hsetraining.rs' );
+define( 'HSE_MONITORING_ALERT_EMAIL', 'info@hsetraining.rs' );
 ```
 
-When Sentry is unavailable or not configured, the same bounded incident is
-sent through WordPress mail. The official BokaPOS administrator notification
-remains enabled and unchanged.
+When Sentry is unavailable, the same bounded production checkout/contact
+incident is sent through WordPress mail. The official BokaPOS portal,
+administrator warning and provider notifications remain enabled and unchanged;
+there is no custom Sentry fiscalization or refund watchdog.
 
 Production must use a real server cron. First add and manually test the cron
 command, then set `DISABLE_WP_CRON` to `true`; never reverse that order. The
-server command must run all due WordPress events, not only the monitoring group,
-so WooCommerce and BokaPOS retry/poll dependencies preserve their order. Check
-the queue under **WooCommerce → Status → Scheduled Actions** and run the focused
-integration check with:
+server command must run all due WordPress events and a bounded Action Scheduler
+batch so WooCommerce and BokaPOS retry/poll dependencies preserve their order.
+Check the queue under **WooCommerce → Status → Scheduled Actions** and run the
+focused Sentry-scope integration check with:
 
 ```sh
-wp eval-file wp-content/plugins/hse-headless/tests/commerce-bokapos-monitoring-integration.php
+wp eval-file wp-content/plugins/hse-headless/tests/sentry-reporting-integration.php
 ```
 
 The email palette can be aligned to the HSE checkout with:
