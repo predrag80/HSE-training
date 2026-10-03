@@ -31,6 +31,12 @@ const {
 const ui = getUiTranslations(locale);
 const alternates = languageAlternates ?? getLanguageAlternates(Astro.url.pathname);
 const hasSerbianAlternate = hasLocalizedContentPath(Astro.url.pathname);
+const siteUrl = Astro.site ?? Astro.url;
+const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
+const alternateUrls = {
+	en: new URL(alternates.en, siteUrl).href,
+	sr: new URL(alternates.sr, siteUrl).href,
+};
 ---
 
 <!doctype html>
@@ -41,9 +47,11 @@ const hasSerbianAlternate = hasLocalizedContentPath(Astro.url.pathname);
 		<title>{title}</title>
 		{description && <meta name="description" content={description} />}
 		{robots && <meta name="robots" content={robots} />}
-		<link rel="alternate" hreflang="en" href={alternates.en} />
-		{hasSerbianAlternate && <link rel="alternate" hreflang="sr" href={alternates.sr} />}
-		<link rel="alternate" hreflang="x-default" href={alternates.en} />
+		<link rel="canonical" href={canonicalUrl} />
+		<link rel="alternate" hreflang="en" href={alternateUrls.en} />
+		{hasSerbianAlternate && <link rel="alternate" hreflang="sr" href={alternateUrls.sr} />}
+		<link rel="alternate" hreflang="x-default" href={alternateUrls.en} />
+		<link rel="sitemap" href="/sitemap-index.xml" />
 	</head>
 	<body>
 		<a class="skip-link" href="#main-content">{ui.skipLink}</a>
