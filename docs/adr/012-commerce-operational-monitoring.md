@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR-013](013-production-checkout-contact-sentry.md)
 
 ## Date
 

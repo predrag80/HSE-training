@@ -34,7 +34,7 @@ jobs:
       PREPARED_ROOT: /home/sbb22122/.hse-astro-releases/production
       WORDPRESS_API_URL: https://cms.hsetraining.rs
       HSE_CHECKOUT_SOURCE: production
-      PUBLIC_SENTRY_DSN: https://5df1889a9c77a842f0811138c8e018c3@o4512174212972544.ingest.de.sentry.io/4512181397946448
+      PUBLIC_SENTRY_DSN: https://10766a4d84395351df71d010354b000e@o4512174212972544.ingest.de.sentry.io/4512181400567888
       PUBLIC_SENTRY_ENVIRONMENT: production
       SSH_HOST: s83.unlimited.rs
       SSH_PORT: "9780"

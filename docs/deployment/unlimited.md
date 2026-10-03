@@ -9,8 +9,28 @@ The Astro frontend is deployed independently from WordPress:
 | `production` | `production` | `https://hsetraining.rs` | `/home/sbb22122/public_html` |
 
 WordPress, the HSE plugin, uploads, and the database are not deployed by these
-workflows. All Astro builds read published content from
-`https://cms.hsetraining.rs`.
+workflows. The CMS origin is selected per frontend environment:
+
+| Frontend | WordPress origin | Data isolation |
+|---|---|---|
+| dev | `https://dev-cms.hsetraining.rs` | Separate WordPress files and database copied from the shared CMS; sandbox payments only |
+| staging | `https://cms.hsetraining.rs` | Existing shared CMS |
+| production | `https://cms.hsetraining.rs` | Existing shared CMS until the production CMS migration is planned separately |
+
+After the production launch is stable, staging will move to
+`https://staging-cms.hsetraining.rs` with a separate database, files and uploads
+copied from production at a controlled point in time. The clone will use only
+sandbox RaiAccept/BokaPOS credentials and no Sentry DSN. Until then, explicit
+checkout-source and contact-origin filtering prevents staging requests against
+the shared CMS from entering production Sentry.
+
+The dev CMS has its own salts, administrator sessions, database and uploads
+copy. Search indexing and request-triggered WP-Cron are disabled there; a
+separate server cron runs its due jobs once per minute with a dedicated lock.
+Its order IDs and public order numbers use a reserved high test range so
+requests sent with the shared sandbox credentials cannot collide with staging
+orders. Content changes made in one CMS no longer appear in the other CMS
+automatically.
 
 ## Required GitHub environment secrets
 

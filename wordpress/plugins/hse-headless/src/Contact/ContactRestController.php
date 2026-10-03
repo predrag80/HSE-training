@@ -7,6 +7,7 @@
 
 namespace HSETraining\Headless\Contact;
 
+use HSETraining\Headless\Commerce\CommerceConfiguration;
 use HSETraining\Headless\Infrastructure\SmtpMailer;
 use HSETraining\Headless\Infrastructure\SentryReporter;
 
@@ -43,11 +44,13 @@ final class ContactRestController {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public static function submit( $request ) {
-		$locale     = 'sr' === $request->get_param( 'locale' ) ? 'sr' : 'en';
-		$request_id = wp_generate_uuid4();
+		$locale         = 'sr' === $request->get_param( 'locale' ) ? 'sr' : 'en';
+		$request_id     = wp_generate_uuid4();
+		$origin         = (string) $request->get_header( 'origin' );
+		$environment    = self::monitoring_environment_for_origin( $origin );
 		$content_length = (int) $request->get_header( 'content-length' );
 
-		if ( ! self::is_allowed_origin( (string) $request->get_header( 'origin' ) ) ) {
+		if ( ! self::is_allowed_origin( $origin ) ) {
 			return self::public_error( 'hse_contact_origin_rejected', $locale, 403 );
 		}
 		if ( $content_length > 16384 ) {
@@ -72,7 +75,7 @@ final class ContactRestController {
 		$recipient = SmtpMailer::get_recipient();
 		if ( '' === $recipient ) {
 			error_log( '[HSE Headless] Contact delivery unavailable. Request ID: ' . $request_id ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			self::report_delivery_failure( 'contact_delivery_unavailable', $request_id, $locale );
+			self::report_delivery_failure( 'contact_delivery_unavailable', $request_id, $locale, $environment );
 			return self::public_error( 'hse_contact_unavailable', $locale, 503 );
 		}
 
@@ -102,7 +105,7 @@ final class ContactRestController {
 
 		if ( ! $sent ) {
 			error_log( '[HSE Headless] Contact delivery failed. Request ID: ' . $request_id ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			self::report_delivery_failure( $failure_incident, $request_id, $locale, $failure_type );
+			self::report_delivery_failure( $failure_incident, $request_id, $locale, $environment, $failure_type );
 			return self::public_error( 'hse_contact_delivery_failed', $locale, 503 );
 		}
 
@@ -118,12 +121,13 @@ final class ContactRestController {
 	}
 
 	/** Report infrastructure failures without transmitting enquiry or customer data. */
-	private static function report_delivery_failure( $incident, $request_id, $locale, $failure_type = '' ) {
+	private static function report_delivery_failure( $incident, $request_id, $locale, $environment, $failure_type = '' ) {
 		$context = array(
-			'component'       => 'contact_delivery',
-			'fingerprint_key' => 'contact_delivery',
-			'request_id'      => sanitize_text_field( (string) $request_id ),
-			'locale'          => 'sr' === $locale ? 'sr' : 'en',
+			'component'            => 'contact_delivery',
+			'fingerprint_key'      => 'contact_delivery',
+			'frontend_environment' => 'production' === $environment ? 'production' : 'non-production',
+			'request_id'           => sanitize_text_field( (string) $request_id ),
+			'locale'               => 'sr' === $locale ? 'sr' : 'en',
 		);
 		if ( '' !== $failure_type ) {
 			$context['failure_type'] = sanitize_text_field( (string) $failure_type );
@@ -136,6 +140,30 @@ final class ContactRestController {
 			$context,
 			'contact:' . sanitize_key( (string) $incident ) . ':' . sanitize_text_field( (string) $request_id )
 		);
+	}
+
+	/** Resolve whether an allowed browser origin belongs to the production frontend. */
+	public static function monitoring_environment_for_origin( $origin ) {
+		$origin_host      = strtolower( (string) wp_parse_url( trim( (string) $origin ), PHP_URL_HOST ) );
+		$production_host  = strtolower( (string) wp_parse_url( CommerceConfiguration::public_site_url( 'production' ), PHP_URL_HOST ) );
+		$production_hosts = array_values(
+			array_unique(
+				array_filter(
+					array(
+						$production_host,
+						'' !== $production_host ? 'www.' . $production_host : '',
+						'hsetraining.rs',
+						'www.hsetraining.rs',
+					)
+				)
+			)
+		);
+
+		if ( '' !== $origin_host && in_array( $origin_host, $production_hosts, true ) ) {
+			return 'production';
+		}
+
+		return 'non-production';
 	}
 
 	/**
