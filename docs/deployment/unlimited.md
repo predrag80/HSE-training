@@ -102,7 +102,9 @@ Store the token as the encrypted GitHub Actions secret
 `configure-production-cms.yml` workflow. The workflow uses the production SSH
 environment, writes the token to `/home/sbb22122/.hse-content-deploy.php` with
 private permissions, backs up `wp-config.php`, and connects that private file to
-WordPress. Re-run the workflow when rotating the token.
+WordPress. It finishes by requesting one production build through the CMS so the
+credential and dispatch path are verified end to end. Re-run the workflow when
+rotating the token.
 
 Verify the integration without contacting GitHub:
 
