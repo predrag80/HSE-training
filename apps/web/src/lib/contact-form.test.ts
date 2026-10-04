@@ -8,6 +8,7 @@ const enquiry: ContactEnquiry = {
 	message: 'Please send more information.',
 	locale: 'en',
 	company_website: '',
+	turnstile_token: 'turnstile-test-token',
 };
 
 describe('sendContactEnquiry', () => {
@@ -27,6 +28,20 @@ describe('sendContactEnquiry', () => {
 
 		await expect(sendContactEnquiry('/contact', enquiry, limited)).resolves.toBe('rate-limited');
 		await expect(sendContactEnquiry('/contact', enquiry, failed)).resolves.toBe('error');
+	});
+
+	it('maps server-side Turnstile failures to safe frontend states', async () => {
+		const rejected = vi.fn(async () => new Response(
+			JSON.stringify({ code: 'hse_contact_verification_failed' }),
+			{ status: 403, headers: { 'Content-Type': 'application/json' } },
+		));
+		const unavailable = vi.fn(async () => new Response(
+			JSON.stringify({ code: 'hse_contact_verification_unavailable' }),
+			{ status: 503, headers: { 'Content-Type': 'application/json' } },
+		));
+
+		await expect(sendContactEnquiry('/contact', enquiry, rejected)).resolves.toBe('verification-failed');
+		await expect(sendContactEnquiry('/contact', enquiry, unavailable)).resolves.toBe('verification-unavailable');
 	});
 
 	it('returns a generic error for network failures', async () => {

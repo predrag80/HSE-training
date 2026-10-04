@@ -51,6 +51,11 @@ export default defineConfig({
 				access: 'public',
 				default: 'staging',
 			}),
+			PUBLIC_TURNSTILE_SITE_KEY: envField.string({
+				context: 'client',
+				access: 'public',
+				default: '',
+			}),
 		},
 	},
 });

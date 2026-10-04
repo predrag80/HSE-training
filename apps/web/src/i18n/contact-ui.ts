@@ -17,6 +17,10 @@ const contactUi = {
 			privacyLink: 'Privacy Policy', privacySuffix: '.',
 			sending: 'Sending your message…', success: 'Thank you. Your message has been sent successfully.',
 			error: 'Your message could not be sent. Please try again later.', rateLimited: 'Too many messages were sent. Please wait and try again.',
+			verificationLabel: 'Security verification', verificationRequired: 'Please complete the security check before sending your message.',
+			verificationExpired: 'The security check expired. Please complete it again.',
+			verificationFailed: 'The security check could not be verified. Please try again.',
+			verificationUnavailable: 'The security check is temporarily unavailable. Please try again later.',
 		},
 	},
 	sr: {
@@ -35,6 +39,10 @@ const contactUi = {
 			privacyLink: 'Politiku privatnosti', privacySuffix: '.',
 			sending: 'Poruka se šalje…', success: 'Hvala. Vaša poruka je uspešno poslata.',
 			error: 'Poruka nije mogla da bude poslata. Pokušajte ponovo kasnije.', rateLimited: 'Poslato je previše poruka. Sačekajte i pokušajte ponovo.',
+			verificationLabel: 'Bezbednosna provera', verificationRequired: 'Završite bezbednosnu proveru pre slanja poruke.',
+			verificationExpired: 'Bezbednosna provera je istekla. Završite je ponovo.',
+			verificationFailed: 'Bezbednosna provera nije uspela. Pokušajte ponovo.',
+			verificationUnavailable: 'Bezbednosna provera trenutno nije dostupna. Pokušajte ponovo kasnije.',
 		},
 	},
 } as const;

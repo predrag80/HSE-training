@@ -5,9 +5,15 @@ export interface ContactEnquiry {
 	readonly message: string;
 	readonly locale: 'en' | 'sr';
 	readonly company_website: string;
+	readonly turnstile_token: string;
 }
 
-export type ContactSubmissionResult = 'success' | 'rate-limited' | 'error';
+export type ContactSubmissionResult =
+	| 'success'
+	| 'rate-limited'
+	| 'verification-failed'
+	| 'verification-unavailable'
+	| 'error';
 
 type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
@@ -27,7 +33,16 @@ export async function sendContactEnquiry(
 		});
 
 		if (response.ok) return 'success';
-		return response.status === 429 ? 'rate-limited' : 'error';
+		if (response.status === 429) return 'rate-limited';
+
+		const payload: unknown = await response.json().catch(() => null);
+		const code = payload && typeof payload === 'object' && 'code' in payload
+			? String(payload.code)
+			: '';
+		if (code === 'hse_contact_verification_failed') return 'verification-failed';
+		if (code === 'hse_contact_verification_unavailable') return 'verification-unavailable';
+
+		return 'error';
 	} catch {
 		return 'error';
 	}
