@@ -10,6 +10,7 @@ on:
         type: choice
         options:
           - preflight
+          - provision
 
 permissions:
   contents: read
@@ -20,7 +21,7 @@ concurrency:
 
 jobs:
   maintain:
-    name: Preflight staging CMS
+    name: ${{ inputs.mode == 'provision' && 'Provision staging CMS' || 'Preflight staging CMS' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment:
@@ -32,6 +33,11 @@ jobs:
       SOURCE_ROOT: /home/sbb22122/dev-cms.hsetraining.rs
       TARGET_ROOT: /home/sbb22122/staging-cms.hsetraining.rs
       TARGET_DOMAIN: staging-cms.hsetraining.rs
+      ROOT_DOMAIN: hsetraining.rs
+      FRONTEND_DOMAIN: staging.hsetraining.rs
+      DATABASE_NAME: sbb22122_hsestg
+      DATABASE_USER: sbb22122_hsestg
+      ADMIN_EMAIL: predo.vuckovic@gmail.com
 
     steps:
       - name: Check out repository
@@ -52,6 +58,7 @@ jobs:
           chmod 600 "$HOME/.ssh/known_hosts"
 
       - name: Run staging CMS preflight
+        if: inputs.mode == 'preflight'
         run: |
           set -euo pipefail
           ssh_target="${SSH_USER}@${SSH_HOST}"
@@ -63,6 +70,42 @@ jobs:
           ssh "${ssh_options[@]}" "$ssh_target" \
             "chmod 700 '$remote_script' && '$remote_script' '$SSH_USER' '$SOURCE_ROOT' '$TARGET_ROOT' '$TARGET_DOMAIN'; status=\$?; rm -f '$remote_script'; exit \$status"
 
+      - name: Prepare staging CMS package
+        if: inputs.mode == 'provision'
+        run: |
+          set -euo pipefail
+          tar -czf "$RUNNER_TEMP/hse-headless.tar.gz" -C wordpress/plugins hse-headless
+
+      - name: Provision isolated staging CMS
+        if: inputs.mode == 'provision'
+        run: |
+          set -euo pipefail
+          ssh_target="${SSH_USER}@${SSH_HOST}"
+          ssh_options=(-i "$HOME/.ssh/unlimited_deploy" -p "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes)
+          scp_options=(-i "$HOME/.ssh/unlimited_deploy" -P "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes)
+          remote_prefix="/home/${SSH_USER}/.hse-staging-cms-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+          scp "${scp_options[@]}" \
+            scripts/provision-staging-cms.sh \
+            "$ssh_target:${remote_prefix}-provision.sh"
+          scp "${scp_options[@]}" \
+            scripts/remove-hse-content-deploy.php \
+            "$ssh_target:${remote_prefix}-sanitize.php"
+          scp "${scp_options[@]}" \
+            infra/apache/hsetraining-staging-cms.htaccess \
+            "$ssh_target:${remote_prefix}-security.htaccess"
+          scp "${scp_options[@]}" \
+            infra/robots/staging-cms-robots.txt \
+            "$ssh_target:${remote_prefix}-robots.txt"
+          scp "${scp_options[@]}" \
+            "$RUNNER_TEMP/hse-headless.tar.gz" \
+            "$ssh_target:${remote_prefix}-plugin.tar.gz"
+
+          ssh "${ssh_options[@]}" "$ssh_target" \
+            "chmod 700 '${remote_prefix}-provision.sh' && '${remote_prefix}-provision.sh' '$SSH_USER' '$SOURCE_ROOT' '$TARGET_ROOT' '$TARGET_DOMAIN' '$ROOT_DOMAIN' '$FRONTEND_DOMAIN' '$DATABASE_NAME' '$DATABASE_USER' '$ADMIN_EMAIL' '${remote_prefix}-plugin.tar.gz' '${remote_prefix}-sanitize.php' '${remote_prefix}-security.htaccess' '${remote_prefix}-robots.txt'; status=\$?; rm -f '${remote_prefix}-provision.sh' '${remote_prefix}-plugin.tar.gz' '${remote_prefix}-sanitize.php' '${remote_prefix}-security.htaccess' '${remote_prefix}-robots.txt'; exit \$status"
+
       - name: Remove deployment key
         if: always()
-        run: rm -f "$HOME/.ssh/unlimited_deploy"
+        run: |
+          rm -f "$HOME/.ssh/unlimited_deploy"
+          rm -f "$RUNNER_TEMP/hse-headless.tar.gz"

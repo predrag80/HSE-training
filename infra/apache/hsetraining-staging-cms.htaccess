@@ -1,0 +1,13 @@
+# BEGIN HSE staging CMS isolation
+<IfModule mod_headers.c>
+    Header always set X-Robots-Tag "noindex, nofollow, noarchive"
+</IfModule>
+
+<FilesMatch "^(readme\.html|license\.txt)$">
+    Require all denied
+</FilesMatch>
+
+<Files "xmlrpc.php">
+    Require all denied
+</Files>
+# END HSE staging CMS isolation
