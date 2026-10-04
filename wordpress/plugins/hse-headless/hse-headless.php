@@ -2,7 +2,7 @@
 /**
  * Plugin Name: HSE Training Headless
  * Description: Custom headless CMS functionality for the HSE Training platform.
- * Version: 0.34.0
+ * Version: 0.35.0
  * Text Domain: hse-headless
  *
  * @package HSETraining\Headless
@@ -49,6 +49,7 @@ require_once __DIR__ . '/src/Infrastructure/SentryReporter.php';
 require_once __DIR__ . '/src/Infrastructure/LegacySentryMonitoringCleanup.php';
 require_once __DIR__ . '/src/Infrastructure/ContentDeployTrigger.php';
 require_once __DIR__ . '/src/Contact/ContactEmailTemplate.php';
+require_once __DIR__ . '/src/Contact/TurnstileVerifier.php';
 require_once __DIR__ . '/src/Contact/ContactRestController.php';
 require_once __DIR__ . '/src/Commerce/CommerceConfiguration.php';
 require_once __DIR__ . '/src/Commerce/CommerceLocale.php';

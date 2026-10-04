@@ -18,6 +18,8 @@ final class ContactRestController {
 	public const REST_ROUTE     = '/contact';
 	private const RATE_LIMIT_MAX = 3;
 	private const RATE_LIMIT_TTL = 10 * MINUTE_IN_SECONDS;
+	private const VERIFICATION_ATTEMPT_MAX = 10;
+	private const VERIFICATION_ATTEMPT_TTL = 10 * MINUTE_IN_SECONDS;
 
 	/** Register WordPress hooks. */
 	public static function register_hooks() {
@@ -72,6 +74,27 @@ final class ContactRestController {
 			return $enquiry;
 		}
 
+		if ( TurnstileVerifier::is_required() ) {
+			$attempt_key = self::rate_limit_key( 'attempt' );
+			if ( self::VERIFICATION_ATTEMPT_MAX <= (int) get_transient( $attempt_key ) ) {
+				return self::public_error( 'hse_contact_rate_limited', $locale, 429 );
+			}
+			self::increment_rate_limit( $attempt_key, self::VERIFICATION_ATTEMPT_TTL );
+
+			$verification = TurnstileVerifier::verify(
+				(string) $request->get_param( 'turnstile_token' ),
+				$request_id
+			);
+			if ( is_wp_error( $verification ) ) {
+				if ( 'hse_turnstile_unavailable' === $verification->get_error_code() ) {
+					self::report_turnstile_unavailable( $request_id, $locale, $environment );
+					return self::public_error( 'hse_contact_verification_unavailable', $locale, 503 );
+				}
+
+				return self::public_error( 'hse_contact_verification_failed', $locale, 403 );
+			}
+		}
+
 		$recipient = SmtpMailer::get_recipient();
 		if ( '' === $recipient ) {
 			error_log( '[HSE Headless] Contact delivery unavailable. Request ID: ' . $request_id ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
@@ -117,6 +140,23 @@ final class ContactRestController {
 				'request_id' => $request_id,
 			),
 			202
+		);
+	}
+
+	/** Report only an infrastructure failure, never rejected visitor data or tokens. */
+	private static function report_turnstile_unavailable( $request_id, $locale, $environment ) {
+		SentryReporter::capture(
+			'contact_turnstile_unavailable',
+			'error',
+			'Contact form verification is temporarily unavailable.',
+			array(
+				'component'            => 'contact_verification',
+				'fingerprint_key'      => 'contact_turnstile_unavailable',
+				'frontend_environment' => 'production' === $environment ? 'production' : 'non-production',
+				'request_id'           => sanitize_text_field( (string) $request_id ),
+				'locale'               => 'sr' === $locale ? 'sr' : 'en',
+			),
+			'contact:turnstile-unavailable:' . sanitize_text_field( (string) $request_id )
 		);
 	}
 
@@ -202,18 +242,22 @@ final class ContactRestController {
 	private static function public_error( $code, $locale, $status ) {
 		$messages = array(
 			'en' => array(
-				'hse_contact_invalid'         => 'Please check the entered information and try again.',
-				'hse_contact_rate_limited'    => 'Too many messages were sent. Please wait and try again.',
-				'hse_contact_origin_rejected' => 'The message could not be accepted.',
-				'hse_contact_unavailable'     => 'The message service is temporarily unavailable. Please try again later.',
-				'hse_contact_delivery_failed' => 'The message could not be sent. Please try again later.',
+				'hse_contact_invalid'                  => 'Please check the entered information and try again.',
+				'hse_contact_rate_limited'             => 'Too many messages were sent. Please wait and try again.',
+				'hse_contact_origin_rejected'          => 'The message could not be accepted.',
+				'hse_contact_verification_failed'      => 'The security check could not be verified. Please try again.',
+				'hse_contact_verification_unavailable' => 'The security check is temporarily unavailable. Please try again later.',
+				'hse_contact_unavailable'              => 'The message service is temporarily unavailable. Please try again later.',
+				'hse_contact_delivery_failed'          => 'The message could not be sent. Please try again later.',
 			),
 			'sr' => array(
-				'hse_contact_invalid'         => 'Proverite unete podatke i pokušajte ponovo.',
-				'hse_contact_rate_limited'    => 'Poslato je previše poruka. Sačekajte i pokušajte ponovo.',
-				'hse_contact_origin_rejected' => 'Poruka nije mogla da bude prihvaćena.',
-				'hse_contact_unavailable'     => 'Servis za slanje poruka trenutno nije dostupan. Pokušajte ponovo kasnije.',
-				'hse_contact_delivery_failed' => 'Poruka nije mogla da bude poslata. Pokušajte ponovo kasnije.',
+				'hse_contact_invalid'                  => 'Proverite unete podatke i pokušajte ponovo.',
+				'hse_contact_rate_limited'             => 'Poslato je previše poruka. Sačekajte i pokušajte ponovo.',
+				'hse_contact_origin_rejected'          => 'Poruka nije mogla da bude prihvaćena.',
+				'hse_contact_verification_failed'      => 'Bezbednosna provera nije uspela. Pokušajte ponovo.',
+				'hse_contact_verification_unavailable' => 'Bezbednosna provera trenutno nije dostupna. Pokušajte ponovo kasnije.',
+				'hse_contact_unavailable'              => 'Servis za slanje poruka trenutno nije dostupan. Pokušajte ponovo kasnije.',
+				'hse_contact_delivery_failed'          => 'Poruka nije mogla da bude poslata. Pokušajte ponovo kasnije.',
 			),
 		);
 
@@ -241,15 +285,17 @@ final class ContactRestController {
 	}
 
 	/** Create a non-reversible per-client transient key without retaining the IP address. */
-	private static function rate_limit_key() {
+	private static function rate_limit_key( $scope = 'accepted' ) {
 		$client_address = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : 'unknown';
-		return 'hse_contact_' . substr( hash_hmac( 'sha256', $client_address, wp_salt( 'nonce' ) ), 0, 32 );
+		$scope          = sanitize_key( (string) $scope );
+		$prefix         = 'accepted' === $scope ? 'hse_contact_' : 'hse_contact_' . $scope . '_';
+		return $prefix . substr( hash_hmac( 'sha256', $client_address, wp_salt( 'nonce' ) ), 0, 32 );
 	}
 
 	/** Increment the bounded rolling contact counter. */
-	private static function increment_rate_limit( $key ) {
+	private static function increment_rate_limit( $key, $ttl = self::RATE_LIMIT_TTL ) {
 		$count = (int) get_transient( $key );
-		set_transient( $key, $count + 1, self::RATE_LIMIT_TTL );
+		set_transient( $key, $count + 1, (int) $ttl );
 	}
 
 	/** UTF-8-safe input length with a core-PHP fallback. */

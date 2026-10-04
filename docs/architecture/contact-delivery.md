@@ -1,6 +1,6 @@
 # Contact Delivery
 
-Status: implemented in `hse-headless` 0.18.0 and the Astro contact page
+Status: implemented in `hse-headless` and the Astro contact page
 
 ## Flow
 
@@ -10,13 +10,23 @@ Status: implemented in `hse-headless` 0.18.0 and the Astro contact page
    permitted for development.
 4. A hidden honeypot and a three-messages-per-ten-minutes client limit reduce
    automated abuse.
-5. The plugin renders the branded HTML body and plain-text alternative.
-6. WordPress sends through the server-owned authenticated SMTP configuration.
-7. The browser receives only an accepted response or a generic localized error.
+5. When production enforcement is enabled, the plugin verifies a single-use
+   Turnstile token with Cloudflare and requires the expected hostname and
+   `contact` action. A separate ten-attempts-per-ten-minutes limit bounds these
+   verification calls.
+6. The plugin renders the branded HTML body and plain-text alternative.
+7. WordPress sends through the server-owned authenticated SMTP configuration.
+8. The browser receives only an accepted response or a generic localized error.
 
 The SMTP password, sender, recipient, and optional origin override remain in
 server configuration. They are not embedded in the Astro bundle, plugin ZIP,
 database, API response, or repository.
+
+The Turnstile secret, hostname allowlist, expected action, and enforcement flag
+are also server-owned. The plugin is deployed first with enforcement disabled;
+after the Astro widget is live and sends tokens, production enables the flag.
+Disabling the flag is the immediate rollback and leaves the remaining abuse
+controls active.
 
 ## Personal data
 
@@ -49,9 +59,11 @@ check, lint, and production build commands cover its compiled integration.
 
 Before enabling delivery on an environment, define all `HSE_SMTP_*` settings,
 `HSE_MAIL_FROM`, and `HSE_MAIL_TO` in server-only configuration. Optionally set
-`HSE_CONTACT_ALLOWED_ORIGINS` as a comma-separated allowlist. Then deploy the
-plugin and rebuild the static Astro site so the generated form points at that
-environment's `WORDPRESS_API_URL`.
+`HSE_CONTACT_ALLOWED_ORIGINS` as a comma-separated allowlist. Turnstile uses
+`HSE_TURNSTILE_SECRET_KEY`, `HSE_TURNSTILE_ALLOWED_HOSTNAMES`,
+`HSE_TURNSTILE_ACTION`, and `HSE_TURNSTILE_REQUIRED`; the secret must not enter
+the frontend bundle. Then deploy the plugin and rebuild the static Astro site
+so the generated form points at that environment's `WORDPRESS_API_URL`.
 
 To roll back delivery, restore the preceding plugin and Astro release together.
 The SMTP configuration values may remain defined because the preceding plugin
