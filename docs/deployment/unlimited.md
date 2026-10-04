@@ -125,6 +125,13 @@ The emergency rollback is to set `HSE_TURNSTILE_REQUIRED` back to `false` in
 the private file. This leaves the existing origin, honeypot, validation, size,
 and rate-limit controls active while stopping mandatory Cloudflare validation.
 
+Production releases of the repository-owned CMS plugin use the manual
+`deploy-production-plugin.yml` workflow. It packages the version on the
+selected `production` revision, verifies its checksum and PHP syntax, moves the
+previous plugin to the private `~/.hse-plugin-backups/` directory, and runs the
+contact REST integration check without sending e-mail. Any failed activation,
+version check, or integration check restores the previous plugin directory.
+
 Production activation is deliberately locked while the existing PHP website
 must remain online. The workflow changes `/home/sbb22122/public_html` only when
 the GitHub environment variable `PRODUCTION_DEPLOY_ENABLED` is exactly `true`.
