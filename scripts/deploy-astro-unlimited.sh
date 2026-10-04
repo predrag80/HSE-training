@@ -29,7 +29,7 @@ if [[ -n "${DEPLOY_HTTP_AUTH_USER:-}" || -n "${DEPLOY_HTTP_AUTH_PASSWORD:-}" ]];
 fi
 
 case "${DEPLOY_ROOT}" in
-	/home/sbb22122/dev.hsetraining.rs|/home/sbb22122/staging.hsetraining.rs|/home/sbb22122/public_html) ;;
+	/home/sbb22122/public_html) ;;
 	*)
 		echo "Refusing to deploy to unexpected root: ${DEPLOY_ROOT}" >&2
 		exit 1

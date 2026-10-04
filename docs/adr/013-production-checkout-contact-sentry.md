@@ -14,7 +14,7 @@ The initial monitoring design covered the complete public frontend and added an
 independent Sentry watchdog for BokaPOS fiscalization, refund and document-mail
 operations. HSE Training now requires a smaller telemetry boundary: Sentry is
 needed only to diagnose technical failures in the production checkout/payment
-flow and production contact form. Dev and staging telemetry, general page
+flow and production contact form. Staging telemetry, general page
 performance, fiscal-operation monitoring and Sentry Cron Monitoring are outside
 the required scope.
 
@@ -28,7 +28,7 @@ work.
 
 - Use the existing `hse-training-commerce` Sentry project for both production
   contact-page browser telemetry and production CMS checkout/contact failures.
-- Give only the production Astro workflow a public DSN. Dev, staging and local
+- Give only the production Astro workflow a public DSN. Staging and local
   builds have no DSN and therefore send no Sentry telemetry.
 - Initialize the Astro client only on `/contact/` and `/sr/contact/` when the
   declared environment is exactly `production`. Keep Session Replay disabled,
@@ -39,7 +39,7 @@ work.
   delivery failures. Normal card declines, validation errors and successful
   submissions do not create Sentry issues.
 - Require every CMS event to carry an explicit `production` checkout source or
-  production contact origin. Drop staging, dev and unclassified events before
+  production contact origin. Drop staging and unclassified events before
   transport. This remains defense in depth after the CMS instances were
   separated.
 - Remove the custom BokaPOS reconciliation watchdog, Sentry Cron Monitor and
@@ -74,11 +74,11 @@ The production scheduler is:
 
 ## Verification
 
-1. Build dev and staging without a DSN and confirm the Sentry client is
-   disabled.
+1. Build staging and local previews without a DSN and confirm the Sentry client
+   is disabled.
 2. Build production with the commerce-project DSN and confirm only the contact
    routes initialize the client.
-3. Run the CMS scope integration check and confirm staging/dev/unclassified
+3. Run the CMS scope integration check and confirm staging/unclassified
    contexts are dropped without network or e-mail delivery.
 4. Confirm production contact failures and exceptional checkout/payment
    request failures appear in `hse-training-commerce` without personal data.
