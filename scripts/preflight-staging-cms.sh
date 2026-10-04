@@ -30,6 +30,12 @@ for command_name in php wp rsync mysqldump mysql uapi cpapi2 crontab flock timeo
   fi
 done
 
+if [[ -x /usr/local/cpanel/bin/cpapi2 ]]; then
+  printf 'command:/usr/local/cpanel/bin/cpapi2=available\n'
+else
+  printf 'command:/usr/local/cpanel/bin/cpapi2=missing\n'
+fi
+
 [[ -d "$source_root" ]] || fail "Source WordPress root does not exist."
 [[ -f "$source_root/wp-config.php" ]] || fail "Source wp-config.php does not exist."
 
@@ -109,7 +115,12 @@ else
 fi
 rm -f /tmp/hse-staging-addon-domain.json
 
-if command -v cpapi2 >/dev/null 2>&1 && cpapi2 --output=json AddonDomain listaddondomains >/tmp/hse-staging-cpapi2-addon-domain.json 2>/dev/null; then
+cpapi2_binary="$(command -v cpapi2 2>/dev/null || true)"
+if [[ -z "$cpapi2_binary" && -x /usr/local/cpanel/bin/cpapi2 ]]; then
+  cpapi2_binary=/usr/local/cpanel/bin/cpapi2
+fi
+
+if [[ -n "$cpapi2_binary" ]] && "$cpapi2_binary" --output=json AddonDomain listaddondomains >/tmp/hse-staging-cpapi2-addon-domain.json 2>/dev/null; then
   CPAPI2_ADDON_DOMAIN_JSON="$(cat /tmp/hse-staging-cpapi2-addon-domain.json)" php -r '
     $payload = json_decode((string) getenv("CPAPI2_ADDON_DOMAIN_JSON"), true);
     $data = $payload["cpanelresult"]["data"] ?? null;
