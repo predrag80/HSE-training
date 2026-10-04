@@ -65,7 +65,7 @@ wp --path="$source_root" db query \
   | paste -sd, - || true
 printf '\n'
 
-domain_json="$(uapi --output=json --user="$account" DomainInfo list_domains)"
+domain_json="$(uapi --output=json DomainInfo list_domains)"
 DOMAIN_JSON="$domain_json" TARGET_DOMAIN="$target_domain" php -r '
   $payload = json_decode((string) getenv("DOMAIN_JSON"), true);
   if (!is_array($payload) || 1 !== (int) ($payload["result"]["status"] ?? 0)) {
@@ -89,7 +89,7 @@ DOMAIN_JSON="$domain_json" TARGET_DOMAIN="$target_domain" php -r '
   echo "target_domain_state=" . ($found ? "present" : "missing") . PHP_EOL;
 '
 
-if uapi --output=json --user="$account" Mysql get_restrictions >/tmp/hse-staging-mysql-restrictions.json 2>/dev/null; then
+if uapi --output=json Mysql get_restrictions >/tmp/hse-staging-mysql-restrictions.json 2>/dev/null; then
   MYSQL_RESTRICTIONS_JSON="$(cat /tmp/hse-staging-mysql-restrictions.json)" php -r '
     $payload = json_decode((string) getenv("MYSQL_RESTRICTIONS_JSON"), true);
     echo "mysql_restrictions_api=" . (1 === (int) ($payload["result"]["status"] ?? 0) ? "available" : "unavailable") . PHP_EOL;
@@ -99,7 +99,7 @@ else
 fi
 rm -f /tmp/hse-staging-mysql-restrictions.json
 
-if uapi --output=json --user="$account" AddonDomain listaddondomains >/tmp/hse-staging-addon-domain.json 2>/dev/null; then
+if uapi --output=json AddonDomain listaddondomains >/tmp/hse-staging-addon-domain.json 2>/dev/null; then
   ADDON_DOMAIN_JSON="$(cat /tmp/hse-staging-addon-domain.json)" php -r '
     $payload = json_decode((string) getenv("ADDON_DOMAIN_JSON"), true);
     echo "uapi_addon_domain_api=" . (1 === (int) ($payload["result"]["status"] ?? 0) ? "available" : "unavailable") . PHP_EOL;
@@ -109,7 +109,7 @@ else
 fi
 rm -f /tmp/hse-staging-addon-domain.json
 
-if cpapi2 --output=json AddonDomain listaddondomains >/tmp/hse-staging-cpapi2-addon-domain.json 2>/dev/null; then
+if command -v cpapi2 >/dev/null 2>&1 && cpapi2 --output=json AddonDomain listaddondomains >/tmp/hse-staging-cpapi2-addon-domain.json 2>/dev/null; then
   CPAPI2_ADDON_DOMAIN_JSON="$(cat /tmp/hse-staging-cpapi2-addon-domain.json)" php -r '
     $payload = json_decode((string) getenv("CPAPI2_ADDON_DOMAIN_JSON"), true);
     $data = $payload["cpanelresult"]["data"] ?? null;
