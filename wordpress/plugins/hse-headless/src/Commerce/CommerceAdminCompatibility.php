@@ -37,7 +37,7 @@ final class CommerceAdminCompatibility {
 			'hse-commerce-admin-compatibility',
 			plugins_url( 'assets/commerce-admin.js', $plugin_file ),
 			array(),
-			'0.34.0',
+			'0.35.0',
 			true
 		);
 		wp_localize_script(

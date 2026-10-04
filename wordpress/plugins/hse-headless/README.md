@@ -245,6 +245,10 @@ define( 'HSE_SMTP_PASSWORD', getenv( 'HSE_SMTP_PASSWORD' ) );
 define( 'HSE_MAIL_FROM', 'website@hsetraining.rs' );
 define( 'HSE_COMMERCE_ADMIN_EMAIL', 'info@hsetraining.rs' );
 define( 'HSE_CONTACT_ALLOWED_ORIGINS', 'https://hsetraining.rs,https://www.hsetraining.rs,https://staging.hsetraining.rs' );
+define( 'HSE_TURNSTILE_SECRET_KEY', getenv( 'HSE_TURNSTILE_SECRET_KEY' ) );
+define( 'HSE_TURNSTILE_ALLOWED_HOSTNAMES', 'hsetraining.rs,www.hsetraining.rs' );
+define( 'HSE_TURNSTILE_ACTION', 'contact' );
+define( 'HSE_TURNSTILE_REQUIRED', false );
 ```
 
 Define these before WordPress loads `wp-settings.php`. Keep the password only
@@ -293,10 +297,23 @@ POST /wp-json/hse/v1/contact
 The endpoint validates and bounds every field, accepts only configured public
 site origins (plus localhost during development), silently absorbs a honeypot,
 and permits at most three accepted messages from one client address per ten
-minutes. Delivery failures return generic public messages and server logs
-contain only a generated request ID, never the submitted personal data. The
-recipient is fixed in the plugin to `info@hsetraining.rs`; SMTP credentials
-control only the authenticated transport and sender identity.
+minutes. When `HSE_TURNSTILE_REQUIRED` is enabled, it also permits at most ten
+verification attempts per client address per ten minutes and verifies the
+single-use browser token directly with Cloudflare before delivery. A valid
+response must match the configured production hostname allowlist and the
+`contact` action. Delivery and verification failures return generic public
+messages and server logs contain only a generated request ID, never the
+submitted personal data. The recipient is fixed in the plugin to
+`info@hsetraining.rs`; SMTP credentials control only the authenticated
+transport and sender identity.
+
+Deploy the server support with `HSE_TURNSTILE_REQUIRED` set to `false` first.
+Set the secret only in private server configuration, deploy the Astro widget,
+verify that requests contain a token, and then change the flag to `true`.
+Turning the flag back to `false` is the immediate rollback and leaves the
+origin, honeypot, request-size, input-validation, and delivery-rate controls in
+place. Never place the secret in the plugin ZIP, Git repository, WordPress
+database, frontend environment, or browser bundle.
 
 Run the endpoint checks without sending a real message:
 

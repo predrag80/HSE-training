@@ -109,6 +109,22 @@ For rollback, set `HSE_CONTENT_DEPLOY_ENABLED` to `false` and run production
 deploys manually. This stops automatic builds without changing stored CMS
 content or the active frontend release.
 
+### Production Turnstile secret
+
+Store `HSE_TURNSTILE_SECRET_KEY` as an encrypted secret in the GitHub
+`production` environment, then run the manual
+`configure-production-turnstile.yml` workflow. It writes the secret and the
+fixed hostname/action policy to `/home/sbb22122/.hse-turnstile.php`, applies
+private permissions, connects that file to `wp-config.php`, and verifies the
+configuration without printing the secret. The initial workflow deliberately
+sets `HSE_TURNSTILE_REQUIRED` to `false`; enforcement is enabled only after the
+CMS plugin and Astro widget are both live and a token-bearing request has been
+verified.
+
+The emergency rollback is to set `HSE_TURNSTILE_REQUIRED` back to `false` in
+the private file. This leaves the existing origin, honeypot, validation, size,
+and rate-limit controls active while stopping mandatory Cloudflare validation.
+
 Production activation is deliberately locked while the existing PHP website
 must remain online. The workflow changes `/home/sbb22122/public_html` only when
 the GitHub environment variable `PRODUCTION_DEPLOY_ENABLED` is exactly `true`.
