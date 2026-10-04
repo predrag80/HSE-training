@@ -38,7 +38,6 @@ root change, verify representative paths without reading their contents:
 ```sh
 curl -I https://cms.hsetraining.rs/error_log
 curl -I https://cms.hsetraining.rs/wp-content/debug.log
-curl -I https://dev.hsetraining.rs/error_log
 curl -I https://staging.hsetraining.rs/error_log
 ```
 
@@ -61,7 +60,7 @@ Anonymous `GET` and `POST` requests to `/xmlrpc.php`, `/readme.html`, and
 
 ## Security Response Headers
 
-CMS, checkout, dev, staging, and the future production Astro document root use
+CMS, checkout, staging, and the production Astro document root use
 the following baseline:
 
 - one-year HTTPS-only transport through `Strict-Transport-Security`;

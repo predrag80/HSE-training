@@ -86,9 +86,9 @@ define( 'HSE_MONITORING_ENVIRONMENT', 'production' );
 define( 'HSE_MONITORING_ALERT_EMAIL', 'alerts@hsetraining.rs' );
 ```
 
-The DSN is a public ingestion key, but it remains environment-owned so dev,
-staging and production can be separated without changing plugin code. No Sentry
-authentication token belongs in WordPress.
+The DSN is a public ingestion key, but it remains environment-owned so
+non-production and production traffic can be separated without changing plugin
+code. No Sentry authentication token belongs in WordPress.
 
 The Astro build receives the public web-project DSN and environment through
 `PUBLIC_SENTRY_DSN` and `PUBLIC_SENTRY_ENVIRONMENT`. Source-map upload is
@@ -120,8 +120,7 @@ The production crontab is:
 ```
 
 `DISABLE_WP_CRON` remains enabled only while these server jobs are installed and
-their `status=0` heartbeat files continue to advance. The dev CMS keeps its
-separate cron, lock and sandbox monitoring environment.
+their `status=0` heartbeat files continue to advance.
 
 ## Verification
 
