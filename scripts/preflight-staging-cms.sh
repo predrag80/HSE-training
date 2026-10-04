@@ -120,7 +120,17 @@ if [[ -z "$cpapi2_binary" && -x /usr/local/cpanel/bin/cpapi2 ]]; then
   cpapi2_binary=/usr/local/cpanel/bin/cpapi2
 fi
 
-if [[ -n "$cpapi2_binary" ]] && "$cpapi2_binary" --user="$account" --output=json AddonDomain listaddondomains >/tmp/hse-staging-cpapi2-addon-domain.json 2>/dev/null; then
+cpapi2_exit_code=127
+if [[ -n "$cpapi2_binary" ]]; then
+  set +e
+  "$cpapi2_binary" --user="$account" --output=json AddonDomain listaddondomains \
+    >/tmp/hse-staging-cpapi2-addon-domain.json 2>/tmp/hse-staging-cpapi2-addon-domain.err
+  cpapi2_exit_code=$?
+  set -e
+fi
+printf 'cpapi2_addon_domain_exit_code=%s\n' "$cpapi2_exit_code"
+
+if [[ "$cpapi2_exit_code" -eq 0 ]]; then
   CPAPI2_ADDON_DOMAIN_JSON="$(cat /tmp/hse-staging-cpapi2-addon-domain.json)" php -r '
     $payload = json_decode((string) getenv("CPAPI2_ADDON_DOMAIN_JSON"), true);
     $data = $payload["cpanelresult"]["data"] ?? null;
@@ -128,7 +138,10 @@ if [[ -n "$cpapi2_binary" ]] && "$cpapi2_binary" --user="$account" --output=json
   '
 else
   printf 'cpapi2_addon_domain_api=unavailable\n'
+  if [[ -s /tmp/hse-staging-cpapi2-addon-domain.err ]]; then
+    printf 'cpapi2_addon_domain_error=%s\n' "$(head -n 1 /tmp/hse-staging-cpapi2-addon-domain.err | tr -cd '[:alnum:] ._:/()-')"
+  fi
 fi
-rm -f /tmp/hse-staging-cpapi2-addon-domain.json
+rm -f /tmp/hse-staging-cpapi2-addon-domain.json /tmp/hse-staging-cpapi2-addon-domain.err
 
 printf 'preflight=passed\n'
