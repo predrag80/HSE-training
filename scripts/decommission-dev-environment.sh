@@ -9,6 +9,7 @@ dev_frontend_domain="${4:-}"
 dev_cms_domain="${5:-}"
 staging_cms_root="${6:-}"
 production_cms_root="${7:-}"
+cpanel_host="${8:-}"
 
 fail() {
 	printf 'ERROR: %s\n' "$*" >&2
@@ -20,6 +21,23 @@ api_succeeded() {
 	API_RESPONSE_FILE="$response_file" php -r '
 		$payload = json_decode((string) file_get_contents((string) getenv("API_RESPONSE_FILE")), true);
 		exit(is_array($payload) && 1 === (int) ($payload["result"]["status"] ?? 0) ? 0 : 1);
+	'
+}
+
+api2_succeeded() {
+	local response_file="$1"
+	API_RESPONSE_FILE="$response_file" php -r '
+		$payload = json_decode((string) file_get_contents((string) getenv("API_RESPONSE_FILE")), true);
+		$result = $payload["cpanelresult"] ?? null;
+		if (!is_array($result) || 1 !== (int) ($result["event"]["result"] ?? 0)) {
+			exit(1);
+		}
+		foreach (($result["data"] ?? array()) as $item) {
+			if (is_array($item) && 1 === (int) ($item["result"] ?? 0)) {
+				exit(0);
+			}
+		}
+		exit(1);
 	'
 }
 
@@ -79,6 +97,7 @@ remove_configured_origin() {
 [[ "$dev_cms_root" == "/home/${account}/dev-cms.hsetraining.rs" ]] || fail "Unexpected dev CMS root."
 [[ "$staging_cms_root" == "/home/${account}/staging-cms.hsetraining.rs" ]] || fail "Unexpected staging CMS root."
 [[ "$production_cms_root" == "/home/${account}/cms.hsetraining.rs" ]] || fail "Unexpected production CMS root."
+[[ "$cpanel_host" == 's83.unlimited.rs' ]] || fail "Unexpected cPanel host."
 [[ "$dev_frontend_domain" == 'dev.hsetraining.rs' ]] || fail "Unexpected dev frontend domain."
 [[ "$dev_cms_domain" == 'dev-cms.hsetraining.rs' ]] || fail "Unexpected dev CMS domain."
 [[ -d "$dev_frontend_root" ]] || fail "Dev frontend root is missing."
@@ -103,8 +122,19 @@ production_database_user="$(wp --path="$production_cms_root" config get DB_USER)
 [[ "$dev_database" != "$staging_database" && "$dev_database" != "$production_database" ]] || fail "Dev shares a protected database."
 [[ "$dev_database_user" != "$staging_database_user" && "$dev_database_user" != "$production_database_user" ]] || fail "Dev shares a protected database user."
 
+command -v curl >/dev/null || fail "curl is required for the cPanel API call."
+
 work_dir="$(mktemp -d "/home/${account}/.hse-dev-decommission.XXXXXX")"
-trap 'rm -rf "$work_dir"' EXIT
+cpanel_token_name="hse_dev_rm_$(date +%s)"
+cpanel_token=""
+
+cleanup() {
+	if [[ -n "$cpanel_token_name" ]]; then
+		uapi --output=json Tokens revoke name="$cpanel_token_name" >/dev/null 2>&1 || true
+	fi
+	rm -rf -- "$work_dir"
+}
+trap cleanup EXIT
 
 printf 'Dev decommission inventory\n'
 printf 'frontend_root=%s\n' "$dev_frontend_root"
@@ -129,10 +159,34 @@ for protected_root in "$staging_cms_root" "$production_cms_root"; do
 done
 
 printf 'Removing dev cPanel subdomains...\n'
+token_expiry="$(( $(date +%s) + 600 ))"
+uapi --output=json Tokens create_full_access name="$cpanel_token_name" expires_at="$token_expiry" > "${work_dir}/create-token.json"
+chmod 600 "${work_dir}/create-token.json"
+api_succeeded "${work_dir}/create-token.json" || fail "cPanel could not create the temporary API token required for API2."
+cpanel_token="$(API_RESPONSE_FILE="${work_dir}/create-token.json" php -r '
+	$payload = json_decode((string) file_get_contents((string) getenv("API_RESPONSE_FILE")), true);
+	echo (string) ($payload["result"]["data"]["token"] ?? "");
+')"
+[[ "$cpanel_token" =~ ^[A-Za-z0-9]+$ ]] || fail "cPanel returned an invalid temporary API token."
+printf 'header = "Authorization: cpanel %s:%s"\n' "$account" "$cpanel_token" > "${work_dir}/curl.conf"
+chmod 600 "${work_dir}/curl.conf"
+
 for domain in "$dev_frontend_domain" "$dev_cms_domain"; do
-	uapi --output=json SubDomain delsubdomain domain="$domain" > "${work_dir}/delete-${domain}.json"
-	api_succeeded "${work_dir}/delete-${domain}.json" || fail "cPanel could not remove ${domain}."
+	curl --fail --silent --show-error --get \
+		--config "${work_dir}/curl.conf" \
+		--data-urlencode "cpanel_jsonapi_user=${account}" \
+		--data-urlencode 'cpanel_jsonapi_apiversion=2' \
+		--data-urlencode 'cpanel_jsonapi_module=SubDomain' \
+		--data-urlencode 'cpanel_jsonapi_func=delsubdomain' \
+		--data-urlencode "domain=${domain}" \
+		"https://${cpanel_host}:2083/json-api/cpanel" > "${work_dir}/delete-${domain}.json"
+	api2_succeeded "${work_dir}/delete-${domain}.json" || fail "cPanel API2 could not remove ${domain}."
 done
+
+uapi --output=json Tokens revoke name="$cpanel_token_name" > "${work_dir}/revoke-token.json"
+api_succeeded "${work_dir}/revoke-token.json" || fail "cPanel could not revoke the temporary API token."
+cpanel_token=""
+cpanel_token_name=""
 
 printf 'Removing dev database and database user...\n'
 uapi --output=json Mysql delete_database name="$dev_database" > "${work_dir}/delete-database.json"
