@@ -1,0 +1,68 @@
+name: Staging CMS maintenance
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Operation to run
+        required: true
+        default: preflight
+        type: choice
+        options:
+          - preflight
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hsetraining-staging-cms-maintenance
+  cancel-in-progress: false
+
+jobs:
+  maintain:
+    name: Preflight staging CMS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+    env:
+      SSH_HOST: s83.unlimited.rs
+      SSH_PORT: "9780"
+      SSH_USER: sbb22122
+      SOURCE_ROOT: /home/sbb22122/dev-cms.hsetraining.rs
+      TARGET_ROOT: /home/sbb22122/staging-cms.hsetraining.rs
+      TARGET_DOMAIN: staging-cms.hsetraining.rs
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Configure Unlimited SSH access
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.UNLIMITED_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.UNLIMITED_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/unlimited_deploy"
+          chmod 600 "$HOME/.ssh/unlimited_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Run staging CMS preflight
+        run: |
+          set -euo pipefail
+          ssh_target="${SSH_USER}@${SSH_HOST}"
+          ssh_options=(-i "$HOME/.ssh/unlimited_deploy" -p "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes)
+          scp_options=(-i "$HOME/.ssh/unlimited_deploy" -P "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes)
+          remote_script="/home/${SSH_USER}/.hse-staging-cms-preflight-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.sh"
+
+          scp "${scp_options[@]}" scripts/preflight-staging-cms.sh "$ssh_target:$remote_script"
+          ssh "${ssh_options[@]}" "$ssh_target" \
+            "chmod 700 '$remote_script' && '$remote_script' '$SSH_USER' '$SOURCE_ROOT' '$TARGET_ROOT' '$TARGET_DOMAIN'; status=\$?; rm -f '$remote_script'; exit \$status"
+
+      - name: Remove deployment key
+        if: always()
+        run: rm -f "$HOME/.ssh/unlimited_deploy"
