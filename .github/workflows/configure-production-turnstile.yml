@@ -2,6 +2,12 @@ name: Configure production CMS Turnstile
 
 on:
   workflow_dispatch:
+    inputs:
+      required:
+        description: Require a valid Turnstile token for every contact submission
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -19,6 +25,7 @@ jobs:
       SSH_USER: sbb22122
       WORDPRESS_ROOT: /home/sbb22122/cms.hsetraining.rs
       PRIVATE_CONFIG: /home/sbb22122/.hse-turnstile.php
+      TURNSTILE_REQUIRED: ${{ inputs.required }}
 
     steps:
       - name: Check out repository
@@ -44,16 +51,22 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$TURNSTILE_SECRET_KEY"
+          case "$TURNSTILE_REQUIRED" in
+            true|false) ;;
+            *) echo "Invalid Turnstile enforcement value." >&2; exit 1 ;;
+          esac
           export TURNSTILE_SECRET_KEY
+          export TURNSTILE_REQUIRED
           export OUTPUT_PATH="$RUNNER_TEMP/hse-turnstile.php"
           php -r '
             $secret = getenv("TURNSTILE_SECRET_KEY");
+            $required = getenv("TURNSTILE_REQUIRED") === "true";
             $path = getenv("OUTPUT_PATH");
             $contents = "<?php\n\n";
             $contents .= "define( \"HSE_TURNSTILE_SECRET_KEY\", " . var_export($secret, true) . " );\n";
             $contents .= "define( \"HSE_TURNSTILE_ALLOWED_HOSTNAMES\", \"hsetraining.rs,www.hsetraining.rs\" );\n";
             $contents .= "define( \"HSE_TURNSTILE_ACTION\", \"contact\" );\n";
-            $contents .= "define( \"HSE_TURNSTILE_REQUIRED\", false );\n";
+            $contents .= "define( \"HSE_TURNSTILE_REQUIRED\", " . var_export($required, true) . " );\n";
             if (file_put_contents($path, $contents, LOCK_EX) === false) {
                 fwrite(STDERR, "Unable to prepare the private Turnstile configuration.\n");
                 exit(1);
@@ -72,7 +85,7 @@ jobs:
           scp "${scp_options[@]}" scripts/configure-hse-turnstile.php "$ssh_target:/home/${SSH_USER}/.configure-hse-turnstile.php"
 
           ssh "${ssh_options[@]}" "$ssh_target" \
-            "set -eu; chmod 600 '${PRIVATE_CONFIG}.next'; mv '${PRIVATE_CONFIG}.next' '${PRIVATE_CONFIG}'; php '/home/${SSH_USER}/.configure-hse-turnstile.php' '${WORDPRESS_ROOT}/wp-config.php' '${PRIVATE_CONFIG}'; php -l '${WORDPRESS_ROOT}/wp-config.php'; php -r 'require \"${PRIVATE_CONFIG}\"; exit(defined(\"HSE_TURNSTILE_SECRET_KEY\") && HSE_TURNSTILE_SECRET_KEY !== \"\" && defined(\"HSE_TURNSTILE_ALLOWED_HOSTNAMES\") && HSE_TURNSTILE_ALLOWED_HOSTNAMES === \"hsetraining.rs,www.hsetraining.rs\" && defined(\"HSE_TURNSTILE_ACTION\") && HSE_TURNSTILE_ACTION === \"contact\" && defined(\"HSE_TURNSTILE_REQUIRED\") && HSE_TURNSTILE_REQUIRED === false ? 0 : 1);'; rm '/home/${SSH_USER}/.configure-hse-turnstile.php'"
+            "set -eu; chmod 600 '${PRIVATE_CONFIG}.next'; mv '${PRIVATE_CONFIG}.next' '${PRIVATE_CONFIG}'; php '/home/${SSH_USER}/.configure-hse-turnstile.php' '${WORDPRESS_ROOT}/wp-config.php' '${PRIVATE_CONFIG}'; php -l '${WORDPRESS_ROOT}/wp-config.php'; php -r 'require \"${PRIVATE_CONFIG}\"; exit(defined(\"HSE_TURNSTILE_SECRET_KEY\") && HSE_TURNSTILE_SECRET_KEY !== \"\" && defined(\"HSE_TURNSTILE_ALLOWED_HOSTNAMES\") && HSE_TURNSTILE_ALLOWED_HOSTNAMES === \"hsetraining.rs,www.hsetraining.rs\" && defined(\"HSE_TURNSTILE_ACTION\") && HSE_TURNSTILE_ACTION === \"contact\" && defined(\"HSE_TURNSTILE_REQUIRED\") && HSE_TURNSTILE_REQUIRED === ${TURNSTILE_REQUIRED} ? 0 : 1);'; rm '/home/${SSH_USER}/.configure-hse-turnstile.php'"
 
       - name: Remove deployment key and local private configuration
         if: always()

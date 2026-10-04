@@ -116,14 +116,15 @@ Store `HSE_TURNSTILE_SECRET_KEY` as an encrypted secret in the GitHub
 `configure-production-turnstile.yml` workflow. It writes the secret and the
 fixed hostname/action policy to `/home/sbb22122/.hse-turnstile.php`, applies
 private permissions, connects that file to `wp-config.php`, and verifies the
-configuration without printing the secret. The initial workflow deliberately
-sets `HSE_TURNSTILE_REQUIRED` to `false`; enforcement is enabled only after the
-CMS plugin and Astro widget are both live and a token-bearing request has been
-verified.
+configuration without printing the secret. Run it initially with the
+`required` input disabled. Enable the input only after the CMS plugin and Astro
+widget are both live and a token-bearing request has been verified. Every run
+verifies that the installed enforcement value matches the selected input.
 
-The emergency rollback is to set `HSE_TURNSTILE_REQUIRED` back to `false` in
-the private file. This leaves the existing origin, honeypot, validation, size,
-and rate-limit controls active while stopping mandatory Cloudflare validation.
+The emergency rollback is to run the same workflow with `required` disabled.
+This sets `HSE_TURNSTILE_REQUIRED` back to `false` in the private file while
+leaving the existing origin, honeypot, validation, size, and rate-limit controls
+active.
 
 Production releases of the repository-owned CMS plugin use the manual
 `deploy-production-plugin.yml` workflow. It packages the version on the
