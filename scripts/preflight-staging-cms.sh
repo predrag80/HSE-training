@@ -120,7 +120,7 @@ if [[ -z "$cpapi2_binary" && -x /usr/local/cpanel/bin/cpapi2 ]]; then
   cpapi2_binary=/usr/local/cpanel/bin/cpapi2
 fi
 
-if [[ -n "$cpapi2_binary" ]] && "$cpapi2_binary" --output=json AddonDomain listaddondomains >/tmp/hse-staging-cpapi2-addon-domain.json 2>/dev/null; then
+if [[ -n "$cpapi2_binary" ]] && "$cpapi2_binary" --user="$account" --output=json AddonDomain listaddondomains >/tmp/hse-staging-cpapi2-addon-domain.json 2>/dev/null; then
   CPAPI2_ADDON_DOMAIN_JSON="$(cat /tmp/hse-staging-cpapi2-addon-domain.json)" php -r '
     $payload = json_decode((string) getenv("CPAPI2_ADDON_DOMAIN_JSON"), true);
     $data = $payload["cpanelresult"]["data"] ?? null;
