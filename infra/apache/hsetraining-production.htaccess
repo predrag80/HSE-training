@@ -3,6 +3,7 @@ DirectoryIndex index.html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  RewriteRule ^training-schedule/?$ https://hsetraining.rs/training/ [R=301,L,NE]
   RewriteCond %{HTTPS} !=on [OR]
   RewriteCond %{HTTP_HOST} ^www\.hsetraining\.rs$ [NC]
   RewriteRule ^ https://hsetraining.rs%{REQUEST_URI} [R=301,L]
