@@ -40,18 +40,17 @@ work.
   submissions do not create Sentry issues.
 - Require every CMS event to carry an explicit `production` checkout source or
   production contact origin. Drop staging, dev and unclassified events before
-  transport. This is required while staging and production temporarily share
-  `cms.hsetraining.rs`.
+  transport. This remains defense in depth after the CMS instances were
+  separated.
 - Remove the custom BokaPOS reconciliation watchdog, Sentry Cron Monitor and
   associated heartbeat. Use the official BokaPOS portal/notifications,
   WooCommerce order evidence and private server logs for those operations.
 - Keep one server cron every minute. It runs due WP-Cron events and a bounded
   Action Scheduler batch with timeouts, a lock, private logs and an atomic local
   heartbeat. It does not depend on Sentry.
-- After launch, clone the shared CMS to `https://staging-cms.hsetraining.rs`
-  with separate files, uploads and database. Staging must retain sandbox
-  payment/fiscal credentials and no Sentry DSN. This migration is deliberately
-  deferred until the production launch is stable.
+- Keep staging on `https://staging-cms.hsetraining.rs` with separate files,
+  uploads and database. It retains sandbox payment/fiscal credentials and no
+  Sentry DSN. The isolated clone was activated on 2026-10-04.
 
 ## Configuration
 
@@ -101,7 +100,6 @@ does not affect checkout, contact delivery, orders, payments or fiscalization.
 
 Sentry configuration and event volume are smaller and production-focused. The
 team loses independent Sentry alerts for fiscalization/refund/document-delivery
-failures and must use provider/admin evidence for those cases. Staging remains
-temporarily coupled to the shared CMS, but explicit source/origin filtering
-prevents its activity from entering production Sentry until the planned CMS
-clone is completed.
+failures and must use provider/admin evidence for those cases. Staging is
+isolated from production at both the frontend-build and CMS/database layers;
+explicit source/origin filtering remains an additional safeguard.

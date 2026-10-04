@@ -31,7 +31,7 @@ jobs:
       DEPLOY_ROOT: /var/www/hsetraining-staging
       DEPLOY_USER: deploy
       STAGING_URL: https://staging.hsetraining.rs
-      WORDPRESS_API_URL: https://cms.hsetraining.rs
+      WORDPRESS_API_URL: https://staging-cms.hsetraining.rs
       HSE_CHECKOUT_SOURCE: staging
       STAGING_HTTP_AUTH_USER: ${{ secrets.STAGING_HTTP_AUTH_USER }}
       STAGING_HTTP_AUTH_PASSWORD: ${{ secrets.STAGING_HTTP_AUTH_PASSWORD }}

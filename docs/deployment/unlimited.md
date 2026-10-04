@@ -14,15 +14,16 @@ workflows. The CMS origin is selected per frontend environment:
 | Frontend | WordPress origin | Data isolation |
 |---|---|---|
 | dev | `https://dev-cms.hsetraining.rs` | Separate WordPress files and database copied from the shared CMS; sandbox payments only |
-| staging | `https://cms.hsetraining.rs` | Existing shared CMS |
-| production | `https://cms.hsetraining.rs` | Existing shared CMS until the production CMS migration is planned separately |
+| staging | `https://staging-cms.hsetraining.rs` | Separate WordPress files, uploads and database cloned from dev; sandbox payments only |
+| production | `https://cms.hsetraining.rs` | Production WordPress files, database and live payment/fiscal credentials |
 
-After the production launch is stable, staging will move to
-`https://staging-cms.hsetraining.rs` with a separate database, files and uploads
-copied from production at a controlled point in time. The clone will use only
-sandbox RaiAccept/BokaPOS credentials and no Sentry DSN. Until then, explicit
-checkout-source and contact-origin filtering prevents staging requests against
-the shared CMS from entering production Sentry.
+The isolated staging CMS was provisioned on 2026-10-04 from the dev CMS, with
+new salts, a dedicated database and copied uploads. Historical orders,
+sessions, scheduled actions and gateway access-token caches were removed before
+activation. Its order IDs and public order numbers begin in the reserved
+`700000` range. The clone keeps sandbox RaiAccept/BokaPOS configuration, has no
+Sentry DSN, cannot trigger production content deploys and is blocked from search
+indexing.
 
 The dev CMS has its own salts, administrator sessions, database and uploads
 copy. Search indexing and request-triggered WP-Cron are disabled there; a
@@ -75,10 +76,10 @@ change pushed to `main` deploys only staging on Hetzner. A push to `production`
 builds the production configuration and uploads it under the non-public
 `~/.hse-astro-releases/production/` directory on Unlimited.
 
-The dev workflow builds against `dev-cms.hsetraining.rs`; the staging and
-production workflows continue to build against `cms.hsetraining.rs`. Updating
-the HSE WordPress plugin or publishing CMS content is therefore a separate
-operation for dev and for the shared staging/production CMS.
+The dev workflow builds against `dev-cms.hsetraining.rs`, staging builds against
+`staging-cms.hsetraining.rs`, and production builds against
+`cms.hsetraining.rs`. Updating the HSE WordPress plugin or publishing CMS
+content is therefore a separate operation in each environment.
 
 ### Production CMS content trigger
 
