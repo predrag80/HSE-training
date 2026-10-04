@@ -10,12 +10,18 @@ const isProductionSentryBuild = processEnvironment.PUBLIC_SENTRY_ENVIRONMENT ===
 const siteUrl = processEnvironment.DEPLOY_URL?.trim()
 	|| processEnvironment.STAGING_URL?.trim()
 	|| 'https://hsetraining.rs';
+const sitemapExcludedPathnames = new Set([
+	'/courses/production-payment-test-10-rsd/',
+	'/sr/courses/test-produkcionog-placanja-10-rsd/',
+]);
 
 // https://astro.build/config
 export default defineConfig({
 	site: siteUrl,
 	integrations: [
-		sitemap(),
+		sitemap({
+			filter: (page) => !sitemapExcludedPathnames.has(new URL(page).pathname),
+		}),
 		...(isProductionSentryBuild ? [
 			sentry({
 				enabled: { client: true, server: false },
