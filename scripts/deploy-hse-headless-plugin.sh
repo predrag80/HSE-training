@@ -84,9 +84,11 @@ if ! grep -Fq "Version: $expected_version" "$candidate/hse-headless.php"; then
   exit 1
 fi
 
-while IFS= read -r -d '' php_file; do
-  php -l "$php_file" >/dev/null
-done < <(find "$candidate" -type f -name '*.php' -print0)
+find "$candidate" -type f -name '*.php' -exec sh -c '
+  for php_file do
+    php -l "$php_file" >/dev/null || exit 1
+  done
+' sh {} +
 
 if [[ -d "$plugin_root" ]]; then
   mv "$plugin_root" "$backup_path"
