@@ -21,6 +21,7 @@ jobs:
       SSH_HOST: s83.unlimited.rs
       SSH_PORT: "9780"
       SSH_USER: sbb22122
+      CPANEL_HOST: s83.unlimited.rs
       DEV_FRONTEND_ROOT: /home/sbb22122/dev.hsetraining.rs
       DEV_CMS_ROOT: /home/sbb22122/dev-cms.hsetraining.rs
       DEV_FRONTEND_DOMAIN: dev.hsetraining.rs
@@ -56,7 +57,7 @@ jobs:
 
           scp "${scp_options[@]}" scripts/decommission-dev-environment.sh "$ssh_target:$remote_script"
           ssh "${ssh_options[@]}" "$ssh_target" \
-            "chmod 700 '$remote_script' && '$remote_script' '$SSH_USER' '$DEV_FRONTEND_ROOT' '$DEV_CMS_ROOT' '$DEV_FRONTEND_DOMAIN' '$DEV_CMS_DOMAIN' '$STAGING_CMS_ROOT' '$PRODUCTION_CMS_ROOT'; status=\$?; rm -f '$remote_script'; exit \$status"
+            "chmod 700 '$remote_script' && '$remote_script' '$SSH_USER' '$DEV_FRONTEND_ROOT' '$DEV_CMS_ROOT' '$DEV_FRONTEND_DOMAIN' '$DEV_CMS_DOMAIN' '$STAGING_CMS_ROOT' '$PRODUCTION_CMS_ROOT' '$CPANEL_HOST'; status=\$?; rm -f '$remote_script'; exit \$status"
 
       - name: Remove deployment key
         if: always()
