@@ -130,9 +130,7 @@ set +e
 database_resource_exists database "$database_name" "$database_response"
 database_state=$?
 set -e
-if [[ "$database_state" -eq 0 ]]; then
-	fail "Target database already exists; refusing to overwrite it."
-elif [[ "$database_state" -eq 2 ]]; then
+if [[ "$database_state" -eq 2 ]]; then
 	fail "Unable to inspect existing databases."
 fi
 
@@ -141,10 +139,20 @@ set +e
 database_resource_exists user "$database_user" "$user_response"
 user_state=$?
 set -e
-if [[ "$user_state" -eq 0 ]]; then
-	fail "Target database user already exists; refusing to overwrite it."
-elif [[ "$user_state" -eq 2 ]]; then
+if [[ "$user_state" -eq 2 ]]; then
 	fail "Unable to inspect existing database users."
+fi
+
+if [[ "$database_state" -eq 0 || "$user_state" -eq 0 ]]; then
+	printf 'Removing resources left by the incomplete staging provisioning attempt...\n'
+	if [[ "$database_state" -eq 0 ]]; then
+		uapi --output=json Mysql delete_database name="$database_name" > "${work_dir}/delete-database.json"
+		api_succeeded "${work_dir}/delete-database.json" || fail "cPanel could not remove the incomplete staging database."
+	fi
+	if [[ "$user_state" -eq 0 ]]; then
+		uapi --output=json Mysql delete_user name="$database_user" > "${work_dir}/delete-user.json"
+		api_succeeded "${work_dir}/delete-user.json" || fail "cPanel could not remove the incomplete staging database user."
+	fi
 fi
 
 database_password="$(php -r 'echo bin2hex(random_bytes(24));')"
@@ -166,7 +174,31 @@ EOF
 chmod 600 "$client_config"
 
 printf 'Copying the dev CMS database and files into a private build directory...\n'
-wp --path="$source_root" db export "$dump_path" --single-transaction --quiet
+source_db_name="$(wp --path="$source_root" config get DB_NAME)"
+source_db_user="$(wp --path="$source_root" config get DB_USER)"
+source_db_password="$(wp --path="$source_root" config get DB_PASSWORD)"
+source_db_host="$(wp --path="$source_root" config get DB_HOST)"
+[[ "$source_db_name" =~ ^[A-Za-z0-9_]+$ ]] || fail "Invalid source database name."
+[[ "$source_db_user" =~ ^[A-Za-z0-9_]+$ ]] || fail "Invalid source database user."
+
+source_host_name="$source_db_host"
+source_host_arguments=()
+if [[ "$source_db_host" =~ ^([^:]+):([0-9]+)$ ]]; then
+	source_host_name="${BASH_REMATCH[1]}"
+	source_host_arguments+=(--port="${BASH_REMATCH[2]}")
+fi
+
+MYSQL_PWD="$source_db_password" mysqldump \
+	--host="$source_host_name" \
+	"${source_host_arguments[@]}" \
+	--user="$source_db_user" \
+	--single-transaction \
+	--quick \
+	--skip-lock-tables \
+	--default-character-set=utf8mb4 \
+	"$source_db_name" > "$dump_path"
+chmod 600 "$dump_path"
+[[ -s "$dump_path" ]] || fail "The source database export is empty."
 mysql --defaults-extra-file="$client_config" "$database_name" < "$dump_path"
 
 install -d -m 750 "$build_root"
