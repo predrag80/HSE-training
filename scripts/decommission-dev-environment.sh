@@ -160,33 +160,41 @@ done
 
 printf 'Removing dev cPanel subdomains...\n'
 token_expiry="$(( $(date +%s) + 600 ))"
-uapi --output=json Tokens create_full_access name="$cpanel_token_name" expires_at="$token_expiry" > "${work_dir}/create-token.json"
+domain_cleanup_pending=0
+set +e
+uapi --output=json Tokens create_full_access name="$cpanel_token_name" expires_at="$token_expiry" > "${work_dir}/create-token.json" 2>/dev/null
+token_create_status=$?
+set -e
 chmod 600 "${work_dir}/create-token.json"
-api_succeeded "${work_dir}/create-token.json" || fail "cPanel could not create the temporary API token required for API2."
-cpanel_token="$(API_RESPONSE_FILE="${work_dir}/create-token.json" php -r '
-	$payload = json_decode((string) file_get_contents((string) getenv("API_RESPONSE_FILE")), true);
-	echo (string) ($payload["result"]["data"]["token"] ?? "");
-')"
-[[ "$cpanel_token" =~ ^[A-Za-z0-9]+$ ]] || fail "cPanel returned an invalid temporary API token."
-printf 'header = "Authorization: cpanel %s:%s"\n' "$account" "$cpanel_token" > "${work_dir}/curl.conf"
-chmod 600 "${work_dir}/curl.conf"
+if [[ "$token_create_status" -eq 0 ]] && api_succeeded "${work_dir}/create-token.json"; then
+	cpanel_token="$(API_RESPONSE_FILE="${work_dir}/create-token.json" php -r '
+		$payload = json_decode((string) file_get_contents((string) getenv("API_RESPONSE_FILE")), true);
+		echo (string) ($payload["result"]["data"]["token"] ?? "");
+	')"
+	[[ "$cpanel_token" =~ ^[A-Za-z0-9]+$ ]] || fail "cPanel returned an invalid temporary API token."
+	printf 'header = "Authorization: cpanel %s:%s"\n' "$account" "$cpanel_token" > "${work_dir}/curl.conf"
+	chmod 600 "${work_dir}/curl.conf"
 
-for domain in "$dev_frontend_domain" "$dev_cms_domain"; do
-	curl --fail --silent --show-error --get \
-		--config "${work_dir}/curl.conf" \
-		--data-urlencode "cpanel_jsonapi_user=${account}" \
-		--data-urlencode 'cpanel_jsonapi_apiversion=2' \
-		--data-urlencode 'cpanel_jsonapi_module=SubDomain' \
-		--data-urlencode 'cpanel_jsonapi_func=delsubdomain' \
-		--data-urlencode "domain=${domain}" \
-		"https://${cpanel_host}:2083/json-api/cpanel" > "${work_dir}/delete-${domain}.json"
-	api2_succeeded "${work_dir}/delete-${domain}.json" || fail "cPanel API2 could not remove ${domain}."
-done
+	for domain in "$dev_frontend_domain" "$dev_cms_domain"; do
+		curl --fail --silent --show-error --get \
+			--config "${work_dir}/curl.conf" \
+			--data-urlencode "cpanel_jsonapi_user=${account}" \
+			--data-urlencode 'cpanel_jsonapi_apiversion=2' \
+			--data-urlencode 'cpanel_jsonapi_module=SubDomain' \
+			--data-urlencode 'cpanel_jsonapi_func=delsubdomain' \
+			--data-urlencode "domain=${domain}" \
+			"https://${cpanel_host}:2083/json-api/cpanel" > "${work_dir}/delete-${domain}.json"
+		api2_succeeded "${work_dir}/delete-${domain}.json" || fail "cPanel API2 could not remove ${domain}."
+	done
 
-uapi --output=json Tokens revoke name="$cpanel_token_name" > "${work_dir}/revoke-token.json"
-api_succeeded "${work_dir}/revoke-token.json" || fail "cPanel could not revoke the temporary API token."
-cpanel_token=""
-cpanel_token_name=""
+	uapi --output=json Tokens revoke name="$cpanel_token_name" > "${work_dir}/revoke-token.json"
+	api_succeeded "${work_dir}/revoke-token.json" || fail "cPanel could not revoke the temporary API token."
+	cpanel_token=""
+	cpanel_token_name=""
+else
+	domain_cleanup_pending=1
+	printf 'WARNING: cPanel blocks API token creation over shared-host SSH; domain registrations require an authenticated cPanel session.\n'
+fi
 
 printf 'Removing dev database and database user...\n'
 uapi --output=json Mysql delete_database name="$dev_database" > "${work_dir}/delete-database.json"
@@ -212,7 +220,13 @@ for domain in "$dev_frontend_domain" "$dev_cms_domain"; do
 	resource_exists "${work_dir}/domains.json" "$domain"
 	domain_state=$?
 	set -e
-	[[ "$domain_state" -eq 1 ]] || fail "Dev domain is still registered in cPanel: ${domain}"
+	if [[ "$domain_cleanup_pending" -eq 0 ]]; then
+		[[ "$domain_state" -eq 1 ]] || fail "Dev domain is still registered in cPanel: ${domain}"
+	elif [[ "$domain_state" -eq 0 ]]; then
+		printf 'pending_cpanel_domain=%s\n' "$domain"
+	elif [[ "$domain_state" -ne 1 ]]; then
+		fail "Could not verify the cPanel domain inventory."
+	fi
 done
 
 uapi --output=json Mysql list_databases > "${work_dir}/databases.json"
@@ -234,5 +248,10 @@ if crontab -l 2>/dev/null | grep -Eq 'dev-cms\.hsetraining\.rs|dev\.hsetraining\
 fi
 
 printf 'dev_environment=removed\n'
+if [[ "$domain_cleanup_pending" -eq 1 ]]; then
+	printf 'dev_domain_registrations=pending_authenticated_cpanel_removal\n'
+else
+	printf 'dev_domain_registrations=removed\n'
+fi
 printf 'staging_cms=healthy\n'
 printf 'production_cms=healthy\n'
