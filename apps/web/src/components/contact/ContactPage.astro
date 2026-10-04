@@ -5,6 +5,7 @@ import type { Locale } from '../../i18n/config';
 import { getContactUiTranslations } from '../../i18n/contact-ui';
 import { getAvailablePublicPath } from '../../i18n/routes';
 import { serverConfig } from '../../lib/config';
+import { PUBLIC_TURNSTILE_SITE_KEY } from 'astro:env/client';
 
 interface Props {
 	readonly locale: Locale;
@@ -14,6 +15,8 @@ const { locale } = Astro.props;
 const copy = getContactUiTranslations(locale);
 const privacyPolicyPath = getAvailablePublicPath('/privacy-policy/', locale);
 const contactEndpoint = new URL('/wp-json/hse/v1/contact', serverConfig.wordpressApiUrl).toString();
+const turnstileSiteKey = PUBLIC_TURNSTILE_SITE_KEY.trim();
+const turnstileEnabled = turnstileSiteKey.length > 0;
 
 interface ContactItem {
 	readonly icon: string;
@@ -114,9 +117,17 @@ const contactItems: readonly ContactItem[] = [
 			data-error-message={copy.form.error}
 			data-rate-limit-message={copy.form.rateLimited}
 			data-sending-message={copy.form.sending}
+			data-turnstile-enabled={turnstileEnabled ? 'true' : 'false'}
+			data-turnstile-site-key={turnstileSiteKey}
+			data-turnstile-action="contact"
+			data-verification-required-message={copy.form.verificationRequired}
+			data-verification-expired-message={copy.form.verificationExpired}
+			data-verification-failed-message={copy.form.verificationFailed}
+			data-verification-unavailable-message={copy.form.verificationUnavailable}
 			data-contact-reveal="form"
 		>
 			<input type="hidden" name="locale" value={locale} />
+			<input type="hidden" name="turnstile_token" value="" />
 			<label class="contact-form__trap" aria-hidden="true">
 				<span>Company website</span>
 				<input type="text" name="company_website" autocomplete="off" tabindex="-1" />
@@ -127,9 +138,14 @@ const contactItems: readonly ContactItem[] = [
 				<label class="contact-form__phone"><span>{copy.form.phoneLabel}</span><input type="tel" name="phone" placeholder={copy.form.phonePlaceholder} autocomplete="tel" /></label>
 				<label class="contact-form__message"><span>{copy.form.messageLabel}</span><textarea name="message" rows="4" placeholder={copy.form.messagePlaceholder} minlength="10" maxlength="5000" required></textarea></label>
 			</div>
+			{turnstileEnabled && (
+				<div class="contact-form__verification">
+					<div data-turnstile-widget role="group" aria-label={copy.form.verificationLabel}></div>
+				</div>
+			)}
 			<div class="contact-form__footer">
 				<p>{copy.form.privacyPrefix} <a href={privacyPolicyPath}>{copy.form.privacyLink}</a>{copy.form.privacySuffix}</p>
-				<button type="submit">{copy.form.submit}</button>
+				<button type="submit" disabled={turnstileEnabled}>{copy.form.submit}</button>
 			</div>
 			<p class="contact-form__status" role="status" aria-live="polite" data-contact-form-status></p>
 		</form>
@@ -140,6 +156,79 @@ const contactItems: readonly ContactItem[] = [
 	import * as Sentry from '@sentry/astro';
 	import { sendContactEnquiry, type ContactEnquiry } from '../../lib/contact-form';
 	import { allowsExternalMedia } from '../../lib/cookie-consent';
+
+	interface TurnstileApi {
+		render: (container: HTMLElement, options: {
+			sitekey: string;
+			action: string;
+			theme: 'light';
+			size: 'flexible';
+			appearance: 'always';
+			callback: (token: string) => void;
+			'expired-callback': () => void;
+			'error-callback': () => void;
+		}) => string;
+		reset: (widgetId: string) => void;
+	}
+
+	declare global {
+		interface Window {
+			turnstile?: TurnstileApi;
+		}
+	}
+
+	let turnstileLoader: Promise<TurnstileApi> | undefined;
+	const loadTurnstileApi = (): Promise<TurnstileApi> => {
+		if (window.turnstile) return Promise.resolve(window.turnstile);
+		if (turnstileLoader) return turnstileLoader;
+
+		turnstileLoader = new Promise((resolve, reject) => {
+			let settled = false;
+			let timeoutId = 0;
+			const existing = document.querySelector<HTMLScriptElement>('script[data-hse-turnstile]');
+			const cleanup = () => {
+				window.clearTimeout(timeoutId);
+				existing?.removeEventListener('load', handleLoad);
+				existing?.removeEventListener('error', handleError);
+			};
+			const finishWithError = () => {
+				if (settled) return;
+				settled = true;
+				cleanup();
+				turnstileLoader = undefined;
+				reject(new Error('Turnstile could not be loaded.'));
+			};
+			const handleLoad = () => {
+				if (settled) return;
+				if (!window.turnstile) {
+					finishWithError();
+					return;
+				}
+				settled = true;
+				cleanup();
+				resolve(window.turnstile);
+			};
+			const handleError = () => finishWithError();
+
+			if (existing) {
+				existing.addEventListener('load', handleLoad, { once: true });
+				existing.addEventListener('error', handleError, { once: true });
+			} else {
+				const script = document.createElement('script');
+				script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+				script.async = true;
+				script.defer = true;
+				script.dataset.hseTurnstile = 'true';
+				script.addEventListener('load', handleLoad, { once: true });
+				script.addEventListener('error', handleError, { once: true });
+				document.head.append(script);
+			}
+
+			timeoutId = window.setTimeout(finishWithError, 10_000);
+		});
+
+		return turnstileLoader;
+	};
 
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	document.querySelectorAll<HTMLElement>('[data-contact-reveal]').forEach((element) => {
@@ -193,12 +282,103 @@ const contactItems: readonly ContactItem[] = [
 	}) as EventListener);
 
 	document.querySelectorAll<HTMLFormElement>('[data-contact-form]').forEach((form) => {
+		const status = form.querySelector<HTMLElement>('[data-contact-form-status]');
+		const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+		const tokenInput = form.querySelector<HTMLInputElement>('input[name="turnstile_token"]');
+		const widget = form.querySelector<HTMLElement>('[data-turnstile-widget]');
+		const endpoint = form.dataset.contactEndpoint;
+		const turnstileEnabled = form.dataset.turnstileEnabled === 'true';
+		const sitekey = form.dataset.turnstileSiteKey ?? '';
+		const action = form.dataset.turnstileAction ?? 'contact';
+		let turnstileApi: TurnstileApi | undefined;
+		let widgetId = '';
+		let submitting = false;
+		let turnstileErrorReported = false;
+
+		if (!status || !submit || !tokenInput || !endpoint) return;
+
+		const setVerificationError = (message: string) => {
+			tokenInput.value = '';
+			submit.disabled = true;
+			status.dataset.state = 'verification';
+			status.textContent = message;
+		};
+		const reportTurnstileUnavailable = () => {
+			if (turnstileErrorReported) return;
+			turnstileErrorReported = true;
+			Sentry.withScope((scope) => {
+				scope.setTag('component', 'contact-form');
+				scope.setTag('submission_result', 'verification-unavailable');
+				scope.setTag('locale', form.querySelector<HTMLInputElement>('input[name="locale"]')?.value === 'sr' ? 'sr' : 'en');
+				scope.setFingerprint(['contact-form', 'turnstile-unavailable']);
+				Sentry.captureMessage('Contact form security verification is unavailable.', 'error');
+			});
+		};
+		const resetTurnstile = () => {
+			tokenInput.value = '';
+			if (!turnstileEnabled) {
+				submit.disabled = false;
+				return;
+			}
+
+			submit.disabled = true;
+			if (!turnstileApi || !widgetId) return;
+			try {
+				turnstileApi.reset(widgetId);
+			} catch {
+				setVerificationError(form.dataset.verificationUnavailableMessage ?? '');
+				reportTurnstileUnavailable();
+			}
+		};
+
+		if (turnstileEnabled) {
+			if (!sitekey || !widget) {
+				setVerificationError(form.dataset.verificationUnavailableMessage ?? '');
+				reportTurnstileUnavailable();
+			} else {
+				loadTurnstileApi()
+					.then((api) => {
+						turnstileApi = api;
+						widgetId = api.render(widget, {
+							sitekey,
+							action,
+							theme: 'light',
+							size: 'flexible',
+							appearance: 'always',
+							callback: (token) => {
+								turnstileErrorReported = false;
+								tokenInput.value = token.trim();
+								if (!submitting && tokenInput.value) submit.disabled = false;
+								if (status.dataset.state === 'verification') {
+									status.removeAttribute('data-state');
+									status.textContent = '';
+								}
+							},
+							'expired-callback': () => {
+								setVerificationError(form.dataset.verificationExpiredMessage ?? '');
+							},
+							'error-callback': () => {
+								setVerificationError(form.dataset.verificationUnavailableMessage ?? '');
+								reportTurnstileUnavailable();
+							},
+						});
+					})
+					.catch(() => {
+						setVerificationError(form.dataset.verificationUnavailableMessage ?? '');
+						reportTurnstileUnavailable();
+					});
+			}
+		} else {
+			submit.disabled = false;
+		}
+
 		form.addEventListener('submit', async (event) => {
 			event.preventDefault();
-			const status = form.querySelector<HTMLElement>('[data-contact-form-status]');
-			const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-			const endpoint = form.dataset.contactEndpoint;
-			if (!form.reportValidity() || !status || !submit || !endpoint) return;
+			if (!form.reportValidity()) return;
+			if (turnstileEnabled && !tokenInput.value) {
+				setVerificationError(form.dataset.verificationRequiredMessage ?? '');
+				return;
+			}
 
 			const fields = new FormData(form);
 			const enquiry: ContactEnquiry = {
@@ -208,8 +388,10 @@ const contactItems: readonly ContactItem[] = [
 				message: String(fields.get('message') ?? ''),
 				locale: fields.get('locale') === 'sr' ? 'sr' : 'en',
 				company_website: String(fields.get('company_website') ?? ''),
+				turnstile_token: String(fields.get('turnstile_token') ?? ''),
 			};
 
+			submitting = true;
 			submit.disabled = true;
 			status.dataset.state = 'sending';
 			status.textContent = form.dataset.sendingMessage ?? '';
@@ -232,6 +414,13 @@ const contactItems: readonly ContactItem[] = [
 				});
 				status.dataset.state = 'error';
 				status.textContent = form.dataset.rateLimitMessage ?? '';
+			} else if (result === 'verification-failed') {
+				status.dataset.state = 'error';
+				status.textContent = form.dataset.verificationFailedMessage ?? '';
+			} else if (result === 'verification-unavailable') {
+				reportTurnstileUnavailable();
+				status.dataset.state = 'error';
+				status.textContent = form.dataset.verificationUnavailableMessage ?? '';
 			} else {
 				Sentry.withScope((scope) => {
 					scope.setTag('component', 'contact-form');
@@ -244,7 +433,8 @@ const contactItems: readonly ContactItem[] = [
 				status.textContent = form.dataset.errorMessage ?? '';
 			}
 
-			submit.disabled = false;
+			submitting = false;
+			resetTurnstile();
 		});
 	});
 </script>

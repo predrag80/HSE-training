@@ -36,6 +36,7 @@ jobs:
       HSE_CHECKOUT_SOURCE: production
       PUBLIC_SENTRY_DSN: https://10766a4d84395351df71d010354b000e@o4512174212972544.ingest.de.sentry.io/4512181400567888
       PUBLIC_SENTRY_ENVIRONMENT: production
+      PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
       SSH_HOST: s83.unlimited.rs
       SSH_PORT: "9780"
       SSH_USER: sbb22122
@@ -54,6 +55,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
         working-directory: apps/web
+
+      - name: Verify production Turnstile configuration
+        run: test -n "$PUBLIC_TURNSTILE_SITE_KEY"
 
       - name: Run tests
         run: npm run test

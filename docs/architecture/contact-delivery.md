@@ -4,19 +4,26 @@ Status: implemented in `hse-headless` and the Astro contact page
 
 ## Flow
 
-1. The static Astro contact page posts JSON to `POST /wp-json/hse/v1/contact`.
-2. The WordPress plugin validates and bounds the submitted fields.
-3. Browser origins are restricted to the configured public sites; localhost is
+1. In production, the static Astro contact page renders a Cloudflare Turnstile
+   widget using the public `PUBLIC_TURNSTILE_SITE_KEY`. The form stays disabled
+   until the widget supplies a token. Environments without the public key keep
+   the widget disabled for isolated development and staging tests.
+2. The Astro page posts JSON, including the single-use token, to
+   `POST /wp-json/hse/v1/contact`.
+3. The WordPress plugin validates and bounds the submitted fields.
+4. Browser origins are restricted to the configured public sites; localhost is
    permitted for development.
-4. A hidden honeypot and a three-messages-per-ten-minutes client limit reduce
+5. A hidden honeypot and a three-messages-per-ten-minutes client limit reduce
    automated abuse.
-5. When production enforcement is enabled, the plugin verifies a single-use
+6. When production enforcement is enabled, the plugin verifies a single-use
    Turnstile token with Cloudflare and requires the expected hostname and
    `contact` action. A separate ten-attempts-per-ten-minutes limit bounds these
    verification calls.
-6. The plugin renders the branded HTML body and plain-text alternative.
-7. WordPress sends through the server-owned authenticated SMTP configuration.
-8. The browser receives only an accepted response or a generic localized error.
+7. The browser resets the widget after every submission attempt because a
+   Turnstile token cannot be reused.
+8. The plugin renders the branded HTML body and plain-text alternative.
+9. WordPress sends through the server-owned authenticated SMTP configuration.
+10. The browser receives only an accepted response or a generic localized error.
 
 The SMTP password, sender, recipient, and optional origin override remain in
 server configuration. They are not embedded in the Astro bundle, plugin ZIP,
@@ -27,6 +34,10 @@ are also server-owned. The plugin is deployed first with enforcement disabled;
 after the Astro widget is live and sends tokens, production enables the flag.
 Disabling the flag is the immediate rollback and leaves the remaining abuse
 controls active.
+
+The Turnstile site key is intentionally public and is embedded only in the
+production Astro build. The secret key remains exclusively in the WordPress
+server configuration.
 
 ## Personal data
 
@@ -62,8 +73,11 @@ Before enabling delivery on an environment, define all `HSE_SMTP_*` settings,
 `HSE_CONTACT_ALLOWED_ORIGINS` as a comma-separated allowlist. Turnstile uses
 `HSE_TURNSTILE_SECRET_KEY`, `HSE_TURNSTILE_ALLOWED_HOSTNAMES`,
 `HSE_TURNSTILE_ACTION`, and `HSE_TURNSTILE_REQUIRED`; the secret must not enter
-the frontend bundle. Then deploy the plugin and rebuild the static Astro site
-so the generated form points at that environment's `WORDPRESS_API_URL`.
+the frontend bundle. Set `PUBLIC_TURNSTILE_SITE_KEY` only for frontend
+environments that should display the widget. Deploy the plugin with enforcement
+disabled, deploy and verify the Astro widget, and only then enable
+`HSE_TURNSTILE_REQUIRED`. The generated form must point at that environment's
+`WORDPRESS_API_URL`.
 
 To roll back delivery, restore the preceding plugin and Astro release together.
 The SMTP configuration values may remain defined because the preceding plugin
