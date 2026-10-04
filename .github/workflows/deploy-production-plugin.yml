@@ -1,0 +1,77 @@
+name: Deploy HSE Headless plugin to production
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hsetraining-production-plugin
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy production CMS plugin
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+    env:
+      SSH_HOST: s83.unlimited.rs
+      SSH_PORT: "9780"
+      SSH_USER: sbb22122
+      WORDPRESS_ROOT: /home/sbb22122/cms.hsetraining.rs
+      PLUGIN_VERSION: 0.35.0
+      REMOTE_ARCHIVE: /home/sbb22122/.hse-headless-0.35.0.zip
+      REMOTE_SCRIPT: /home/sbb22122/.deploy-hse-headless-plugin.sh
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Package and verify plugin
+        run: |
+          set -euo pipefail
+          cd wordpress/plugins
+          zip -rq -X "$RUNNER_TEMP/hse-headless.zip" hse-headless -x '*/.DS_Store' -x '*/.gitkeep'
+          unzip -t "$RUNNER_TEMP/hse-headless.zip"
+          archive_sha=$(sha256sum "$RUNNER_TEMP/hse-headless.zip" | awk '{print $1}')
+          echo "ARCHIVE_SHA=$archive_sha" >> "$GITHUB_ENV"
+
+      - name: Configure Unlimited SSH access
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.UNLIMITED_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.UNLIMITED_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/unlimited_deploy"
+          chmod 600 "$HOME/.ssh/unlimited_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Deploy plugin with automatic rollback
+        run: |
+          set -euo pipefail
+          ssh_target="${SSH_USER}@${SSH_HOST}"
+          ssh_options=(-i "$HOME/.ssh/unlimited_deploy" -p "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes)
+          scp_options=(-i "$HOME/.ssh/unlimited_deploy" -P "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes)
+
+          scp "${scp_options[@]}" "$RUNNER_TEMP/hse-headless.zip" "$ssh_target:${REMOTE_ARCHIVE}.next"
+          scp "${scp_options[@]}" scripts/deploy-hse-headless-plugin.sh "$ssh_target:${REMOTE_SCRIPT}"
+          ssh "${ssh_options[@]}" "$ssh_target" \
+            "set -eu; chmod 600 '${REMOTE_ARCHIVE}.next'; mv '${REMOTE_ARCHIVE}.next' '${REMOTE_ARCHIVE}'; chmod 700 '${REMOTE_SCRIPT}'; '${REMOTE_SCRIPT}' '${WORDPRESS_ROOT}' '${REMOTE_ARCHIVE}' '${ARCHIVE_SHA}' '${PLUGIN_VERSION}'"
+
+      - name: Remove deployment credentials and temporary server files
+        if: always()
+        run: |
+          ssh_target="${SSH_USER}@${SSH_HOST}"
+          ssh_options=(-i "$HOME/.ssh/unlimited_deploy" -p "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes)
+          if [[ -f "$HOME/.ssh/unlimited_deploy" ]]; then
+            ssh "${ssh_options[@]}" "$ssh_target" "rm -f '${REMOTE_SCRIPT}' '${REMOTE_ARCHIVE}.next'" || true
+          fi
+          rm -f "$HOME/.ssh/unlimited_deploy"
+          rm -f "$RUNNER_TEMP/hse-headless.zip"
