@@ -37,6 +37,64 @@ try {
 	hse_resource_test_assert( post_type_supports( ResourcePostType::POST_TYPE, 'page-attributes' ), 'Free Resources support explicit ordering.' );
 	hse_resource_test_assert( 'video' === ResourceMeta::sanitize_type( 'video' ), 'Known resource types are accepted.' );
 	hse_resource_test_assert( 'link' === ResourceMeta::sanitize_type( 'unsupported' ), 'Unknown resource types fall back safely.' );
+	hse_resource_test_assert(
+		false !== has_filter( 'wp_insert_post_data', array( ResourceMeta::class, 'validate_publish' ) )
+			&& false !== has_filter( 'redirect_post_location', array( ResourceMeta::class, 'add_admin_error_to_redirect' ) )
+			&& false !== has_action( 'admin_notices', array( ResourceMeta::class, 'render_admin_notice' ) ),
+		'Free Resources publication validation and administrator feedback are registered.'
+	);
+
+	$incomplete_id = wp_insert_post(
+		array(
+			'post_type'   => ResourcePostType::POST_TYPE,
+			'post_status' => 'draft',
+			'post_title'  => 'Incomplete test resource',
+		),
+		true
+	);
+	if ( is_wp_error( $incomplete_id ) ) {
+		throw new RuntimeException( 'Could not create an incomplete temporary Free Resource.' );
+	}
+	$created_ids[] = $incomplete_id;
+	update_post_meta( $incomplete_id, ResourceMeta::RESOURCE_KEY, 'incomplete-test-resource' );
+
+	hse_resource_test_assert(
+		array( 'External URL or Media Library file' ) === ResourceMeta::missing_requirements( $incomplete_id ),
+		'Incomplete Resources identify the exact missing publication requirement.'
+	);
+
+	$validated_data = ResourceMeta::validate_publish(
+		array(
+			'post_type'   => ResourcePostType::POST_TYPE,
+			'post_status' => 'publish',
+			'post_title'  => 'Incomplete test resource',
+		),
+		array( 'ID' => $incomplete_id ),
+		array(),
+		true
+	);
+	hse_resource_test_assert(
+		'draft' === ( $validated_data['post_status'] ?? '' ),
+		'An incomplete Free Resource is kept as a draft before WordPress saves it.'
+	);
+
+	$redirect = ResourceMeta::add_admin_error_to_redirect( 'post.php?post=' . $incomplete_id, $incomplete_id );
+	parse_str( (string) wp_parse_url( $redirect, PHP_URL_QUERY ), $redirect_query );
+	hse_resource_test_assert(
+		'hse_resource_incomplete' === ( $redirect_query['hse_resource_error'] ?? '' ),
+		'The editor redirect carries the publication validation error.'
+	);
+
+	$_GET['post']               = (string) $incomplete_id;
+	$_GET['hse_resource_error'] = 'hse_resource_incomplete';
+	ob_start();
+	ResourceMeta::render_admin_notice();
+	$notice = (string) ob_get_clean();
+	unset( $_GET['post'], $_GET['hse_resource_error'] );
+	hse_resource_test_assert(
+		false !== strpos( $notice, 'External URL or Media Library file' ),
+		'The editor notice tells the administrator what must be completed.'
+	);
 
 	foreach ( $published_before as $published_id ) {
 		wp_update_post( array( 'ID' => $published_id, 'post_status' => 'draft' ) );
