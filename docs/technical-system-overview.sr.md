@@ -142,7 +142,7 @@ klika i jasnu povratnu informaciju.
 ## 6. WordPress CMS i `hse-headless` plugin
 
 Repozitorijumski plugin `hse-headless` je integracioni sloj između WordPressa,
-Astro-a i WooCommerce-a. Aktuelna verzija u repozitorijumu je **0.35.0**.
+Astro-a i WooCommerce-a. Aktuelna verzija u repozitorijumu je **0.35.1**.
 
 ### 6.1. Model sadržaja
 

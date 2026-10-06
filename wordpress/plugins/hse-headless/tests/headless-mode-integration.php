@@ -40,6 +40,17 @@ hse_headless_mode_test_assert(
 	'The configured Astro hostname is allowlisted for safe storefront redirects.'
 );
 hse_headless_mode_test_assert(
+	10 === has_filter( 'logout_redirect', array( HeadlessMode::class, 'redirect_logout_to_login' ) ),
+	'CMS logout returns users to the maintained login entry point instead of the disabled frontend.'
+);
+hse_headless_mode_test_assert(
+	'loggedout=true' === wp_parse_url(
+		HeadlessMode::redirect_logout_to_login( home_url( '/' ), '', wp_get_current_user() ),
+		PHP_URL_QUERY
+	),
+	'The logout destination includes the standard logged-out confirmation state.'
+);
+hse_headless_mode_test_assert(
 	PHP_INT_MAX === has_filter( 'xmlrpc_enabled', array( HeadlessMode::class, 'disable_xmlrpc' ) )
 		&& PHP_INT_MAX === has_filter( 'xmlrpc_methods', array( HeadlessMode::class, 'disable_xmlrpc_methods' ) )
 		&& PHP_INT_MAX === has_filter( 'wp_headers', array( HeadlessMode::class, 'remove_pingback_header' ) ),

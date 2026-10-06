@@ -15,12 +15,30 @@ final class HeadlessMode {
 	/** Register WordPress hooks. */
 	public static function register_hooks() {
 		add_filter( 'allowed_redirect_hosts', array( self::class, 'allow_public_site_redirect_host' ) );
+		add_filter( 'logout_redirect', array( self::class, 'redirect_logout_to_login' ), 10, 3 );
 		add_filter( 'xmlrpc_enabled', array( self::class, 'disable_xmlrpc' ), PHP_INT_MAX );
 		add_filter( 'xmlrpc_methods', array( self::class, 'disable_xmlrpc_methods' ), PHP_INT_MAX );
 		add_filter( 'wp_headers', array( self::class, 'remove_pingback_header' ), PHP_INT_MAX );
 		add_action( 'template_redirect', array( self::class, 'redirect_unused_commerce_routes' ), -30 );
 		add_action( 'template_redirect', array( self::class, 'mark_frontend_closed' ), 0 );
 		add_filter( 'template_include', array( self::class, 'use_closed_template' ), PHP_INT_MAX );
+	}
+
+	/**
+	 * Keep CMS users on the administration entry point after signing out.
+	 *
+	 * wp_login_url() is intentionally used instead of a hard-coded path so the
+	 * maintained login-hiding plugin can return the configured login route.
+	 *
+	 * @param string   $redirect_to           Default WordPress redirect.
+	 * @param string   $requested_redirect_to Requested redirect, when supplied.
+	 * @param \WP_User $user                  User who signed out.
+	 * @return string
+	 */
+	public static function redirect_logout_to_login( $redirect_to, $requested_redirect_to, $user ): string {
+		unset( $redirect_to, $requested_redirect_to, $user );
+
+		return add_query_arg( 'loggedout', 'true', wp_login_url() );
 	}
 
 	/** Disable authenticated XML-RPC operations when no integration requires them. */
@@ -132,7 +150,7 @@ final class HeadlessMode {
 		return true;
 	}
 
-	/** Mark public frontend requests as non-cacheable 404 responses. */
+	/** Serve public frontend requests as non-cacheable 404 responses. */
 	public static function mark_frontend_closed() {
 		if ( ! self::should_close_frontend() ) {
 			return;
@@ -146,6 +164,10 @@ final class HeadlessMode {
 		status_header( 404 );
 		nocache_headers();
 		header( 'X-Robots-Tag: noindex, nofollow', true );
+
+		// End the request before WooCommerce can render its Coming Soon template.
+		require dirname( __DIR__, 2 ) . '/templates/frontend-closed.php';
+		exit;
 	}
 
 	/**

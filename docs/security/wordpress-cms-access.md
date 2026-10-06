@@ -18,6 +18,11 @@ intact:
 Astro remains the only public marketing frontend. The CMS renders only the
 branded commerce surfaces required to complete or retry an order.
 
+Ordinary CMS frontend requests terminate with the plugin-owned `404` response
+before WooCommerce can render its Coming Soon page. A successful administrator
+logout returns to the maintained CMS login route with the standard logged-out
+confirmation instead of opening the disabled WordPress frontend.
+
 ## Runtime Log Protection
 
 PHP, WordPress, WooCommerce, payment, and fiscalization logs must never be
