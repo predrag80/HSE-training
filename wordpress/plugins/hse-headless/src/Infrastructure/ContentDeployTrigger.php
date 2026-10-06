@@ -41,14 +41,23 @@ final class ContentDeployTrigger {
 	public static function handle_post_save( $post_id, $post, $update ): void {
 		unset( $update );
 
-		if ( ! $post instanceof \WP_Post
-			|| ! self::is_public_content_post_type( $post->post_type )
+		if ( ! self::should_queue_post_save( $post )
 			|| wp_is_post_revision( $post_id )
 			|| wp_is_post_autosave( $post_id ) ) {
 			return;
 		}
 
 		self::queue();
+	}
+
+	/** Only public post states can change the generated Astro application. */
+	public static function should_queue_post_save( $post ): bool {
+		if ( ! $post instanceof \WP_Post || ! self::is_public_content_post_type( $post->post_type ) ) {
+			return false;
+		}
+
+		return 'publish' === $post->post_status
+			|| ( 'attachment' === $post->post_type && 'inherit' === $post->post_status );
 	}
 
 	/** Queue when published content is unpublished, restored, or published. */

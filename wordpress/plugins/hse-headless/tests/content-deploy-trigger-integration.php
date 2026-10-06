@@ -38,6 +38,12 @@ hse_content_deploy_test_assert(
 	'Only editorial post types and media trigger public rebuilds.'
 );
 hse_content_deploy_test_assert(
+	ContentDeployTrigger::should_queue_post_save( new WP_Post( (object) array( 'post_type' => 'hse_resource', 'post_status' => 'publish' ) ) )
+		&& ContentDeployTrigger::should_queue_post_save( new WP_Post( (object) array( 'post_type' => 'attachment', 'post_status' => 'inherit' ) ) )
+		&& ! ContentDeployTrigger::should_queue_post_save( new WP_Post( (object) array( 'post_type' => 'hse_resource', 'post_status' => 'draft' ) ) ),
+	'Draft editorial saves do not queue public rebuilds, while published content and Media Library files do.'
+);
+hse_content_deploy_test_assert(
 	ContentDeployTrigger::is_public_content_option( 'hse_company_page_en' )
 		&& ContentDeployTrigger::is_public_content_option( 'hse_course_page_nebosh_sr' )
 		&& ContentDeployTrigger::is_public_content_option( 'hse_legal_page_privacy_en' )

@@ -23,6 +23,10 @@ final class ResourceMeta {
 
 	private const NONCE_ACTION = 'hse_save_resource_details';
 	private const NONCE_NAME   = 'hse_resource_details_nonce';
+	private const ERROR_QUERY  = 'hse_resource_error';
+
+	/** @var string */
+	private static $admin_error_code = '';
 
 	/** Register WordPress hooks. */
 	public static function register_hooks(): void {
@@ -30,6 +34,9 @@ final class ResourceMeta {
 		add_action( 'add_meta_boxes_hse_resource', array( self::class, 'register_meta_box' ) );
 		add_action( 'save_post_hse_resource', array( self::class, 'save_meta_box' ), 10, 2 );
 		add_action( 'admin_enqueue_scripts', array( self::class, 'enqueue_media' ) );
+		add_filter( 'wp_insert_post_data', array( self::class, 'validate_publish' ), 10, 4 );
+		add_filter( 'redirect_post_location', array( self::class, 'add_admin_error_to_redirect' ), 10, 2 );
+		add_action( 'admin_notices', array( self::class, 'render_admin_notice' ) );
 	}
 
 	/** Return allowed resource types. */
@@ -193,18 +200,96 @@ final class ResourceMeta {
 		update_post_meta( $post_id, self::FEATURED, isset( $_POST[ 'hse_' . self::FEATURED ] ) );
 
 		if ( 'publish' === $post->post_status && ! self::is_complete( $post_id ) ) {
+			self::$admin_error_code = 'hse_resource_incomplete';
 			remove_action( 'save_post_hse_resource', array( self::class, 'save_meta_box' ), 10 );
 			wp_update_post( array( 'ID' => $post_id, 'post_status' => 'draft' ) );
 			add_action( 'save_post_hse_resource', array( self::class, 'save_meta_box' ), 10, 2 );
 		}
 	}
 
+	/** Prevent incomplete Resources from briefly entering the published state. */
+	public static function validate_publish( $data, $postarr, $unsanitized_postarr, $update ) {
+		unset( $unsanitized_postarr, $update );
+
+		if ( ResourcePostType::POST_TYPE !== ( $data['post_type'] ?? '' ) || 'publish' !== ( $data['post_status'] ?? '' ) ) {
+			return $data;
+		}
+
+		$post_id       = isset( $postarr['ID'] ) ? (int) $postarr['ID'] : 0;
+		$title         = trim( (string) ( $data['post_title'] ?? '' ) );
+		$key           = sanitize_key( self::posted_or_stored( self::RESOURCE_KEY, $post_id ) );
+		$external_url  = esc_url_raw( self::posted_or_stored( self::EXTERNAL_URL, $post_id ) );
+		$attachment_id = absint( self::posted_or_stored( self::ATTACHMENT_ID, $post_id ) );
+
+		if ( '' === $title || '' === $key || ( '' === $external_url && 0 >= $attachment_id ) ) {
+			$data['post_status']     = 'draft';
+			self::$admin_error_code = 'hse_resource_incomplete';
+		}
+
+		return $data;
+	}
+
+	/** Add a stable publication error to the native editor redirect. */
+	public static function add_admin_error_to_redirect( $location, $post_id ) {
+		if ( self::$admin_error_code && ResourcePostType::POST_TYPE === get_post_type( $post_id ) ) {
+			$location = add_query_arg( self::ERROR_QUERY, self::$admin_error_code, $location );
+			self::$admin_error_code = '';
+		}
+
+		return $location;
+	}
+
+	/** Explain exactly why a Resource could not be published. */
+	public static function render_admin_notice(): void {
+		if ( ! isset( $_GET[ self::ERROR_QUERY ], $_GET['post'] ) ) {
+			return;
+		}
+
+		$error_code = sanitize_key( wp_unslash( $_GET[ self::ERROR_QUERY ] ) );
+		$post_id    = absint( $_GET['post'] );
+		if ( 'hse_resource_incomplete' !== $error_code || ResourcePostType::POST_TYPE !== get_post_type( $post_id ) ) {
+			return;
+		}
+
+		$missing = self::missing_requirements( $post_id );
+		$message = $missing
+			? sprintf(
+				/* translators: %s: comma-separated list of missing Resource requirements. */
+				__( 'Free Resource was saved as a draft and was not published. Complete: %s.', 'hse-headless' ),
+				implode( ', ', $missing )
+			)
+			: __( 'Free Resource was saved as a draft because its publication requirements were not complete.', 'hse-headless' );
+
+		printf( '<div class="notice notice-error is-dismissible"><p><strong>%s</strong></p></div>', esc_html( $message ) );
+	}
+
+	/** Return the editor requirements that are still missing. */
+	public static function missing_requirements( $post_id ): array {
+		$missing = array();
+		if ( '' === trim( get_the_title( $post_id ) ) ) {
+			$missing[] = __( 'Title', 'hse-headless' );
+		}
+		if ( '' === sanitize_key( get_post_meta( $post_id, self::RESOURCE_KEY, true ) ) ) {
+			$missing[] = __( 'Resource key', 'hse-headless' );
+		}
+		$url           = esc_url_raw( get_post_meta( $post_id, self::EXTERNAL_URL, true ) );
+		$attachment_id = absint( get_post_meta( $post_id, self::ATTACHMENT_ID, true ) );
+		if ( '' === $url && 0 >= $attachment_id ) {
+			$missing[] = __( 'External URL or Media Library file', 'hse-headless' );
+		}
+
+		return $missing;
+	}
+
 	/** Check minimum public data. */
 	public static function is_complete( $post_id ): bool {
-		$key            = sanitize_key( get_post_meta( $post_id, self::RESOURCE_KEY, true ) );
-		$url            = esc_url_raw( get_post_meta( $post_id, self::EXTERNAL_URL, true ) );
-		$attachment_id  = absint( get_post_meta( $post_id, self::ATTACHMENT_ID, true ) );
+		return array() === self::missing_requirements( $post_id );
+	}
 
-		return '' !== trim( get_the_title( $post_id ) ) && '' !== $key && ( '' !== $url || 0 < $attachment_id );
+	/** Return a posted editor value or the currently stored metadata value. */
+	private static function posted_or_stored( $meta_key, $post_id ) {
+		$field = 'hse_' . $meta_key;
+
+		return isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : get_post_meta( $post_id, $meta_key, true );
 	}
 }
