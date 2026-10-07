@@ -153,22 +153,29 @@ final class ResourceMeta {
 		<p class="description"><?php esc_html_e( 'Provide either an external URL or a Media Library file. Use Page Attributes → Order to control display order. The main editor can contain a longer description.', 'hse-headless' ); ?></p>
 		<script>
 		(function () {
-			const select = document.getElementById('hse-resource-file-select');
-			const remove = document.getElementById('hse-resource-file-remove');
-			const input = document.getElementById('hse-resource-attachment-id');
-			const name = document.getElementById('hse-resource-file-name');
-			if (!select || !remove || !input || !name || !window.wp || !window.wp.media) return;
-			select.addEventListener('click', function () {
-				const frame = window.wp.media({ title: '<?php echo esc_js( __( 'Choose resource file', 'hse-headless' ) ); ?>', button: { text: '<?php echo esc_js( __( 'Use this file', 'hse-headless' ) ); ?>' }, multiple: false });
-				frame.on('select', function () {
-					const file = frame.state().get('selection').first().toJSON();
-					input.value = file.id;
-					name.textContent = file.filename || file.title;
-					remove.hidden = false;
+			const initializeMediaPicker = function () {
+				const select = document.getElementById('hse-resource-file-select');
+				const remove = document.getElementById('hse-resource-file-remove');
+				const input = document.getElementById('hse-resource-attachment-id');
+				const name = document.getElementById('hse-resource-file-name');
+				if (!select || !remove || !input || !name || !window.wp || !window.wp.media) return;
+				select.addEventListener('click', function () {
+					const frame = window.wp.media({ title: '<?php echo esc_js( __( 'Choose resource file', 'hse-headless' ) ); ?>', button: { text: '<?php echo esc_js( __( 'Use this file', 'hse-headless' ) ); ?>' }, multiple: false });
+					frame.on('select', function () {
+						const file = frame.state().get('selection').first().toJSON();
+						input.value = file.id;
+						name.textContent = file.filename || file.title;
+						remove.hidden = false;
+					});
+					frame.open();
 				});
-				frame.open();
-			});
-			remove.addEventListener('click', function () { input.value = ''; name.textContent = ''; remove.hidden = true; });
+				remove.addEventListener('click', function () { input.value = ''; name.textContent = ''; remove.hidden = true; });
+			};
+			if ('loading' === document.readyState) {
+				document.addEventListener('DOMContentLoaded', initializeMediaPicker, { once: true });
+			} else {
+				initializeMediaPicker();
+			}
 		}());
 		</script>
 		<?php
