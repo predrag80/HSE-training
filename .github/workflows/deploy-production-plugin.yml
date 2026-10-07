@@ -22,8 +22,8 @@ jobs:
       SSH_PORT: "9780"
       SSH_USER: sbb22122
       WORDPRESS_ROOT: /home/sbb22122/cms.hsetraining.rs
-      PLUGIN_VERSION: 0.35.2
-      REMOTE_ARCHIVE: /home/sbb22122/.hse-headless-0.35.2.zip
+      PLUGIN_VERSION: 0.35.3
+      REMOTE_ARCHIVE: /home/sbb22122/.hse-headless-0.35.3.zip
       REMOTE_SCRIPT: /home/sbb22122/.deploy-hse-headless-plugin.sh
 
     steps:
