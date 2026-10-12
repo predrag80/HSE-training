@@ -52,10 +52,18 @@ uses it.
 When the explicit commerce flag is enabled, WooCommerce checkout and
 payment-return requests are the only additional public theme surface.
 
-Run the focused local check with:
+Anonymous REST requests cannot reach the WooCommerce Store API
+(`/wc/store/*`, HTTP 404) or core user routes (`/wp/v2/users*`, HTTP 401).
+Store API checkout would bypass the classic HSE checkout rules for consents,
+buyer identification, locale, and source, and user routes would disclose CMS
+account names. Users with `manage_woocommerce` keep Store API access, and
+signed-in CMS users keep user lookups for the editor.
+
+Run the focused local checks with:
 
 ```sh
 wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/headless-mode-integration.php
+wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/public-rest-surface-integration.php
 ```
 
 The custom login entry route is an operational security control documented in
