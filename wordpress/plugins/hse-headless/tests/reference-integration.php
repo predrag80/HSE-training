@@ -12,6 +12,9 @@ if ( ! class_exists( ReferenceRestController::class ) ) {
 	WP_CLI::error( 'Reference implementation is not loaded.' );
 }
 
+// wp eval-file includes this file inside a method, so bind the global the
+// assertion helper records into; otherwise failures never fail the command.
+global $failures;
 $failures         = array();
 $created_ids      = array();
 $published_before = get_posts( array( 'post_type' => ReferencePostType::POST_TYPE, 'post_status' => 'publish', 'posts_per_page' => -1, 'fields' => 'ids' ) );

@@ -14,6 +14,9 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	exit;
 }
 
+// wp eval-file includes this file inside a method, so bind the global the
+// assertion helper records into; otherwise failures never fail the command.
+global $failures;
 $failures = array();
 
 /** Record a failed assertion while allowing all lifecycle checks to run. */

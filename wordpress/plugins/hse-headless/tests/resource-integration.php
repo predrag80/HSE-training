@@ -12,6 +12,9 @@ if ( ! class_exists( ResourceRestController::class ) ) {
 	WP_CLI::error( 'Free Resources implementation is not loaded.' );
 }
 
+// wp eval-file includes this file inside a method, so bind the global the
+// assertion helper records into; otherwise failures never fail the command.
+global $failures;
 $failures    = array();
 $created_ids = array();
 $published_before = get_posts(

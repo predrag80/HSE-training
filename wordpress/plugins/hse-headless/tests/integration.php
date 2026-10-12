@@ -15,6 +15,9 @@ if ( ! class_exists( CoursePostType::class ) || ! class_exists( CourseMeta::clas
 	WP_CLI::error( 'Course implementation is not loaded.' );
 }
 
+// wp eval-file includes this file inside a method, so bind the global the
+// assertion helper records into; otherwise failures never fail the command.
+global $failures;
 $failures    = array();
 $created_ids = array();
 

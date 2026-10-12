@@ -13,6 +13,9 @@ if ( ! class_exists( SmtpMailer::class ) ) {
 	WP_CLI::error( 'SMTP mailer implementation is not loaded.' );
 }
 
+// wp eval-file includes this file inside a method, so bind the global the
+// assertion helper records into; otherwise failures never fail the command.
+global $failures;
 $failures = array();
 
 /** Record a failed assertion without stopping remaining checks. */

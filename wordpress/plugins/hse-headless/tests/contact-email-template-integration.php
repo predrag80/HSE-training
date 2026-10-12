@@ -9,6 +9,9 @@ if ( ! class_exists( ContactEmailTemplate::class ) ) {
 	WP_CLI::error( 'Contact email template implementation is not loaded.' );
 }
 
+// wp eval-file includes this file inside a method, so bind the global the
+// assertion helper records into; otherwise failures never fail the command.
+global $failures;
 $failures = array();
 
 /** Record a failed assertion without stopping remaining checks. */
@@ -39,7 +42,11 @@ hse_contact_email_test_assert( false !== strpos( $html, '#292d36' ) && false !==
 hse_contact_email_test_assert( false !== strpos( $html, 'role="presentation"' ), 'Presentation tables are used for email-client compatibility.' );
 hse_contact_email_test_assert( false !== strpos( $html, '<!--[if mso]>' ), 'Outlook-specific rendering support is present.' );
 hse_contact_email_test_assert( false === strpos( $html, '<script>alert' ), 'Untrusted HTML is not rendered.' );
-hse_contact_email_test_assert( false !== strpos( $html, 'alert(&quot;x&quot;)' ), 'Untrusted text is safely escaped.' );
+$escaped_html = ContactEmailTemplate::render_html( array_merge( $enquiry, array( 'name' => 'Tom & "Jerry" O\'Neil' ) ) );
+hse_contact_email_test_assert(
+	false !== strpos( $escaped_html, 'Tom &amp; &quot;Jerry&quot; O&#039;Neil' ),
+	'Untrusted text that survives tag stripping is HTML-escaped.'
+);
 hse_contact_email_test_assert( false !== strpos( $html, 'mailto:predrag@example.com' ), 'The reply action uses the validated sender email.' );
 hse_contact_email_test_assert( false !== strpos( $text, 'Please send course information.' ), 'The plain-text alternative includes the message.' );
 hse_contact_email_test_assert( false === strpos( $text, '<script>' ), 'The plain-text alternative is sanitized.' );

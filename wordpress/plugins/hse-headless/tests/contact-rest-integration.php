@@ -9,6 +9,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
+// wp eval-file includes this file inside a method, so bind the global the
+// assertion helper records into; otherwise failures never fail the command.
+global $failures;
 $failures = array();
 
 /** Record a failed assertion without stopping remaining checks. */
@@ -31,6 +34,13 @@ add_filter(
 	10,
 	2
 );
+
+// The first checks cover validation, origin, honeypot and rate limits without
+// a Turnstile token, independent of the installation's Turnstile setting.
+$turnstile_off_filter = static function () {
+	return false;
+};
+add_filter( 'hse_turnstile_required', $turnstile_off_filter );
 
 $client_address         = 'contact-test-' . wp_generate_uuid4();
 $_SERVER['REMOTE_ADDR'] = $client_address;
@@ -135,6 +145,7 @@ $turnstile_http_filter = static function ( $preempt, $arguments, $url ) use ( &$
 	);
 };
 
+remove_filter( 'hse_turnstile_required', $turnstile_off_filter );
 add_filter( 'hse_turnstile_required', $required_filter );
 add_filter( 'hse_turnstile_secret', $secret_filter );
 add_filter( 'pre_http_request', $turnstile_http_filter, 10, 3 );

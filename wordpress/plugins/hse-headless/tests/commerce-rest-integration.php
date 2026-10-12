@@ -18,6 +18,9 @@ if ( ! CommerceConfiguration::is_enabled() ) {
 	WP_CLI::error( 'Define HSE_WOOCOMMERCE_STAGING_BRIDGE as true before running the commerce check.' );
 }
 
+// wp eval-file includes this file inside a method, so bind the global the
+// assertion helper records into; otherwise failures never fail the command.
+global $failures;
 $failures  = array();
 $test_key  = 'hse-commerce-test-' . strtolower( wp_generate_password( 8, false, false ) );
 $product   = new WC_Product_Simple();

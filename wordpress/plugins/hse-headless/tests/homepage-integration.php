@@ -19,6 +19,9 @@ if ( ! class_exists( HeroSlidePostType::class ) || ! class_exists( HeroSlideMeta
 	WP_CLI::error( 'Homepage implementation is not loaded.' );
 }
 
+// wp eval-file includes this file inside a method, so bind the global the
+// assertion helper records into; otherwise failures never fail the command.
+global $failures;
 $failures          = array();
 $created_ids       = array();
 $attachment_id     = 0;

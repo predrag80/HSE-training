@@ -6,6 +6,9 @@ defined( 'ABSPATH' ) || exit;
 use HSETraining\Headless\Course\CoursePageRestController;
 use HSETraining\Headless\Course\CoursePageSettings;
 
+// wp eval-file includes this file inside a method, so bind the global the
+// assertion helper records into; otherwise failures never fail the command.
+global $failures;
 $failures = array();
 $original = array();
 

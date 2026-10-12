@@ -20,6 +20,9 @@ if ( ! CommerceConfiguration::is_enabled() ) {
 	WP_CLI::error( 'Define HSE_WOOCOMMERCE_STAGING_BRIDGE as true before running the product sync check.' );
 }
 
+// wp eval-file includes this file inside a method, so bind the global the
+// assertion helper records into; otherwise failures never fail the command.
+global $failures;
 $failures = array();
 
 /** Record a failed assertion while allowing every synchronized Course to run. */

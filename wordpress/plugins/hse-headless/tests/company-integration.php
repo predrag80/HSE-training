@@ -15,6 +15,9 @@ if ( ! class_exists( CompanyPageSettings::class ) || ! class_exists( CompanyPage
 	WP_CLI::error( 'Company Page implementation is not loaded.' );
 }
 
+// wp eval-file includes this file inside a method, so bind the global the
+// assertion helper records into; otherwise failures never fail the command.
+global $failures;
 $failures       = array();
 $attachment_id  = 0;
 $option_name    = CompanyPageSettings::option_name( ContentLocale::DEFAULT_LOCALE );
