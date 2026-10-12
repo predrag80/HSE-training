@@ -6,6 +6,11 @@ const CMS_MAX_ATTEMPTS = 3;
 const CMS_RETRY_DELAY_MS = 500;
 const CMS_USER_AGENT = 'Mozilla/5.0 (compatible; HSETrainingBuild/1.0; +https://hsetraining.rs)';
 
+// A static build renders many pages from the same published CMS documents.
+// Production builds share one request per URL; the dev server always refetches
+// so local CMS edits stay visible.
+const buildResponses = new Map<string, Promise<unknown>>();
+
 function waitBeforeRetry(attempt: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, CMS_RETRY_DELAY_MS * attempt));
 }
@@ -38,6 +43,20 @@ export async function fetchCmsJson(
 	query: Readonly<Record<string, string>> = {},
 ): Promise<unknown> {
 	const url = createCmsUrl(path, query);
+	if (!import.meta.env.PROD) return requestCmsJson(url);
+
+	let response = buildResponses.get(url.href);
+	if (!response) {
+		response = requestCmsJson(url);
+		buildResponses.set(url.href, response);
+		response.catch(() => buildResponses.delete(url.href));
+	}
+
+	// Each caller receives its own copy, so no page can alter another page's data.
+	return structuredClone(await response);
+}
+
+async function requestCmsJson(url: URL): Promise<unknown> {
 	for (let attempt = 1; attempt <= CMS_MAX_ATTEMPTS; attempt += 1) {
 		let response: Response;
 
