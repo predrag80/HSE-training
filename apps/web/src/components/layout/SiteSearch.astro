@@ -312,7 +312,7 @@ const searchIndexUrl = getSearchIndexPath(locale);
 
 	.site-search-form button svg {
 		width: 1.25rem;
-		height: 1.5rem;
+		height: 1.25rem;
 		fill: currentColor;
 	}
 
@@ -344,10 +344,10 @@ const searchIndexUrl = getSearchIndexPath(locale);
 	.site-search-dialog__inner {
 		position: relative;
 		display: grid;
-		min-height: min(28.125rem, 100dvh);
+		min-height: min(22rem, 100dvh);
 		max-height: 100dvh;
 		place-items: center;
-		padding: var(--space-8) var(--container-gutter);
+		padding: 5rem var(--container-gutter) var(--space-8);
 		overflow-y: auto;
 		background: var(--color-surface);
 		will-change: opacity, transform;
@@ -381,17 +381,17 @@ const searchIndexUrl = getSearchIndexPath(locale);
 	}
 
 	.site-search-form {
-		width: 100%;
+		width: min(100%, 46rem);
 	}
 
 	.site-search-form__label {
 		display: block;
-		margin-bottom: 2.21875rem;
+		margin-bottom: 1.25rem;
 		color: var(--color-ink);
-		font-size: clamp(2.25rem, 5vw, 3.4375rem);
+		font-size: clamp(1.375rem, calc(1.05rem + 1.4vw), 2.25rem);
 		font-weight: var(--font-weight-semibold);
-		letter-spacing: -0.0625rem;
-		line-height: 1;
+		letter-spacing: -0.02em;
+		line-height: 1.2;
 	}
 
 	.site-search-form__field {
@@ -400,16 +400,31 @@ const searchIndexUrl = getSearchIndexPath(locale);
 
 	.site-search-form input {
 		width: 100%;
-		height: 4rem;
-		padding: 1rem 2.375rem 1rem 0;
+		height: 3.75rem;
+		padding: 0 4rem 0 1.5rem;
 		color: var(--color-ink);
-		font-size: 1.125rem;
-		line-height: 1.875rem;
-		background: transparent;
-		border: 0;
-		border-bottom: 2px solid rgb(0 0 0 / 10%);
-		border-radius: 0;
-		outline: 0;
+		font-size: 1.0625rem;
+		line-height: 1.5;
+		background: var(--color-surface-muted);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-medium);
+		transition:
+			background-color 200ms ease,
+			border-color 200ms ease,
+			box-shadow 200ms ease;
+	}
+
+	.site-search-form input:hover {
+		border-color: var(--color-border-strong);
+	}
+
+	.site-search-form input:focus-visible {
+		background: var(--color-surface);
+		border-color: var(--color-accent-action);
+		outline: 2px solid transparent;
+		box-shadow:
+			0 0 0 1px var(--color-accent-action),
+			0 0 0 5px var(--color-accent-soft);
 	}
 
 	.site-search-form input::placeholder {
@@ -418,17 +433,32 @@ const searchIndexUrl = getSearchIndexPath(locale);
 
 	.site-search-form button {
 		position: absolute;
-		top: 0;
-		right: 0;
+		top: 50%;
+		right: 0.5rem;
 		display: grid;
-		width: 1.875rem;
-		height: 4rem;
-		padding: 0 0.3125rem;
+		width: 2.75rem;
+		height: 2.75rem;
+		padding: 0;
 		place-items: center;
 		color: var(--color-ink);
 		background: transparent;
 		border: 0;
+		border-radius: var(--radius-medium);
 		cursor: pointer;
+		transform: translateY(-50%);
+		transition: color 200ms ease, background-color 200ms ease;
+	}
+
+	.site-search-form button:hover {
+		color: var(--color-accent-action);
+		background: var(--color-accent-soft);
+	}
+
+	.site-search-form button:focus-visible {
+		color: var(--color-accent-action);
+		outline: 2px solid var(--color-accent-action);
+		outline-offset: 0;
+		box-shadow: none;
 	}
 
 	.site-search-form input::-webkit-search-cancel-button {
@@ -436,7 +466,7 @@ const searchIndexUrl = getSearchIndexPath(locale);
 	}
 
 	.site-search-status {
-		margin: 1.25rem 0 0;
+		margin: 1.5rem 0 0;
 		color: var(--color-text-muted);
 		font-size: 0.9375rem;
 		line-height: 1.6;
@@ -455,6 +485,10 @@ const searchIndexUrl = getSearchIndexPath(locale);
 
 	.site-search-results[hidden] {
 		display: none;
+	}
+
+	.site-search-results :global(li) {
+		max-width: none;
 	}
 
 	.site-search-results :global(.site-search-result) {
@@ -505,12 +539,6 @@ const searchIndexUrl = getSearchIndexPath(locale);
 		overflow: hidden;
 		clip-path: inset(50%);
 		white-space: nowrap;
-	}
-
-	@media (min-width: 48rem) {
-		.site-search-form {
-			width: 45vw;
-		}
 	}
 
 	@media (min-width: 62rem) {
