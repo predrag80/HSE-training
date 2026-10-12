@@ -23,7 +23,7 @@ final class ContentLocale {
 	public static function register_hooks(): void {
 		add_filter( 'add_post_metadata', array( self::class, 'guard_locale_add' ), 10, 5 );
 		add_filter( 'update_post_metadata', array( self::class, 'guard_locale_update' ), 10, 5 );
-		add_action( 'transition_post_status', array( self::class, 'lock_on_publish' ), 10, 3 );
+		add_action( 'wp_after_insert_post', array( self::class, 'lock_after_publish' ), 10, 2 );
 		add_action( 'added_post_meta', array( self::class, 'lock_after_meta_write' ), 10, 4 );
 		add_action( 'updated_post_meta', array( self::class, 'lock_after_meta_write' ), 10, 4 );
 		add_action( 'restrict_manage_posts', array( self::class, 'render_admin_filter' ), 10, 2 );
@@ -261,14 +261,19 @@ final class ContentLocale {
 		return self::guard_locale_write( $check, $object_id, $meta_key, $meta_value );
 	}
 
-	/** Lock a locale when supported content is first published. */
-	public static function lock_on_publish( $new_status, $old_status, $post ): void {
-		unset( $old_status );
-		if ( 'publish' !== $new_status || ! in_array( $post->post_type, self::POST_TYPES, true ) ) {
+	/**
+	 * Lock a locale once supported content is published.
+	 *
+	 * This runs after save_post, when the editor's language choice is already
+	 * stored. Locking on transition_post_status ran before that save and locked
+	 * a new record directly published in Serbian as English.
+	 */
+	public static function lock_after_publish( $post_id, $post ): void {
+		if ( ! $post instanceof \WP_Post || 'publish' !== $post->post_status || ! in_array( $post->post_type, self::POST_TYPES, true ) ) {
 			return;
 		}
 
-		self::lock( $post->ID );
+		self::lock( (int) $post_id );
 	}
 
 	/** Lock locale metadata added after an already-published record. */
