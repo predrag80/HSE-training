@@ -168,7 +168,7 @@ u `docs/architecture/site-search.md`.
 
 Repozitorijumski plugin `hse-headless` je integracioni sloj između WordPressa,
 Astro-a i WooCommerce-a. Aktuelna verzija u repozitorijumu i na produkciji je
-**0.38.0**.
+**0.39.0**.
 
 ### 6.1. Model sadržaja
 
