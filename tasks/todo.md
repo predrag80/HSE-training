@@ -1,6 +1,8 @@
 # Task 12 Checklist: Homepage 1:1 Crafto Reconstruction
 
-Status: Proposed — implementation starts after owner approval of the plan
+Status: Historical — superseded. The homepage, CMS content model, commerce,
+contact, search and deployment were implemented later; see git history and
+`docs/technical-system-overview.sr.md`. This file is not the current backlog.
 
 ## 12.1 Header/navigation reconstruction
 

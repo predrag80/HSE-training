@@ -1,7 +1,7 @@
 # HSE Training - tehnička dokumentacija sistema
 
-**Status dokumenta:** produkcioni pregled  
-**Poslednje usklađivanje sa repozitorijumom:** 4. oktobar 2026.  
+**Status dokumenta:** produkcioni pregled\
+**Poslednje usklađivanje sa repozitorijumom:** 12. oktobar 2026.\
 **Obuhvat:** Astro frontend, WordPress CMS, WooCommerce, RaiAccept, BokaPOS,
 kontakt forma, emailovi, bezbednost, monitoring i deployment.
 
@@ -97,6 +97,12 @@ Tok build-a je:
 5. Nevalidan obavezan odgovor, dupli ključ ili nedostajuća lokalizacija prekida build.
 6. Uspešan build proizvodi `dist/` spreman za atomsku objavu.
 
+Produkcioni build šalje jedan CMS zahtev po URL-u i deli odgovor između
+stranica; svaka stranica dobija sopstvenu kopiju podataka. Astro paralelno
+renderuje četiri stranice (`build.concurrency: 4`). Merenje nad produkcionim
+CMS-om: 74 zahteva su svedena na 44, a build je skraćen sa 36 s na 8 s uz
+identičan izlaz. Lokalni `astro dev` i dalje čita CMS pri svakom zahtevu.
+
 Frontend zato nikada tiho ne objavljuje nepotpunu stranicu samo zato što je CMS
 vratio neispravan odgovor.
 
@@ -139,10 +145,30 @@ laptopu i velikom desktopu. Interaktivne kontrole dobijaju fokus, labelu i
 stanje, a kritični tokovi kao checkout imaju čitljivu hijerarhiju, velike zone
 klika i jasnu povratnu informaciju.
 
+### 5.5. Pretraga sajta
+
+Pretraga u headeru radi bez servera:
+
+1. Svaki build pravi statički indeks po jeziku: `/search-index.json` i
+   `/sr/search-index.json` (oko 12–14 KB).
+2. Indeks obuhvata kurseve i obuke sa `/courses/`, glavne i legalne stranice,
+   usluge i free resources. Ulaze samo već validirani CMS podaci, pa nedostajući
+   prevod prekida build umesto da objavi nepotpun indeks.
+3. Dijalog preuzima indeks pri prvom otvaranju i prikazuje do osam rezultata
+   dok korisnik kuca (od dva karaktera).
+4. Pretraga ne razlikuje velika i mala slova ni dijakritike, a `đ` se poklapa i
+   sa `dj`. Svaka reč upita mora da se pojavi, a poklapanja u naslovu su prva.
+5. Enter otvara prvi rezultat, strelice prelaze između polja i rezultata.
+   Eksterni resursi se otvaraju u novom tabu.
+
+Rezultati se prave preko DOM API-ja i `textContent`, nikad kao HTML. Detalji su
+u `docs/architecture/site-search.md`.
+
 ## 6. WordPress CMS i `hse-headless` plugin
 
 Repozitorijumski plugin `hse-headless` je integracioni sloj između WordPressa,
-Astro-a i WooCommerce-a. Aktuelna verzija u repozitorijumu je **0.35.3**.
+Astro-a i WooCommerce-a. Aktuelna verzija u repozitorijumu i na produkciji je
+**0.36.0**.
 
 ### 6.1. Model sadržaja
 
@@ -162,14 +188,19 @@ zavise od internog WordPress post ID-a i ne čitaju bazu direktno.
 Astro je statički, pa snimanje u CMS-u ne menja već generisani HTML. Zbog toga
 produkcioni CMS ima kontrolisani content-deploy trigger:
 
-1. Urednik sačuva podržani javni sadržaj ili Media Library prilog.
-2. Plugin zakazuje jedan debouncovani WP-Cron događaj.
-3. Realni server cron izvršava događaj.
+1. Urednik sačuva podržani javni sadržaj, settings stranicu (uključujući prvo
+   čuvanje) ili izmeni postojeću sliku u Media Library-ju (naslov, opis, alt).
+2. Plugin zakazuje jedan debouncovani WP-Cron događaj (20 s).
+3. Realni server cron izvršava događaj (najkasnije za minut).
 4. CMS ograničenim GitHub tokenom pokreće produkcioni workflow na branchu `production`.
-5. Workflow validira CMS podatke, pravi build, aktivira izdanje i radi smoke testove.
+5. Workflow validira CMS podatke, pravi build, aktivira izdanje i radi smoke
+   testove (oko 70 s).
 
-Više brzih izmena se spaja u jedan deployment. WooCommerce porudžbine,
-refundacije i druge operativne promene nikada ne pokreću frontend build.
+Izmena je zato vidljiva na sajtu za oko dva minuta. Više brzih izmena se spaja
+u jedan deployment. Sam upload nove slike ne pokreće build, jer ništa javno ne
+menja dok je ne upotrebi neki sadržaj ili settings stranica. WooCommerce
+porudžbine, refundacije i druge operativne promene nikada ne pokreću frontend
+build.
 
 Token ima minimalno pravo samo na Actions za ovaj repozitorijum, čuva se u
 privatnoj serverskoj konfiguraciji i ne ulazi u bazu, plugin ZIP, log ili
@@ -208,7 +239,15 @@ Kupac iz Astro stranice otvara CMS checkout kroz allowlisted putanju sa
 
 Checkout je vizuelno prilagođen HSE brendu, ali koristi WooCommerce poslovnu
 logiku i validaciju. Čuva izabrani jezik i izvor na porudžbini, tako da emailovi,
-retry ekran i order-received ekran ostaju u pravilnoj lokalizaciji.
+retry ekran i order-received ekran ostaju u pravilnoj lokalizaciji. Ako izvor
+nedostaje ili nije poznat, koristi se okruženje same CMS instalacije
+(`HSE_MONITORING_ENVIRONMENT`, zatim WordPress environment type). Produkciona
+porudžbina se zato nikad ne tretira kao staging; lokalna instalacija ostaje na
+`staging`.
+
+WooCommerce Store API (`/wc/store/*`) je zatvoren za anonimne zahteve (HTTP 404),
+jer bi njegov checkout zaobišao HSE pravila za saglasnosti, PIB, jezik i izvor.
+Kupci kupuju isključivo kroz klasični CMS checkout.
 
 ### 8.1. Fizičko i pravno lice
 
@@ -401,6 +440,9 @@ ovaj server cron pouzdano radi.
 - Uklonjen `X-Powered-By` odgovor.
 - Blokirani XML-RPC, `readme.html`, `license.txt`, javni log fajlovi i directory listing.
 - WordPress theme frontend zatvoren; javne su samo eksplicitno potrebne rute.
+- Anonimni REST zahtevi ne dolaze do WooCommerce Store API-ja (`/wc/store/*`,
+  404) ni do liste korisnika (`/wp/v2/users*`, 401), pa se imena CMS naloga ne
+  otkrivaju.
 - Nekorišćene Woo rute (`shop`, `cart`, product taxonomy, `my-account`, order
   tracking) vode na kontrolisani javni početak umesto generičkog store-a.
 - Staging frontend je zaštićen HTTP Basic Authentication-om.
@@ -408,6 +450,9 @@ ovaj server cron pouzdano radi.
 - GitHub Actions third-party akcije su pinovane na konkretne commit SHA vrednosti.
 - Payment i fiskalni provider plugin kod se ne menja direktno.
 - Produkcioni PHP/Woo logovi su van public document root-a ili HTTP blokirani.
+- Cache politika: HTML, sitemap, `robots.txt` i indeks pretrage imaju
+  `Cache-Control: no-cache`. Slike, fontovi, video i PDF se keširaju 7 dana, a
+  heširani `/_astro/` fajlovi godinu dana kao `immutable`.
 
 ### 15.2. Operativne kontrole
 
@@ -443,8 +488,10 @@ Workflow `.github/workflows/deploy-production.yml`:
 1. gradi protiv `cms.hsetraining.rs` sa production checkout source-om,
    Turnstile site key-em i ograničenim Sentry podešavanjem;
 2. pokreće sve quality gate provere;
-3. dodaje produkciona Apache routing/security pravila;
-4. uploaduje kompletno izdanje u nejavni release direktorijum;
+3. dodaje produkciona Apache routing/security/cache pravila (`.htaccess` u
+   korenu i `_astro/.htaccess`);
+4. dok je aktivacija zaključana, uploaduje izdanje samo u nejavni release
+   direktorijum; posle uključivanja aktivacije taj korak se preskače;
 5. pravi privatni backup aktivnog sajta;
 6. aktivira novi sadržaj u `public_html` kada je deployment flag omogućen;
 7. čuva hosting fajlove koji ne pripadaju build-u, kao što su `.well-known`,
@@ -490,8 +537,14 @@ npm run lint
 npm run build
 ```
 
-Za CMS plugin postoje WP-CLI integracioni testovi po modulu. Pre produkcionog
-commerce izdanja obavezno se prolaze najmanje sledeći scenariji:
+Za CMS plugin postoje WP-CLI integracioni testovi po modulu
+(`wp eval-file wordpress/plugins/hse-headless/tests/<test>.php` u lokalnom
+WordPress-u). Svaki neuspešan assertion vraća grešku i ne-nula exit code; do
+verzije 0.36.0 testovi su neuspehe samo ispisivali kao upozorenja. Testovi
+menjaju bazu u kojoj rade, pa se pokreću samo lokalno. Na produkciji deploy
+plugina pokreće jedino kontakt REST test, koji ne šalje email.
+
+Pre produkcionog commerce izdanja obavezno se prolaze najmanje sledeći scenariji:
 
 1. uspešna kartica -> `completed` -> jedan Woo email -> BokaPOS račun;
 2. dupli/preklapajući RaiAccept callback -> bez duplog emaila ili fiskalizacije;

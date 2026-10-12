@@ -1,6 +1,8 @@
 # Implementation Plan: Task 12 Homepage 1:1 Crafto Reconstruction
 
-Status: Proposed — requires owner review before implementation
+Status: Historical — superseded. The homepage, CMS content model, commerce,
+contact, search and deployment were implemented later; see git history and
+`docs/technical-system-overview.sr.md`. This file is not the current backlog.
 Prepared: 2026-09-01
 
 ## Overview

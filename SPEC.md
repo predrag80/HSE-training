@@ -1,7 +1,7 @@
 # HSE Training Project Specification
 
 Status: Active production baseline
-Last reviewed: 2026-10-04
+Last reviewed: 2026-10-12
 
 ## Objective
 
@@ -580,7 +580,8 @@ must accompany application functionality as it is introduced.
 5. Which Unlimited.rs SMTP or authenticated mail-delivery configuration will
    the contact endpoint use, what anti-spam mechanism is acceptable, and is the
    default no-storage policy sufficient for submissions and logs?
-6. How should WordPress publishing trigger Astro content refresh or deployment?
+6. Resolved by ADR-014: a production CMS content change queues a debounced
+   `deploy-production.yml` build through the real server cron.
 7. What accessibility target, analytics, cookie-consent, and additional SEO
    requirements apply to the bilingual public launch?
 8. Which Crafto sections lack a valid mapping to approved HSE Training content,

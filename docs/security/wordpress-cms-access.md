@@ -23,6 +23,18 @@ before WooCommerce can render its Coming Soon page. A successful administrator
 logout returns to the maintained CMS login route with the standard logged-out
 confirmation instead of opening the disabled WordPress frontend.
 
+Anonymous REST requests cannot reach two surfaces that the public site never
+uses. Since `hse-headless` 0.36.0:
+
+- the WooCommerce Store API (`/wc/store/*`) returns 404, because its cart and
+  checkout would bypass the classic HSE checkout rules for consents, buyer
+  identification, locale, and source;
+- core user routes (`/wp/v2/users*`) return 401, so CMS account names are not
+  disclosed.
+
+Users with `manage_woocommerce` keep Store API access, and signed-in CMS users
+keep user lookups for the editor.
+
 ## Runtime Log Protection
 
 PHP, WordPress, WooCommerce, payment, and fiscalization logs must never be
@@ -136,6 +148,8 @@ After every CMS plugin deployment, verify:
 /                                      404
 /wp-json/                              200
 /wp-json/hse/v1/homepage               200
+/wp-json/wc/store/v1/products          404
+/wp-json/wp/v2/users (anonymous)       401
 /hse_panel/                            200
 /wp-login.php                          404
 /wp-admin/ (anonymous)                 302 to /404/, then 404

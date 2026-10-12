@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted — implemented in production (status reviewed 2026-10-12)
 
 ## Date
 

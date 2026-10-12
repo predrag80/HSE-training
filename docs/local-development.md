@@ -255,13 +255,14 @@ course pages are generated from the WordPress REST API, while NEBOSH courses
 with recognised `course_key` values use their dedicated Astro page designs.
 WordPress must therefore be reachable when creating a production build.
 
-## Deferred Work
+## Local Development Boundaries
 
-- Do not add a server adapter until a server endpoint requires one.
-- Implement server-side contact-form processing before enabling real public
-  submissions.
-- Define a production build trigger so published WordPress changes produce a
-  new static Astro deployment.
+- Do not add a server adapter until a server endpoint requires one. Contact
+  submissions are processed by the `hse-headless` REST endpoint, not by Astro.
+- Published production CMS changes already trigger a production build
+  (ADR-014); the local CMS never dispatches GitHub workflows.
+- Plugin integration tests (`wp eval-file .../tests/<test>.php`) change the
+  database they run in. Run them only against the local CMS.
 - Do not connect to production services or create production credentials.
 
 ## Official References

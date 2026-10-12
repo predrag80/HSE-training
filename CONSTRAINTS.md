@@ -1,7 +1,7 @@
 # HSE Training Project Constraints
 
 Status: Application quality tooling active; numerical gates expand with functional slices
-Last reviewed: 2026-10-01
+Last reviewed: 2026-10-12
 
 This file defines the minimum quality, security, architecture, and scope bar for
 all project work. It must be read with `AGENTS.md`, `SPEC.md`, and the ADRs before
@@ -191,6 +191,7 @@ These checks run today:
 | Astro types | Zero TypeScript/Astro errors | `npm --prefix apps/web run check` | application changes |
 | Astro lint | Zero configured lint errors | `npm --prefix apps/web run lint` | application changes |
 | Astro tests | Zero failing or skipped required tests | `npm --prefix apps/web run test` | application changes |
+| Plugin integration | Every check passes (non-zero exit on any failed assertion) | `wp eval-file` for each `wordpress/plugins/hse-headless/tests/*integration.php` in `~/Sites/hsetraining-cms` | CMS plugin changes |
 
 WordPress checksum verification is the current external check: its expected
 state comes from the official distribution rather than from project-authored

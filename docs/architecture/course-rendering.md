@@ -46,8 +46,8 @@ static host as a normal 404. Bespoke NEBOSH and Training routes require their ma
 
 If WordPress or its Course API is unavailable, the CMS client throws an
 explicit error and the build fails. The build does not publish an incomplete or
-empty Course site as a fallback. A later deployment task must decide how a
-WordPress publication triggers a new Astro build.
+empty Course site as a fallback. On production, a WordPress publication queues
+a new Astro build through the content deploy trigger defined in ADR-014.
 
 ## Content and identity
 

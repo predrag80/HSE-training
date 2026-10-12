@@ -45,13 +45,11 @@ secrets:
 | `UNLIMITED_SSH_PRIVATE_KEY` | Private half of the dedicated deployment key |
 | `UNLIMITED_SSH_KNOWN_HOSTS` | Verified host-key line for `[s83.unlimited.rs]:9780` |
 
-If an environment is protected with HTTP Basic Authentication, also add both
-optional secrets below. Leave both unset when the environment is public.
-
-| Optional secret | Purpose |
-|---|---|
-| `UNLIMITED_HTTP_AUTH_USER` | Username used by post-deployment smoke tests |
-| `UNLIMITED_HTTP_AUTH_PASSWORD` | Password used by post-deployment smoke tests |
+Production is public, so the workflow passes no HTTP authentication to its
+smoke tests. `scripts/deploy-astro-unlimited.sh` accepts
+`DEPLOY_HTTP_AUTH_USER` and `DEPLOY_HTTP_AUTH_PASSWORD` if a protected
+Unlimited environment is added later; that workflow must then map its own
+secrets to those variables.
 
 Never commit the private key, hosting password, or an unverified host key.
 Authorize only the matching public key in the Unlimited account.
@@ -114,8 +112,8 @@ content or the active frontend release.
 
 ### Production Turnstile secret
 
-Store `HSE_TURNSTILE_SECRET_KEY` as an encrypted secret in the GitHub
-`production` environment, then run the manual
+Store `HSE_TURNSTILE_SECRET_KEY` as an encrypted GitHub Actions secret, then
+run the manual
 `configure-production-turnstile.yml` workflow. It writes the secret and the
 fixed hostname/action policy to `/home/sbb22122/.hse-turnstile.php`, applies
 private permissions, connects that file to `wp-config.php`, and verifies the

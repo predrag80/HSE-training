@@ -52,6 +52,20 @@ Za build mora biti dostupan odgovarajući WordPress REST API. Nevalidan ili
 nepotpun obavezan CMS odgovor prekida build umesto objavljivanja nepotpune
 stranice.
 
+## Lokalna provera plugina
+
+Integracioni testovi `hse-headless` plugina rade nad lokalnim WordPress-om i
+menjaju njegovu bazu, pa se ne pokreću na produkciji:
+
+```sh
+cd ~/Sites/hsetraining-cms
+for test in ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/*integration.php; do
+  wp eval-file "$test" || break
+done
+```
+
+Svaki neuspešan assertion vraća grešku i ne-nula exit code.
+
 ## Deployment
 
 - Push Astro promena na `main` pokreće staging build i atomsku aktivaciju na
@@ -74,6 +88,7 @@ Dodatni detalji:
 - [Produkcioni i staging deployment](docs/deployment/unlimited.md)
 - [CMS editabilnost](docs/architecture/cms-editability.md)
 - [Kontakt forma i isporuka](docs/architecture/contact-delivery.md)
+- [Pretraga sajta](docs/architecture/site-search.md)
 - [WordPress bezbednosna granica](docs/security/wordpress-cms-access.md)
 - [Arhitektonske odluke](docs/adr/)
 
