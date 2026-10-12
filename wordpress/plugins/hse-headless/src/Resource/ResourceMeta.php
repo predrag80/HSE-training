@@ -21,6 +21,8 @@ final class ResourceMeta {
 	public const ATTACHMENT_ID = 'resource_attachment_id';
 	public const FEATURED      = 'resource_featured';
 
+	public const MAX_KEY_LENGTH = 80;
+
 	private const NONCE_ACTION = 'hse_save_resource_details';
 	private const NONCE_NAME   = 'hse_resource_details_nonce';
 	private const ERROR_QUERY  = 'hse_resource_error';
@@ -61,7 +63,7 @@ final class ResourceMeta {
 	public static function register_meta(): void {
 		ContentLocale::register_post_meta( ResourcePostType::POST_TYPE );
 		$definitions = array(
-			self::RESOURCE_KEY  => array( 'string', 'sanitize_key' ),
+			self::RESOURCE_KEY  => array( 'string', array( self::class, 'sanitize_resource_key' ) ),
 			self::TYPE          => array( 'string', array( self::class, 'sanitize_type' ) ),
 			self::SUMMARY       => array( 'string', 'sanitize_textarea_field' ),
 			self::TOPIC         => array( 'string', 'sanitize_text_field' ),
@@ -87,6 +89,64 @@ final class ResourceMeta {
 				)
 			);
 		}
+	}
+
+	/**
+	 * Normalize a key to the canonical public format the Astro build accepts:
+	 * lowercase ASCII letters and digits separated by single hyphens.
+	 */
+	public static function sanitize_resource_key( $value ): string {
+		if ( ! is_scalar( $value ) ) {
+			return '';
+		}
+
+		$value = strtolower( remove_accents( trim( (string) $value ) ) );
+		$value = trim( (string) preg_replace( '/[^a-z0-9]+/', '-', $value ), '-' );
+
+		return rtrim( substr( $value, 0, self::MAX_KEY_LENGTH ), '-' );
+	}
+
+	/** Derive a key from the title that no other Resource in the same language uses. */
+	public static function generate_unique_key( string $title, string $locale, int $post_id ): string {
+		$base = self::sanitize_resource_key( $title );
+		if ( '' === $base ) {
+			return '';
+		}
+
+		for ( $suffix = 1; $suffix <= 100; $suffix++ ) {
+			$ending    = 1 === $suffix ? '' : '-' . $suffix;
+			$candidate = rtrim( substr( $base, 0, self::MAX_KEY_LENGTH - strlen( $ending ) ), '-' ) . $ending;
+			if ( ! self::key_in_use( $candidate, $locale, $post_id ) ) {
+				return $candidate;
+			}
+		}
+
+		return rtrim( substr( $base, 0, self::MAX_KEY_LENGTH - strlen( '-' . $post_id ) ), '-' ) . '-' . $post_id;
+	}
+
+	/** Whether another non-trashed Resource in the locale already uses a key. */
+	private static function key_in_use( string $key, string $locale, int $exclude_id ): bool {
+		$matches = get_posts(
+			array(
+				'post_type'        => ResourcePostType::POST_TYPE,
+				'post_status'      => array( 'publish', 'future', 'draft', 'pending', 'private' ),
+				'post__not_in'     => array( $exclude_id ),
+				'fields'           => 'ids',
+				'numberposts'      => 1,
+				'no_found_rows'    => true,
+				'suppress_filters' => true,
+				'meta_query'       => array(
+					'relation' => 'AND',
+					array(
+						'key'   => self::RESOURCE_KEY,
+						'value' => $key,
+					),
+					ContentLocale::query_clause( $locale ),
+				),
+			)
+		);
+
+		return array() !== $matches;
 	}
 
 	/** Allow only known type values. */
@@ -129,8 +189,8 @@ final class ResourceMeta {
 		$file_name     = $attachment_id ? basename( (string) get_attached_file( $attachment_id ) ) : '';
 		?>
 		<p><label for="hse-resource-key"><strong><?php esc_html_e( 'Resource key', 'hse-headless' ); ?></strong></label><br>
-		<input class="widefat" id="hse-resource-key" name="hse_<?php echo esc_attr( self::RESOURCE_KEY ); ?>" type="text" value="<?php echo esc_attr( get_post_meta( $post->ID, self::RESOURCE_KEY, true ) ); ?>" required>
-		<span class="description"><?php esc_html_e( 'Use the same key for the English and Serbian versions.', 'hse-headless' ); ?></span></p>
+		<input class="widefat" id="hse-resource-key" maxlength="<?php echo esc_attr( (string) self::MAX_KEY_LENGTH ); ?>" name="hse_<?php echo esc_attr( self::RESOURCE_KEY ); ?>" placeholder="<?php esc_attr_e( 'Generated from the title', 'hse-headless' ); ?>" type="text" value="<?php echo esc_attr( get_post_meta( $post->ID, self::RESOURCE_KEY, true ) ); ?>">
+		<span class="description"><?php esc_html_e( 'Leave empty to generate it from the title when saving. Lowercase letters, digits and hyphens only; other characters are converted. To pair the English and Serbian versions, enter the same key in both.', 'hse-headless' ); ?></span></p>
 		<p><label for="hse-resource-type"><strong><?php esc_html_e( 'Resource type', 'hse-headless' ); ?></strong></label><br>
 		<select id="hse-resource-type" name="hse_<?php echo esc_attr( self::TYPE ); ?>">
 		<?php foreach ( self::types() as $value => $label ) : ?>
@@ -192,7 +252,6 @@ final class ResourceMeta {
 		}
 		ContentLocale::save_post_locale( $post_id );
 		$sanitizers = array(
-			self::RESOURCE_KEY  => 'sanitize_key',
 			self::TYPE          => array( self::class, 'sanitize_type' ),
 			self::SUMMARY       => 'sanitize_textarea_field',
 			self::TOPIC         => 'sanitize_text_field',
@@ -205,6 +264,14 @@ final class ResourceMeta {
 			update_post_meta( $post_id, $key, $value );
 		}
 		update_post_meta( $post_id, self::FEATURED, isset( $_POST[ 'hse_' . self::FEATURED ] ) );
+
+		$key = isset( $_POST[ 'hse_' . self::RESOURCE_KEY ] )
+			? self::sanitize_resource_key( wp_unslash( $_POST[ 'hse_' . self::RESOURCE_KEY ] ) )
+			: '';
+		if ( '' === $key ) {
+			$key = self::generate_unique_key( (string) $post->post_title, ContentLocale::get_post_locale( $post_id ), (int) $post_id );
+		}
+		update_post_meta( $post_id, self::RESOURCE_KEY, $key );
 
 		if ( 'publish' === $post->post_status && ! self::is_complete( $post_id ) ) {
 			self::$admin_error_code = 'hse_resource_incomplete';
@@ -224,8 +291,12 @@ final class ResourceMeta {
 
 		$post_id       = isset( $postarr['ID'] ) ? (int) $postarr['ID'] : 0;
 		$title         = trim( (string) ( $data['post_title'] ?? '' ) );
-		$key           = sanitize_key( self::posted_or_stored( self::RESOURCE_KEY, $post_id ) );
+		$key           = self::sanitize_resource_key( self::posted_or_stored( self::RESOURCE_KEY, $post_id ) );
 		$external_url  = esc_url_raw( self::posted_or_stored( self::EXTERNAL_URL, $post_id ) );
+		if ( '' === $key ) {
+			// An empty key is generated from the title when the editor form is saved.
+			$key = self::sanitize_resource_key( $title );
+		}
 		$attachment_id = absint( self::posted_or_stored( self::ATTACHMENT_ID, $post_id ) );
 
 		if ( '' === $title || '' === $key || ( '' === $external_url && 0 >= $attachment_id ) ) {
@@ -276,7 +347,7 @@ final class ResourceMeta {
 		if ( '' === trim( get_the_title( $post_id ) ) ) {
 			$missing[] = __( 'Title', 'hse-headless' );
 		}
-		if ( '' === sanitize_key( get_post_meta( $post_id, self::RESOURCE_KEY, true ) ) ) {
+		if ( '' === self::sanitize_resource_key( get_post_meta( $post_id, self::RESOURCE_KEY, true ) ) ) {
 			$missing[] = __( 'Resource key', 'hse-headless' );
 		}
 		$url           = esc_url_raw( get_post_meta( $post_id, self::EXTERNAL_URL, true ) );

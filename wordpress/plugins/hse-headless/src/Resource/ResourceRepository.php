@@ -33,7 +33,7 @@ final class ResourceRepository {
 
 		$resources = array();
 		foreach ( $posts as $post ) {
-			$key           = sanitize_key( get_post_meta( $post->ID, ResourceMeta::RESOURCE_KEY, true ) );
+			$key           = ResourceMeta::sanitize_resource_key( get_post_meta( $post->ID, ResourceMeta::RESOURCE_KEY, true ) );
 			$type          = ResourceMeta::sanitize_type( get_post_meta( $post->ID, ResourceMeta::TYPE, true ) );
 			$external_url  = esc_url_raw( get_post_meta( $post->ID, ResourceMeta::EXTERNAL_URL, true ) );
 			$attachment_id = absint( get_post_meta( $post->ID, ResourceMeta::ATTACHMENT_ID, true ) );

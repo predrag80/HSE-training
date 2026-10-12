@@ -149,6 +149,80 @@ try {
 	$serbian_data = ResourceRestController::get_resources( $serbian_request )->get_data();
 	hse_resource_test_assert( 'sr' === ( $serbian_data['locale'] ?? null ), 'Serbian response carries its locale.' );
 	hse_resource_test_assert( 1 === count( $serbian_data['resources'] ?? array() ), 'Serbian query returns only Serbian resources.' );
+
+	hse_resource_test_assert(
+		'risk-assessment-guide' === ResourceMeta::sanitize_resource_key( ' Risk_Assessment  Guide! ' )
+			&& 'dacki-csz-vodic' === ResourceMeta::sanitize_resource_key( 'Đački ČŠŽ vodič' )
+			&& '' === ResourceMeta::sanitize_resource_key( '--' )
+			&& ResourceMeta::MAX_KEY_LENGTH === strlen( ResourceMeta::sanitize_resource_key( str_repeat( 'a', 120 ) ) ),
+		'Resource keys are normalized to the canonical format the public build accepts.'
+	);
+
+	// Publish new Resources through the editor form, as an administrator does.
+	$original_user_id = get_current_user_id();
+	$administrators   = get_users(
+		array(
+			'role'   => 'administrator',
+			'number' => 1,
+			'fields' => 'ID',
+		)
+	);
+	wp_set_current_user( $administrators ? (int) $administrators[0] : 0 );
+	$meta_reflection = new ReflectionClass( ResourceMeta::class );
+	$publish_from_editor = static function ( string $title, string $locale, string $key = '' ) use ( $meta_reflection, &$created_ids ): int {
+		$post_id = wp_insert_post(
+			array(
+				'post_type'   => ResourcePostType::POST_TYPE,
+				'post_status' => 'auto-draft',
+				'post_title'  => 'Auto Draft',
+			)
+		);
+		$created_ids[] = $post_id;
+		$_POST = array(
+			$meta_reflection->getConstant( 'NONCE_NAME' ) => wp_create_nonce( $meta_reflection->getConstant( 'NONCE_ACTION' ) ),
+			'hse_content_locale'                          => $locale,
+			'hse_' . ResourceMeta::RESOURCE_KEY           => $key,
+			'hse_' . ResourceMeta::TYPE                   => 'link',
+			'hse_' . ResourceMeta::EXTERNAL_URL           => 'https://example.com/editor-resource',
+		);
+		wp_update_post(
+			array(
+				'ID'          => $post_id,
+				'post_status' => 'publish',
+				'post_title'  => $title,
+			)
+		);
+		$_POST = array();
+
+		return $post_id;
+	};
+
+	try {
+		$serbian_id   = $publish_from_editor( 'Probni srpski resurs', 'sr' );
+		$duplicate_id = $publish_from_editor( 'Probni srpski resurs', 'sr' );
+		$english_id   = $publish_from_editor( 'Probni srpski resurs', 'en' );
+		$manual_id    = $publish_from_editor( 'Manual key resource', 'en', 'Manual_Key  Resource!' );
+	} finally {
+		$_POST = array();
+		wp_set_current_user( $original_user_id );
+	}
+
+	hse_resource_test_assert(
+		'publish' === get_post_status( $serbian_id )
+			&& 'sr' === ContentLocale::get_post_locale( $serbian_id )
+			&& 'sr' === get_post_meta( $serbian_id, '_hse_locked_content_locale', true ),
+		'A new Resource published directly in Serbian keeps and locks the Serbian language.'
+	);
+	hse_resource_test_assert(
+		'probni-srpski-resurs' === get_post_meta( $serbian_id, ResourceMeta::RESOURCE_KEY, true )
+			&& 'probni-srpski-resurs-2' === get_post_meta( $duplicate_id, ResourceMeta::RESOURCE_KEY, true )
+			&& 'probni-srpski-resurs' === get_post_meta( $english_id, ResourceMeta::RESOURCE_KEY, true ),
+		'An empty key is generated from the title and made unique within its language.'
+	);
+	hse_resource_test_assert(
+		'manual-key-resource' === get_post_meta( $manual_id, ResourceMeta::RESOURCE_KEY, true ),
+		'A key entered by the editor is kept in canonical form.'
+	);
 } finally {
 	foreach ( $created_ids as $created_id ) {
 		wp_delete_post( $created_id, true );

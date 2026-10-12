@@ -200,8 +200,19 @@ wp eval-file ~/Development/HSE-training/wordpress/plugins/hse-headless/tests/ref
 
 Editors manage links, videos, documents, procedures, and standards through
 **Free Resources**. A resource can point to an external URL or to a file selected
-from the WordPress Media Library. English and Serbian entries use the same stable
-resource key and remain separate localized records.
+from the WordPress Media Library. English and Serbian entries are separate
+localized records; to pair them, give both the same resource key.
+
+Leaving **Resource key** empty generates it from the title when the Resource is
+saved. Serbian diacritics become ASCII letters, and `-2`, `-3`, and so on are
+added when another Resource in the same language already uses the key. Every
+key, generated or typed, is stored in the canonical format the public build
+accepts: lowercase letters and digits separated by single hyphens.
+
+The content language of every localized record type is locked after the
+editor's save completes (`wp_after_insert_post`). A new record published
+directly in Serbian therefore keeps Serbian; earlier versions locked it as
+English before the editor's choice was stored.
 
 ```text
 /wp-json/hse/v1/resources?lang=en
