@@ -369,7 +369,10 @@ so checkout and the gateway return use the same reviewed English or
 Serbian-Latin copy. It also stores the initiating `dev`, `staging`, or
 `production` source on
 the order so shared WooCommerce checkout notifications can use separate
-merchant recipients. Checkout and the order-received endpoint render inside a
+merchant recipients. A missing or unknown source falls back to the CMS
+installation's own environment (`HSE_MONITORING_ENVIRONMENT`, then the
+WordPress environment type), so a production order is never routed as a
+staging order; local installations fall back to `staging`. Checkout and the order-received endpoint render inside a
 plugin-owned, non-indexable HSE shell and use the classic Woo checkout renderer;
 WooCommerce and RaiAccept core files remain untouched. Confirmation copy comes
 from the Woo order status and does not treat a browser return as proof of
@@ -535,8 +538,8 @@ the plain-text template as a fallback. They use `HSE_COMMERCE_ADMIN_EMAIL` when 
 valid address and otherwise fall back to `info@hsetraining.rs`, so an imported
 WordPress administrator address cannot become the recipient. Orders initiated
 from the dev Astro build use `HSE_COMMERCE_DEV_ADMIN_EMAIL` when configured and
-otherwise fall back to `predo.vuckovic@gmail.com`; staging orders retain the
-standard merchant recipient. Customer order-status and BokaPOS receipt emails
+otherwise fall back to `predo.vuckovic@gmail.com`; staging orders use
+`HSE_COMMERCE_STAGING_ADMIN_EMAIL` with the same developer fallback. Customer order-status and BokaPOS receipt emails
 always retain the actual billing email address entered at checkout. After WordPress
 reports a successful send, the plugin stores only the customer notification
 identifier and UTC timestamp on the order as operational evidence.

@@ -132,9 +132,25 @@ hse_commerce_presentation_test_assert( 'sr' === CommerceLocale::sanitize( 'SR' )
 hse_commerce_presentation_test_assert(
 	'dev' === CommerceCheckoutSource::sanitize( 'DEV' )
 		&& 'production' === CommerceCheckoutSource::sanitize( 'PRODUCTION' )
-		&& 'staging' === CommerceCheckoutSource::sanitize( 'unexpected' ),
+		&& CommerceCheckoutSource::installation_source() === CommerceCheckoutSource::sanitize( 'unexpected' ),
 	'Checkout source accepts only dev, staging and production.'
 );
+if ( defined( 'HSE_MONITORING_ENVIRONMENT' ) ) {
+	WP_CLI::warning( 'Installation-source fallback checks skipped because HSE_MONITORING_ENVIRONMENT is defined.' );
+} else {
+	$original_monitoring_environment = getenv( 'HSE_MONITORING_ENVIRONMENT' );
+	putenv( 'HSE_MONITORING_ENVIRONMENT=production' );
+	$production_fallback = CommerceCheckoutSource::sanitize( 'unexpected' );
+	putenv( 'HSE_MONITORING_ENVIRONMENT=staging' );
+	$staging_fallback = CommerceCheckoutSource::sanitize( '' );
+	putenv( 'HSE_MONITORING_ENVIRONMENT=local' );
+	$local_fallback = CommerceCheckoutSource::installation_source();
+	putenv( false === $original_monitoring_environment ? 'HSE_MONITORING_ENVIRONMENT' : 'HSE_MONITORING_ENVIRONMENT=' . $original_monitoring_environment );
+	hse_commerce_presentation_test_assert(
+		'production' === $production_fallback && 'staging' === $staging_fallback && 'staging' === $local_fallback,
+		'A missing or unknown checkout source falls back to the CMS installation environment, and local installations to staging.'
+	);
+}
 hse_commerce_presentation_test_assert(
 	-11 === has_action( 'template_redirect', array( CommerceCheckoutSource::class, 'bootstrap_checkout_source' ) )
 		&& 19 === has_action( 'wp_loaded', array( CommerceCheckoutSource::class, 'bootstrap_checkout_ajax_source' ) ),

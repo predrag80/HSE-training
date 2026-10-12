@@ -7,6 +7,8 @@
 
 namespace HSETraining\Headless\Commerce;
 
+use HSETraining\Headless\Infrastructure\SentryReporter;
+
 defined( 'ABSPATH' ) || exit;
 
 /** Keeps the initiating Astro environment attached to the resulting order. */
@@ -25,7 +27,16 @@ final class CommerceCheckoutSource {
 	/** Accept only the public environments that share this checkout. */
 	public static function sanitize( $value ): string {
 		$value = strtolower( is_string( $value ) ? trim( $value ) : '' );
-		return in_array( $value, array( 'dev', 'staging', 'production' ), true ) ? $value : 'staging';
+		return in_array( $value, array( 'dev', 'staging', 'production' ), true ) ? $value : self::installation_source();
+	}
+
+	/**
+	 * Fall back to this CMS installation's own environment, so an order that
+	 * arrives without a source is never routed as another environment's order.
+	 */
+	public static function installation_source(): string {
+		$environment = SentryReporter::environment_name();
+		return in_array( $environment, array( 'dev', 'staging', 'production' ), true ) ? $environment : 'staging';
 	}
 
 	/** Save the initiating environment in the WooCommerce session. */
@@ -45,7 +56,7 @@ final class CommerceCheckoutSource {
 			return self::sanitize( WC()->session->get( self::SESSION_KEY ) );
 		}
 
-		return 'staging';
+		return self::installation_source();
 	}
 
 	/** Resolve the source before checkout, retry, and confirmation HTML is rendered. */
@@ -106,7 +117,7 @@ final class CommerceCheckoutSource {
 			}
 		}
 
-		return 'staging';
+		return self::installation_source();
 	}
 
 	/** Read source only from a valid order-received URL carrying the matching key. */
