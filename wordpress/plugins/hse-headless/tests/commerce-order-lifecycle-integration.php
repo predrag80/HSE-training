@@ -19,6 +19,12 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 global $failures;
 $failures = array();
 
+// These checks create and change real WooCommerce orders, and status changes
+// trigger WooCommerce notifications (for example "Order has failed" to the
+// store administrator). No message may leave this process, even when the
+// installation has working SMTP credentials.
+add_filter( 'pre_wp_mail', '__return_true', PHP_INT_MAX );
+
 /** Record a failed assertion while allowing all lifecycle checks to run. */
 function hse_commerce_order_lifecycle_test_assert( $condition, $message ) {
 	global $failures;

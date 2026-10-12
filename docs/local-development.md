@@ -262,7 +262,12 @@ WordPress must therefore be reachable when creating a production build.
 - Published production CMS changes already trigger a production build
   (ADR-014); the local CMS never dispatches GitHub workflows.
 - Plugin integration tests (`wp eval-file .../tests/<test>.php`) change the
-  database they run in. Run them only against the local CMS.
+  database they run in. Run them only against the local CMS. Tests that create
+  WooCommerce orders block all outgoing mail, because order status changes
+  trigger WooCommerce notifications to the store administrator.
+- Any SMTP credentials configured in the local `wp-config.php` deliver real
+  e-mail. Order actions performed by hand in the local admin can therefore
+  reach real mailboxes.
 - Do not connect to production services or create production credentials.
 
 ## Official References
