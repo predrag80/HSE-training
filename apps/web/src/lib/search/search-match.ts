@@ -13,6 +13,14 @@ export interface SearchEntry {
 	readonly external: boolean;
 }
 
+/**
+ * Static index URL per locale. It is a file, so unlike page routes it must not
+ * receive the trailing slash that page-path helpers add.
+ */
+export function getSearchIndexPath(locale: 'en' | 'sr'): string {
+	return locale === 'sr' ? '/sr/search-index.json' : '/search-index.json';
+}
+
 export const SEARCH_MIN_QUERY_LENGTH = 2;
 export const SEARCH_RESULT_LIMIT = 8;
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { findSearchResults, normalizeSearchText, parseSearchIndex, type SearchEntry } from './search-match';
+import { findSearchResults, getSearchIndexPath, normalizeSearchText, parseSearchIndex, type SearchEntry } from './search-match';
 
 function entry(overrides: Partial<SearchEntry>): SearchEntry {
 	return {
@@ -32,6 +32,11 @@ const resource = entry({
 const serbian = entry({ title: 'Bezbednost i zdravlje na radu', summary: 'Obuke za građevinarstvo i đake.', url: '/sr/' });
 
 describe('site search matching', () => {
+	it('points each locale at its static index file without a trailing slash', () => {
+		expect(getSearchIndexPath('en')).toBe('/search-index.json');
+		expect(getSearchIndexPath('sr')).toBe('/sr/search-index.json');
+	});
+
 	it('folds case, diacritics and đ so Serbian queries match without accents', () => {
 		expect(normalizeSearchText('  Građevinarstvo ČŠŽĆ  Đak ')).toBe('gradjevinarstvo cszc djak');
 		expect(findSearchResults([serbian], 'gradjevinarstvo')).toEqual([serbian]);

@@ -1,6 +1,6 @@
 ---
 import type { Locale } from '../../i18n/config';
-import { getLocalizedPath } from '../../i18n/routes';
+import { getSearchIndexPath } from '../../lib/search/search-match';
 
 interface Props {
 	locale: Locale;
@@ -40,7 +40,7 @@ const copy = locale === 'sr'
 			newTab: '(opens in a new tab)',
 		},
 	};
-const searchIndexUrl = getLocalizedPath('/search-index.json', locale);
+const searchIndexUrl = getSearchIndexPath(locale);
 ---
 
 <button
