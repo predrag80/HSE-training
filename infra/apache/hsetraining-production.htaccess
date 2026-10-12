@@ -32,9 +32,10 @@ DirectoryIndex index.html
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set X-Permitted-Cross-Domain-Policies "none"
 
-  # Pages, sitemaps and robots revalidate on every visit, so a CMS content
-  # deploy is visible immediately instead of after heuristic browser caching.
-  <FilesMatch "\.(?:html|xml|txt)$">
+  # Pages, sitemaps, robots and the search index revalidate on every visit, so
+  # a CMS content deploy is visible immediately instead of after heuristic
+  # browser caching.
+  <FilesMatch "\.(?:html|xml|txt|json)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
 
