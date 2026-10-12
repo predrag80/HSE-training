@@ -1,7 +1,7 @@
 # HSE Training Project Specification
 
 Status: Active production baseline
-Last reviewed: 2026-10-01
+Last reviewed: 2026-10-04
 
 ## Objective
 
@@ -193,10 +193,11 @@ RaiAccept hosted gateway   BokaPOS
   include returned line quantities that map to the original receipt.
 - Sends the official document through exactly one configured customer channel
   and retains enough delivery evidence for operational reconciliation.
-- A read-only, idempotent watchdog reports failed or delayed sale
-  fiscalization, fiscal refunds and fiscal-document e-mail delivery without
-  issuing or retrying a fiscal document. It uses an independent Sentry channel,
-  a privacy-bounded e-mail fallback and a real server cron heartbeat.
+- Fiscalization, fiscal refunds and fiscal-document e-mail delivery are
+  reconciled through the authoritative BokaPOS portal and notifications,
+  WooCommerce order evidence and private server logs. Custom Sentry fiscal
+  monitoring was removed by ADR-013 so Sentry remains limited to exceptional
+  production checkout and contact-form failures.
 
 ### External course delivery
 
