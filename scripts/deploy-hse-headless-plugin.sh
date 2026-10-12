@@ -33,6 +33,7 @@ wp --path="$wordpress_root" core is-installed
 
 work_dir=$(mktemp -d "$HOME/.hse-plugin-deploy.XXXXXX")
 backup_root="$HOME/.hse-plugin-backups"
+retained_backups=5
 backup_path="$backup_root/hse-headless-before-${expected_version}-$(date -u +%Y%m%d%H%M%S)"
 backup_created=0
 replacement_installed=0
@@ -70,6 +71,24 @@ cleanup() {
   exit "$status"
 }
 trap cleanup EXIT
+
+# Keep the newest plugin backups, including the one created by this run.
+prune_old_backups() {
+  local entry
+  local -a backups=()
+
+  for entry in "$backup_root"/hse-headless-before-*; do
+    if [[ -d "$entry" && ! -L "$entry" ]]; then
+      backups+=("$entry")
+    fi
+  done
+  (( ${#backups[@]} > retained_backups )) || return 0
+
+  ls -1dtc -- "${backups[@]}" | tail -n "+$((retained_backups + 1))" | while IFS= read -r entry; do
+    rm -rf -- "$entry"
+    echo "Removed old plugin backup: $entry"
+  done
+}
 
 unzip -q "$archive_path" -d "$work_dir"
 candidate="$work_dir/hse-headless"
@@ -112,3 +131,5 @@ wp --path="$wordpress_root" eval-file "$plugin_root/tests/contact-rest-integrati
 
 replacement_installed=0
 echo "HSE Headless $expected_version deployed successfully. Backup: $backup_path"
+# Pruning never fails a healthy deployment or triggers the rollback trap.
+prune_old_backups || echo "Warning: old plugin backups could not be pruned." >&2

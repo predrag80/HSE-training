@@ -461,8 +461,9 @@ ovaj server cron pouzdano radi.
 - WordPress, WooCommerce, RaiAccept i BokaPOS update se prvo proveravaju uz
   backup i staging regresiju.
 - Baza i uploads zahtevaju šifrovan off-site backup i periodični restore test.
-- Logove i rezervne Astro/plugin verzije treba periodično pregledati i čistiti
-  tek posle potvrđenog stabilnog izdanja.
+- Deploy skripte posle uspešnog izdanja automatski čuvaju samo pet najnovijih
+  Astro backup-a, pripremljenih release-ova i plugin backup-a; neuspešan deploy
+  ništa ne briše. Logove treba periodično pregledati.
 
 Repozitorijum sadrži proceduru za 2FA, ali njegov stvarni status mora da se
 proveri u produkcionom administratoru; to nije stanje koje Git može sam da dokaže.

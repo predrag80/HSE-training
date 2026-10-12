@@ -10,6 +10,7 @@ set -euo pipefail
 : "${SSH_PRIVATE_KEY_PATH:?SSH_PRIVATE_KEY_PATH is required}"
 
 SSH_PORT="${SSH_PORT:-22}"
+RETAINED_COPIES="${RETAINED_COPIES:-5}"
 RELEASE_ID="${GITHUB_SHA:-manual}-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}"
 REMOTE_BACKUP_ROOT=".hse-astro-backups/${DEPLOY_ENVIRONMENT}"
 REMOTE_BACKUP_PATH="${REMOTE_BACKUP_ROOT}/${RELEASE_ID}"
@@ -39,6 +40,13 @@ esac
 case "${SSH_PORT}" in
 	''|*[!0-9]*)
 		echo "SSH_PORT must be numeric." >&2
+		exit 1
+		;;
+esac
+
+case "${RETAINED_COPIES}" in
+	''|0|*[!0-9]*)
+		echo "RETAINED_COPIES must be a positive integer." >&2
 		exit 1
 		;;
 esac
@@ -75,6 +83,36 @@ if [[ "${DEPLOY_ENVIRONMENT}" != "production" ]]; then
 	preserved_paths+=(--exclude=.htaccess)
 fi
 
+# Keep only the newest RETAINED_COPIES directories under a fixed path in the
+# deployment account's home. Symlinks such as "latest" and their targets are
+# never removed, and only release-style directory names are considered.
+prune_remote_copies() {
+	ssh "${ssh_options[@]}" "${ssh_target}" bash -s -- "$1" "${RETAINED_COPIES}" <<'REMOTE'
+set -eu
+relative_root=$1
+keep=$2
+root="$HOME/$relative_root"
+[ -d "$root" ] || exit 0
+cd "$root"
+latest_target=$(readlink latest 2>/dev/null || true)
+
+set --
+for entry in */; do
+	entry=${entry%/}
+	[ -d "$entry" ] && [ ! -L "$entry" ] || continue
+	case "$entry" in ''|-*|*[!A-Za-z0-9.-]*) continue ;; esac
+	[ "$root/$entry" = "$latest_target" ] && continue
+	set -- "$@" "$entry"
+done
+[ "$#" -gt "$keep" ] || exit 0
+
+ls -1dtc -- "$@" | tail -n "+$((keep + 1))" | while IFS= read -r entry; do
+	rm -rf -- "$root/$entry"
+	echo "Removed old copy: $relative_root/$entry"
+done
+REMOTE
+}
+
 ssh "${ssh_options[@]}" "${ssh_target}" \
 	"command -v rsync >/dev/null && test -d '${DEPLOY_ROOT}' && test -w '${DEPLOY_ROOT}'"
 
@@ -103,6 +141,9 @@ if curl "${curl_options[@]}" "${DEPLOY_URL}/" \
 	&& curl "${curl_options[@]}" "${DEPLOY_URL}/contact/" \
 	&& curl "${curl_options[@]}" "${DEPLOY_URL}/resources/"; then
 	echo "${DEPLOY_ENVIRONMENT} deployment is healthy: ${RELEASE_ID}"
+	for copies in ".hse-astro-backups/${DEPLOY_ENVIRONMENT}" ".hse-astro-releases/${DEPLOY_ENVIRONMENT}"; do
+		prune_remote_copies "${copies}" || echo "Warning: old copies in ~/${copies} could not be pruned." >&2
+	done
 	exit 0
 fi
 

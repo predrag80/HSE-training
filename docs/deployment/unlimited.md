@@ -133,6 +133,7 @@ selected `production` revision, verifies its checksum and PHP syntax, moves the
 previous plugin to the private `~/.hse-plugin-backups/` directory, and runs the
 contact REST integration check without sending e-mail. Any failed activation,
 version check, or integration check restores the previous plugin directory.
+After a successful deployment only the five newest plugin backups are kept.
 
 Production activation is deliberately locked while the existing PHP website
 must remain online. The workflow changes `/home/sbb22122/public_html` only when
@@ -157,8 +158,11 @@ Fingerprinted files under `/_astro/` receive a one-year `immutable` policy from
 `_astro/.htaccess`.
 
 Server backups are stored outside the public document roots under
-`~/.hse-astro-backups/`. Review and prune old successful backups periodically
-after confirming the active release.
+`~/.hse-astro-backups/`. After a deployment passes its smoke tests, the script
+keeps only the five newest backups and the five newest prepared releases in
+`~/.hse-astro-releases/` (`RETAINED_COPIES`, default 5). The `latest` prepared
+release is never removed. A failed deployment prunes nothing, and a pruning
+error never fails a healthy deployment.
 
 ## Environment maintenance
 
