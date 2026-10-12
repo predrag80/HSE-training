@@ -543,9 +543,11 @@ review.
 Merchant new-order notifications use their own branded HTML
 and plain-text templates with customer identity, payment and transaction data,
 line items, total, checkout language and current order status (in Serbian).
-WooCommerce's failed-order merchant notification ("Neuspelo plaćanje #…") uses
-the same layout with a red failed-payment status and the same recipient
-routing. The plugin
+WooCommerce's failed-order ("Neuspelo plaćanje #…") and cancelled-order
+("Otkazana porudžbina #…") merchant notifications use the same layout with a
+red or grey status and the same recipient routing. Customer and merchant
+emails name the card and bank-transfer payment methods in the email's language
+instead of the title stored on the order. The plugin
 forces both branded message types to render
 with the HTML template and matching `text/html` MIME header, while retaining
 the plain-text template as a fallback. They use `HSE_COMMERCE_ADMIN_EMAIL` when it contains a

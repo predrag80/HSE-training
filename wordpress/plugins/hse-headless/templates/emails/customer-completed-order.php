@@ -19,7 +19,7 @@ $billing        = $order->get_formatted_billing_address();
 $billing_mail   = $order->get_billing_email();
 $billing_phone  = $order->get_billing_phone();
 $buyer_details  = CommercePresentation::order_buyer_details( $order, $locale );
-$payment_method = $order->get_payment_method_title();
+$payment_method = CommerceCustomerEmail::payment_method_label( $order, $locale );
 $price_args     = array( 'currency' => $currency );
 $item_names     = array();
 

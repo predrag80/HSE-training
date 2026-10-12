@@ -1,7 +1,7 @@
 <?php
 /**
  * Branded merchant notification for a new WooCommerce order. The failed-order
- * notification reuses this layout with `$merchant_variant = 'failed'`.
+ * and cancelled-order notifications reuse this layout through `$merchant_variant`.
  *
  * @package HSETraining\Headless
  */
@@ -11,7 +11,7 @@ use HSETraining\Headless\Commerce\CommercePresentation;
 
 defined( 'ABSPATH' ) || exit;
 
-$merchant_variant = isset( $merchant_variant ) && 'failed' === $merchant_variant ? 'failed' : 'new';
+$merchant_variant = isset( $merchant_variant ) && in_array( $merchant_variant, array( 'failed', 'cancelled' ), true ) ? $merchant_variant : 'new';
 $copy             = CommerceCustomerEmail::merchant_copy( $merchant_variant );
 $order_locale     = CommerceCustomerEmail::order_locale( $order );
 $created          = $order->get_date_created();
@@ -20,17 +20,20 @@ $billing          = $order->get_formatted_billing_address();
 $billing_mail     = $order->get_billing_email();
 $billing_phone    = $order->get_billing_phone();
 $buyer_details    = CommercePresentation::order_buyer_details( $order, 'sr' );
-$payment_method   = $order->get_payment_method_title();
+$payment_method   = CommerceCustomerEmail::payment_method_label( $order, 'sr' );
 $transaction_id   = $order->get_transaction_id();
 $price_args       = array( 'currency' => $order->get_currency() );
 $status           = CommerceCustomerEmail::merchant_status_label( $order );
 $is_paid          = $order->is_paid();
-$is_failed        = 'failed' === $merchant_variant;
-$status_label     = $is_failed ? $copy['payment_failed'] : ( $is_paid ? $copy['payment_confirmed'] : $copy['order_received'] );
-$status_bg        = $is_failed ? '#fdecea' : ( $is_paid ? '#e9f7f0' : '#fff4e5' );
-$status_border    = $is_failed ? '#f0b4ad' : ( $is_paid ? '#9fd9bd' : '#efc27a' );
-$status_color     = $is_failed ? '#a3261a' : ( $is_paid ? '#147a58' : '#9a5b00' );
-$status_icon      = $is_failed ? '✕' : '✓';
+if ( 'failed' === $merchant_variant ) {
+	list( $status_label, $status_bg, $status_border, $status_color, $status_icon ) = array( $copy['payment_failed'], '#fdecea', '#f0b4ad', '#a3261a', '✕' );
+} elseif ( 'cancelled' === $merchant_variant ) {
+	list( $status_label, $status_bg, $status_border, $status_color, $status_icon ) = array( $copy['order_cancelled'], '#eef1f4', '#c4ccd5', '#46525f', '✕' );
+} elseif ( $is_paid ) {
+	list( $status_label, $status_bg, $status_border, $status_color, $status_icon ) = array( $copy['payment_confirmed'], '#e9f7f0', '#9fd9bd', '#147a58', '✓' );
+} else {
+	list( $status_label, $status_bg, $status_border, $status_color, $status_icon ) = array( $copy['order_received'], '#fff4e5', '#efc27a', '#9a5b00', '✓' );
+}
 $language_label   = 'sr' === $order_locale ? $copy['language_sr'] : $copy['language_en'];
 ?>
 <!doctype html>

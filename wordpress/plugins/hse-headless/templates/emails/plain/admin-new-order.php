@@ -1,7 +1,7 @@
 <?php
 /**
  * Plain-text merchant notification for a new WooCommerce order. The
- * failed-order notification reuses it with `$merchant_variant = 'failed'`.
+ * failed- and cancelled-order notifications reuse it through `$merchant_variant`.
  *
  * @package HSETraining\Headless
  */
@@ -11,14 +11,14 @@ use HSETraining\Headless\Commerce\CommercePresentation;
 
 defined( 'ABSPATH' ) || exit;
 
-$merchant_variant = isset( $merchant_variant ) && 'failed' === $merchant_variant ? 'failed' : 'new';
+$merchant_variant = isset( $merchant_variant ) && in_array( $merchant_variant, array( 'failed', 'cancelled' ), true ) ? $merchant_variant : 'new';
 $copy             = CommerceCustomerEmail::merchant_copy( $merchant_variant );
 $order_locale     = CommerceCustomerEmail::order_locale( $order );
 $created          = $order->get_date_created();
 $order_date       = $created ? $created->date_i18n( 'd.m.Y. H:i' ) : '';
 $billing          = trim( wp_strip_all_tags( str_replace( '<br/>', "\n", $order->get_formatted_billing_address() ) ) );
 $buyer_details    = CommercePresentation::order_buyer_details( $order, 'sr' );
-$payment_method   = $order->get_payment_method_title();
+$payment_method   = CommerceCustomerEmail::payment_method_label( $order, 'sr' );
 $transaction_id   = $order->get_transaction_id();
 $price_args       = array( 'currency' => $order->get_currency() );
 $status           = CommerceCustomerEmail::merchant_status_label( $order );
@@ -66,6 +66,8 @@ echo "\n" . esc_html( $copy['subtotal'] ) . ': ' . esc_html( wp_strip_all_tags( 
 echo esc_html( $copy['total'] ) . ': ' . esc_html( wp_strip_all_tags( $order->get_formatted_order_total() ) ) . "\n\n";
 if ( 'failed' === $merchant_variant ) {
 	echo esc_html( $copy['payment_failed'] ) . "\n";
+} elseif ( 'cancelled' === $merchant_variant ) {
+	echo esc_html( $copy['order_cancelled'] ) . "\n";
 } else {
 	echo esc_html( $order->is_paid() ? $copy['payment_confirmed'] : $copy['order_received'] ) . "\n";
 }

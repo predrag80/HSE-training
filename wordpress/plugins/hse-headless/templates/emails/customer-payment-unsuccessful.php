@@ -18,7 +18,7 @@ $created       = $order->get_date_created();
 $order_date    = $created ? $created->date_i18n( 'sr' === $locale ? 'd.m.Y.' : 'j F Y' ) : '';
 $price_args    = array( 'currency' => $order->get_currency() );
 $intro         = sprintf( $copy['intro'], $order->get_order_number() );
-$payment_title = $order->get_payment_method_title();
+$payment_title = CommerceCustomerEmail::payment_method_label( $order, $locale );
 $retry_url     = '';
 
 if ( ! $cancelled && method_exists( $order, 'get_checkout_payment_url' ) ) {

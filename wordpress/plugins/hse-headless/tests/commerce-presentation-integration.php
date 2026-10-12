@@ -815,6 +815,34 @@ if ( is_wp_error( $email_order ) ) {
 				&& false !== strpos( $failed_html, '<!--[if mso]>' ),
 			'The Serbian failed-payment email renders the branded retry guidance and secure payment link.'
 		);
+
+		$email_order->update_meta_data( CommerceLocale::ORDER_META, 'en' );
+		$failed_html_en = wc_get_template_html(
+			'emails/customer-failed-order.php',
+			array(
+				'order'              => $email_order,
+				'email_heading'      => CommerceCustomerEmail::failed_order_heading( '', $email_order ),
+				'additional_content' => '',
+				'sent_to_admin'      => false,
+				'plain_text'         => false,
+				'email'              => $failed_email,
+			)
+		);
+		$failed_subject_en = CommerceCustomerEmail::failed_order_subject( 'Fallback', $email_order );
+		$email_order->update_meta_data( CommerceLocale::ORDER_META, 'sr' );
+		hse_commerce_presentation_test_assert(
+			false !== strpos( $failed_html, 'Direktna uplata na račun' )
+				&& false !== strpos( $failed_html_en, 'Your payment was not completed' )
+				&& false !== strpos( $failed_html_en, 'PAYMENT DECLINED' )
+				&& false !== strpos( $failed_html_en, 'Review and retry payment' )
+				&& false !== strpos( $failed_html_en, 'Direct bank transfer' )
+				&& false !== strpos( $failed_html_en, 'lang=en' )
+				&& false === strpos( $failed_html_en, 'PLAĆANJE ODBIJENO' )
+				&& false === strpos( $failed_html_en, 'Direktna uplata' )
+				&& 0 === strpos( $failed_subject_en, 'Payment failed for order #' )
+				&& 0 === strpos( CommerceCustomerEmail::failed_order_subject( 'Fallback', $email_order ), 'Plaćanje nije uspelo za porudžbinu #' ),
+			'The customer failed-payment email, subject and payment method follow the checkout language.'
+		);
 	} else {
 		hse_commerce_presentation_test_assert( false, 'WooCommerce failed-order email is available for branded rendering.' );
 	}
@@ -886,6 +914,59 @@ if ( is_wp_error( $email_order ) ) {
 	} else {
 		hse_commerce_presentation_test_assert( false, 'WooCommerce failed-order merchant email is available for rendering.' );
 	}
+
+	$cancelled_merchant_email = WC()->mailer()->get_emails()['WC_Email_Cancelled_Order'] ?? null;
+	if ( $cancelled_merchant_email ) {
+		$cancelled_merchant_args = array(
+			'order'              => $email_order,
+			'email_heading'      => CommerceCustomerEmail::merchant_cancelled_order_heading( '', $email_order ),
+			'additional_content' => '',
+			'sent_to_admin'      => true,
+			'plain_text'         => false,
+			'email'              => $cancelled_merchant_email,
+		);
+		$cancelled_merchant_html = wc_get_template_html( 'emails/admin-cancelled-order.php', $cancelled_merchant_args );
+		$cancelled_merchant_text = wc_get_template_html( 'emails/plain/admin-cancelled-order.php', array_merge( $cancelled_merchant_args, array( 'plain_text' => true ) ) );
+		hse_commerce_presentation_test_assert(
+			false !== strpos( $cancelled_merchant_html, 'Porudžbina je otkazana' )
+				&& false !== strpos( $cancelled_merchant_html, '✕ PORUDŽBINA OTKAZANA' )
+				&& false !== strpos( $cancelled_merchant_html, 'Podaci kupca' )
+				&& false !== strpos( $cancelled_merchant_html, '<!doctype html>' )
+				&& false === strpos( $cancelled_merchant_html, 'PLAĆANJE NIJE USPELO' )
+				&& false === strpos( $cancelled_merchant_html, 'PORUDŽBINA PRIMLJENA' )
+				&& false !== strpos( $cancelled_merchant_text, 'PORUDŽBINA OTKAZANA' )
+				&& false === strpos( $cancelled_merchant_text, '<table' ),
+			'The cancelled-order merchant email renders the branded layout in HTML and plain text.'
+		);
+		hse_commerce_presentation_test_assert(
+			'Otkazana porudžbina #' . $email_order->get_order_number() . ' - HSE Training' === CommerceCustomerEmail::merchant_cancelled_order_subject( 'Fallback', $email_order )
+				&& 'Otkazana porudžbina' === CommerceCustomerEmail::merchant_cancelled_order_heading( 'Fallback', $email_order )
+				&& 20 === has_filter( 'woocommerce_email_recipient_cancelled_order', array( CommerceCustomerEmail::class, 'new_order_recipient' ) )
+				&& 'html' === CommerceCustomerEmail::force_branded_email_type( 'plain', (object) array( 'id' => 'cancelled_order' ), 'plain', 'email_type' )
+				&& false !== strpos(
+					CommerceCustomerEmail::locate_completed_order_template( '', 'emails/plain/admin-cancelled-order.php' ),
+					'hse-headless/templates/emails/plain/admin-cancelled-order.php'
+				),
+			'Cancelled-order merchant emails use the plugin template, subject, HTML format and merchant recipient routing.'
+		);
+	} else {
+		hse_commerce_presentation_test_assert( false, 'WooCommerce cancelled-order merchant email is available for rendering.' );
+	}
+	$payment_method_before_label_check = $email_order->get_payment_method();
+	$bank_labels = array( CommerceCustomerEmail::payment_method_label( $email_order, 'en' ), CommerceCustomerEmail::payment_method_label( $email_order, 'sr' ) );
+	$email_order->set_payment_method( 'raiaccept' );
+	$email_order->set_payment_method_title( 'Stored gateway title' );
+	$card_labels = array( CommerceCustomerEmail::payment_method_label( $email_order, 'en' ), CommerceCustomerEmail::payment_method_label( $email_order, 'sr' ) );
+	$email_order->set_payment_method( 'other_gateway' );
+	$other_label = CommerceCustomerEmail::payment_method_label( $email_order, 'sr' );
+	$email_order->set_payment_method( $payment_method_before_label_check );
+	hse_commerce_presentation_test_assert(
+		array( 'Direct bank transfer', 'Direktna uplata na račun' ) === $bank_labels
+			&& array( 'Card payment', 'Plaćanje karticom' ) === $card_labels
+			&& 'Stored gateway title' === $other_label,
+		'Order emails name known payment methods in the email language and keep stored titles for other gateways.'
+	);
+
 	$status_before_label_check = $email_order->get_status();
 	$email_order->set_status( 'failed' );
 	$failed_status_label = CommerceCustomerEmail::merchant_status_label( $email_order );

@@ -15,7 +15,7 @@ $copy           = CommerceCustomerEmail::receipt_copy( $locale );
 $created        = $order->get_date_created();
 $order_date     = $created ? $created->date_i18n( 'sr' === $locale ? 'd.m.Y.' : 'j F Y' ) : '';
 $billing        = trim( wp_strip_all_tags( str_replace( '<br/>', "\n", $order->get_formatted_billing_address() ) ) );
-$payment_method = $order->get_payment_method_title();
+$payment_method = CommerceCustomerEmail::payment_method_label( $order, $locale );
 $price_args     = array( 'currency' => $order->get_currency() );
 $buyer_details  = CommercePresentation::order_buyer_details( $order, $locale );
 $item_names     = array();
