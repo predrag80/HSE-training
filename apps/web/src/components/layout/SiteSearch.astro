@@ -1,6 +1,6 @@
 ---
 import type { Locale } from '../../i18n/config';
-import { getAvailablePublicPath } from '../../i18n/routes';
+import { getLocalizedPath } from '../../i18n/routes';
 
 interface Props {
 	locale: Locale;
@@ -14,6 +14,15 @@ const copy = locale === 'sr'
 		question: 'Šta tražite?',
 		placeholder: 'Unesite ključne reči...',
 		submit: 'Pokreni pretragu',
+		results: {
+			kinds: { page: 'Stranica', course: 'Kurs', training: 'Obuka', service: 'Usluga', resource: 'Resurs' },
+			loading: 'Učitavanje pretrage...',
+			unavailable: 'Pretraga trenutno nije dostupna. Pokušajte ponovo kasnije.',
+			noResults: 'Nema rezultata za „{query}”.',
+			countOne: '{count} rezultat',
+			countOther: '{count} rezultata',
+			newTab: '(otvara se u novom tabu)',
+		},
 	}
 	: {
 		open: 'Open site search',
@@ -21,7 +30,17 @@ const copy = locale === 'sr'
 		question: 'What are you looking for?',
 		placeholder: 'Enter your keywords...',
 		submit: 'Submit search',
+		results: {
+			kinds: { page: 'Page', course: 'Course', training: 'Training', service: 'Service', resource: 'Resource' },
+			loading: 'Loading search...',
+			unavailable: 'Search is temporarily unavailable. Please try again later.',
+			noResults: 'No results for “{query}”.',
+			countOne: '{count} result',
+			countOther: '{count} results',
+			newTab: '(opens in a new tab)',
+		},
 	};
+const searchIndexUrl = getLocalizedPath('/search-index.json', locale);
 ---
 
 <button
@@ -42,13 +61,15 @@ const copy = locale === 'sr'
 	id="site-search-dialog"
 	aria-labelledby="site-search-title"
 	data-search-dialog
+	data-search-index={searchIndexUrl}
+	data-search-copy={JSON.stringify(copy.results)}
 >
 	<div class="site-search-dialog__inner">
 		<button class="site-search-dialog__close" type="button" aria-label={copy.close} data-search-close>
 			<span aria-hidden="true">×</span>
 		</button>
 
-		<form class="site-search-form" action={getAvailablePublicPath('/courses/', locale)} method="get" role="search">
+		<form class="site-search-form" role="search" data-search-form>
 			<label class="site-search-form__label" id="site-search-title" for="site-search-query">
 				{copy.question}
 			</label>
@@ -59,6 +80,7 @@ const copy = locale === 'sr'
 					type="search"
 					placeholder={copy.placeholder}
 					autocomplete="off"
+					aria-describedby="site-search-status"
 					required
 					data-search-input
 				/>
@@ -68,11 +90,61 @@ const copy = locale === 'sr'
 					</svg>
 				</button>
 			</div>
+			<p class="site-search-status" id="site-search-status" role="status" data-search-status></p>
+			<ul class="site-search-results" data-search-results hidden></ul>
 		</form>
 	</div>
 </dialog>
 
 <script>
+	import {
+		findSearchResults,
+		normalizeSearchText,
+		parseSearchIndex,
+		SEARCH_MIN_QUERY_LENGTH,
+		type SearchEntry,
+		type SearchEntryKind,
+	} from '../../lib/search/search-match';
+
+	interface SearchCopy {
+		readonly kinds: Readonly<Record<SearchEntryKind, string>>;
+		readonly loading: string;
+		readonly unavailable: string;
+		readonly noResults: string;
+		readonly countOne: string;
+		readonly countOther: string;
+		readonly newTab: string;
+	}
+
+	function createResultItem(entry: SearchEntry, copy: SearchCopy): HTMLLIElement {
+		const item = document.createElement('li');
+		const link = document.createElement('a');
+		link.className = 'site-search-result';
+		link.href = entry.url;
+		if (entry.external) {
+			link.target = '_blank';
+			link.rel = 'noreferrer';
+		}
+
+		const parts: [string, string][] = [
+			['site-search-result__kind', copy.kinds[entry.kind]],
+			['site-search-result__title', entry.title],
+			['site-search-result__summary', entry.summary],
+		];
+		if (entry.external) parts.push(['site-search-result__hint', copy.newTab]);
+
+		for (const [className, text] of parts) {
+			if (!text) continue;
+			const span = document.createElement('span');
+			span.className = className;
+			span.textContent = text;
+			link.append(span);
+		}
+
+		item.append(link);
+		return item;
+	}
+
 	document.querySelectorAll<HTMLDialogElement>('[data-search-dialog]').forEach((dialog) => {
 		if (dialog.dataset.searchReady === 'true') return;
 
@@ -80,10 +152,93 @@ const copy = locale === 'sr'
 		const closeButton = dialog.querySelector<HTMLButtonElement>('[data-search-close]');
 		const input = dialog.querySelector<HTMLInputElement>('[data-search-input]');
 		const panel = dialog.querySelector<HTMLElement>('.site-search-dialog__inner');
-		if (!button || !closeButton || !input || !panel) return;
+		const form = dialog.querySelector<HTMLFormElement>('[data-search-form]');
+		const status = dialog.querySelector<HTMLElement>('[data-search-status]');
+		const resultList = dialog.querySelector<HTMLUListElement>('[data-search-results]');
+		const indexUrl = dialog.dataset.searchIndex;
+		if (!button || !closeButton || !input || !panel || !form || !status || !resultList || !indexUrl) return;
 
 		dialog.dataset.searchReady = 'true';
+		const copy = JSON.parse(dialog.dataset.searchCopy ?? '{}') as SearchCopy;
 		let closeFallback: number | undefined;
+		let indexRequest: Promise<SearchEntry[]> | undefined;
+		let renderSequence = 0;
+
+		const loadIndex = (): Promise<SearchEntry[]> => {
+			indexRequest ??= fetch(indexUrl, { headers: { Accept: 'application/json' } })
+				.then((response) => {
+					if (!response.ok) throw new Error(`Search index request failed with HTTP ${response.status}.`);
+					return response.json() as Promise<unknown>;
+				})
+				.then(parseSearchIndex)
+				.catch((error: unknown) => {
+					indexRequest = undefined;
+					throw error;
+				});
+
+			return indexRequest;
+		};
+
+		const showResults = (results: readonly SearchEntry[], query: string) => {
+			resultList.replaceChildren(...results.map((entry) => createResultItem(entry, copy)));
+			resultList.hidden = results.length === 0;
+			status.textContent = results.length === 0
+				? copy.noResults.replace('{query}', query.trim())
+				: (results.length === 1 ? copy.countOne : copy.countOther).replace('{count}', String(results.length));
+		};
+
+		const clearResults = () => {
+			resultList.replaceChildren();
+			resultList.hidden = true;
+			status.textContent = '';
+		};
+
+		const renderResults = () => {
+			const sequence = ++renderSequence;
+			const query = input.value;
+			if (normalizeSearchText(query).length < SEARCH_MIN_QUERY_LENGTH) {
+				clearResults();
+				return;
+			}
+
+			if (!indexRequest) status.textContent = copy.loading;
+			loadIndex()
+				.then((entries) => {
+					if (sequence === renderSequence) showResults(findSearchResults(entries, query), query);
+				})
+				.catch(() => {
+					if (sequence !== renderSequence) return;
+					resultList.replaceChildren();
+					resultList.hidden = true;
+					status.textContent = copy.unavailable;
+				});
+		};
+
+		const resultLinks = () => Array.from(resultList.querySelectorAll<HTMLAnchorElement>('a'));
+
+		input.addEventListener('input', renderResults);
+		input.addEventListener('keydown', (event) => {
+			if (event.key !== 'ArrowDown') return;
+			const [first] = resultLinks();
+			if (!first) return;
+			event.preventDefault();
+			first.focus();
+		});
+		resultList.addEventListener('keydown', (event) => {
+			if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+			const links = resultLinks();
+			const index = links.indexOf(document.activeElement as HTMLAnchorElement);
+			if (index === -1) return;
+
+			event.preventDefault();
+			const next = event.key === 'ArrowDown' ? links[index + 1] : links[index - 1];
+			(next ?? (event.key === 'ArrowUp' ? input : links[index])).focus();
+		});
+		form.addEventListener('submit', (event) => {
+			event.preventDefault();
+			const [first] = resultLinks();
+			if (first) first.click();
+		});
 
 		const finishClose = () => {
 			if (closeFallback !== undefined) window.clearTimeout(closeFallback);
@@ -105,6 +260,7 @@ const copy = locale === 'sr'
 			dialog.showModal();
 			button.setAttribute('aria-expanded', 'true');
 			requestAnimationFrame(() => input.focus());
+			loadIndex().catch(() => undefined);
 		});
 
 		closeButton.addEventListener('click', closeSearch);
@@ -119,6 +275,9 @@ const copy = locale === 'sr'
 			if (closeFallback !== undefined) window.clearTimeout(closeFallback);
 			closeFallback = undefined;
 			delete dialog.dataset.closing;
+			renderSequence += 1;
+			input.value = '';
+			clearResults();
 			button.setAttribute('aria-expanded', 'false');
 			button.focus();
 		});
@@ -185,9 +344,11 @@ const copy = locale === 'sr'
 	.site-search-dialog__inner {
 		position: relative;
 		display: grid;
-		height: min(28.125rem, 100dvh);
+		min-height: min(28.125rem, 100dvh);
+		max-height: 100dvh;
 		place-items: center;
 		padding: var(--space-8) var(--container-gutter);
+		overflow-y: auto;
 		background: var(--color-surface);
 		will-change: opacity, transform;
 		animation: site-search-panel-in 600ms ease both;
@@ -272,6 +433,78 @@ const copy = locale === 'sr'
 
 	.site-search-form input::-webkit-search-cancel-button {
 		display: none;
+	}
+
+	.site-search-status {
+		margin: 1.25rem 0 0;
+		color: var(--color-text-muted);
+		font-size: 0.9375rem;
+		line-height: 1.6;
+	}
+
+	.site-search-status:empty {
+		display: none;
+	}
+
+	.site-search-results {
+		display: grid;
+		margin: 0.5rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.site-search-results[hidden] {
+		display: none;
+	}
+
+	.site-search-results :global(.site-search-result) {
+		display: grid;
+		gap: 0.25rem;
+		padding: 1rem 0;
+		color: var(--color-ink);
+		text-decoration: none;
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.site-search-results :global(.site-search-result__kind) {
+		color: var(--color-accent-action);
+		font-size: 0.75rem;
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: 0.05em;
+		line-height: 1.4;
+		text-transform: uppercase;
+	}
+
+	.site-search-results :global(.site-search-result__title) {
+		font-size: 1.125rem;
+		font-weight: var(--font-weight-semibold);
+		line-height: 1.4;
+		transition: color 300ms ease-in-out;
+	}
+
+	.site-search-results :global(.site-search-result:hover .site-search-result__title),
+	.site-search-results :global(.site-search-result:focus-visible .site-search-result__title) {
+		color: var(--color-accent-action);
+	}
+
+	.site-search-results :global(.site-search-result__summary) {
+		display: -webkit-box;
+		overflow: hidden;
+		color: var(--color-text-muted);
+		font-size: 0.9375rem;
+		line-height: 1.6;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+	}
+
+	.site-search-results :global(.site-search-result__hint) {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
 	}
 
 	@media (min-width: 48rem) {
