@@ -36,15 +36,20 @@ hse_content_deploy_test_assert(
 hse_content_deploy_test_assert(
 	ContentDeployTrigger::is_public_content_post_type( 'hero_slide' )
 		&& ContentDeployTrigger::is_public_content_post_type( 'course' )
-		&& ContentDeployTrigger::is_public_content_post_type( 'attachment' )
+		&& ! ContentDeployTrigger::is_public_content_post_type( 'attachment' )
 		&& ! ContentDeployTrigger::is_public_content_post_type( 'shop_order' ),
-	'Only editorial post types and media trigger public rebuilds.'
+	'Only editorial post types trigger public rebuilds through post saves.'
 );
 hse_content_deploy_test_assert(
 	ContentDeployTrigger::should_queue_post_save( new WP_Post( (object) array( 'post_type' => 'hse_resource', 'post_status' => 'publish' ) ) )
-		&& ContentDeployTrigger::should_queue_post_save( new WP_Post( (object) array( 'post_type' => 'attachment', 'post_status' => 'inherit' ) ) )
 		&& ! ContentDeployTrigger::should_queue_post_save( new WP_Post( (object) array( 'post_type' => 'hse_resource', 'post_status' => 'draft' ) ) ),
-	'Draft editorial saves do not queue public rebuilds, while published content and Media Library files do.'
+	'Draft editorial saves do not queue public rebuilds, while published content does.'
+);
+hse_content_deploy_test_assert(
+	100 === has_action( 'added_option', array( ContentDeployTrigger::class, 'handle_option_add' ) )
+		&& 100 === has_action( 'edit_attachment', array( ContentDeployTrigger::class, 'handle_attachment_edit' ) )
+		&& false === has_action( 'add_attachment', array( ContentDeployTrigger::class, 'handle_attachment_edit' ) ),
+	'First settings saves and Media Library edits queue rebuilds, while new uploads do not.'
 );
 hse_content_deploy_test_assert(
 	ContentDeployTrigger::is_public_content_option( 'hse_company_page_en' )
@@ -75,6 +80,20 @@ $http_filter = static function ( $preempt, $args, $url ) use ( &$captured_reques
 	);
 };
 
+/** Allow another queue in this request and report whether a WordPress action queued a build. */
+function hse_content_deploy_test_queues( callable $action ): bool {
+	$queued_in_request = new ReflectionProperty( ContentDeployTrigger::class, 'queued_in_request' );
+	$queued_in_request->setAccessible( true );
+	$queued_in_request->setValue( null, false );
+	wp_clear_scheduled_hook( ContentDeployTrigger::CRON_HOOK );
+
+	$action();
+
+	$queued = false !== wp_next_scheduled( ContentDeployTrigger::CRON_HOOK );
+	wp_clear_scheduled_hook( ContentDeployTrigger::CRON_HOOK );
+	return $queued;
+}
+
 add_filter( 'hse_content_deploy_configuration', $configuration_filter );
 wp_clear_scheduled_hook( ContentDeployTrigger::CRON_HOOK );
 ContentDeployTrigger::queue();
@@ -83,6 +102,50 @@ hse_content_deploy_test_assert(
 	'An editorial change queues one delayed production build.'
 );
 wp_clear_scheduled_hook( ContentDeployTrigger::CRON_HOOK );
+
+$probe_option = 'hse_legal_page_deploy_probe_en';
+delete_option( $probe_option );
+hse_content_deploy_test_assert(
+	hse_content_deploy_test_queues(
+		static function () use ( $probe_option ) {
+			update_option( $probe_option, array( 'title' => 'Probe' ), false );
+		}
+	),
+	'The first save of a public settings document queues a production build.'
+);
+delete_option( $probe_option );
+
+$probe_attachment_id = 0;
+hse_content_deploy_test_assert(
+	! hse_content_deploy_test_queues(
+		static function () use ( &$probe_attachment_id ) {
+			$probe_attachment_id = wp_insert_attachment(
+				array(
+					'post_title'     => 'HSE deploy probe',
+					'post_mime_type' => 'image/png',
+					'post_status'    => 'inherit',
+				)
+			);
+		}
+	),
+	'A new Media Library upload alone does not queue a production build.'
+);
+hse_content_deploy_test_assert(
+	$probe_attachment_id > 0 && hse_content_deploy_test_queues(
+		static function () use ( $probe_attachment_id ) {
+			wp_update_post(
+				array(
+					'ID'         => $probe_attachment_id,
+					'post_title' => 'HSE deploy probe edited',
+				)
+			);
+		}
+	),
+	'Editing an existing Media Library item queues a production build.'
+);
+if ( $probe_attachment_id > 0 ) {
+	wp_delete_attachment( $probe_attachment_id, true );
+}
 
 add_filter( 'pre_http_request', $http_filter, 10, 3 );
 ContentDeployTrigger::dispatch();

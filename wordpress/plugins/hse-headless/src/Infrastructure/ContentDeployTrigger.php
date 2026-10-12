@@ -33,6 +33,8 @@ final class ContentDeployTrigger {
 		add_action( 'save_post', array( self::class, 'handle_post_save' ), 100, 3 );
 		add_action( 'transition_post_status', array( self::class, 'handle_status_transition' ), 100, 3 );
 		add_action( 'updated_option', array( self::class, 'handle_option_update' ), 100, 3 );
+		add_action( 'added_option', array( self::class, 'handle_option_add' ), 100, 2 );
+		add_action( 'edit_attachment', array( self::class, 'handle_attachment_edit' ), 100, 1 );
 		add_action( self::CRON_HOOK, array( self::class, 'dispatch' ) );
 		add_action( 'admin_notices', array( self::class, 'render_admin_notice' ) );
 	}
@@ -56,8 +58,7 @@ final class ContentDeployTrigger {
 			return false;
 		}
 
-		return 'publish' === $post->post_status
-			|| ( 'attachment' === $post->post_type && 'inherit' === $post->post_status );
+		return 'publish' === $post->post_status;
 	}
 
 	/** Queue when published content is unpublished, restored, or published. */
@@ -81,11 +82,32 @@ final class ContentDeployTrigger {
 		self::queue();
 	}
 
+	/** Queue when a public settings document is saved for the first time. */
+	public static function handle_option_add( $option, $value ): void {
+		unset( $value );
+
+		if ( ! self::is_public_content_option( (string) $option ) ) {
+			return;
+		}
+
+		self::queue();
+	}
+
+	/**
+	 * Queue when an existing Media Library item's title, caption, or alternative
+	 * text changes. WordPress fires no save_post event for attachments, and a new
+	 * upload changes nothing public until a content record or setting uses it.
+	 */
+	public static function handle_attachment_edit( $attachment_id ): void {
+		unset( $attachment_id );
+		self::queue();
+	}
+
 	/** Whether a post type contributes to the static public application. */
 	public static function is_public_content_post_type( $post_type ): bool {
 		return in_array(
 			(string) $post_type,
-			array( 'course', 'training', 'hse_service', 'hse_reference', 'hse_resource', 'hero_slide', 'attachment' ),
+			array( 'course', 'training', 'hse_service', 'hse_reference', 'hse_resource', 'hero_slide' ),
 			true
 		);
 	}

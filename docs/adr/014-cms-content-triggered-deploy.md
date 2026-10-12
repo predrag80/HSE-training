@@ -27,10 +27,13 @@ restricted to the `predrag80/HSE-training` repository with Actions write
 permission. It remains in server configuration and is never stored in the
 database, plugin ZIP, browser bundle, API response, log, or repository.
 
-Course, Training, Hero Slide, Service, Reference, Resource, and attachment
-changes trigger a build. The localized Company, Course Page, and Legal Page
-settings documents do the same. WooCommerce orders and other operational data
-never trigger a frontend build.
+Course, Training, Hero Slide, Service, Reference, and Resource changes trigger
+a build. The localized Company, Course Page, and Legal Page settings documents
+do the same, including their first save. WordPress fires no `save_post` event
+for attachments, so edits to an existing Media Library item are observed
+through `edit_attachment`; a new upload alone does not trigger a build because
+it changes nothing public until a content record or setting uses it.
+WooCommerce orders and other operational data never trigger a frontend build.
 
 Multiple edits in one request or before the scheduled event runs collapse into
 one workflow dispatch. Temporary GitHub/network failures receive three bounded

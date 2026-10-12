@@ -659,8 +659,11 @@ the database, plugin ZIP, Astro environment, repository, or browser code. Do
 not define the enable flag on dev or staging CMS instances.
 
 The trigger covers Course, Training, Hero Slide, Service, Reference, Resource,
-Media Library, Company Page, Course Page, and Legal Page content. It never runs
-for WooCommerce orders. Rapid edits are collapsed into one build, temporary
+Company Page, Course Page, and Legal Page content, including the first save of
+a localized settings document. Edits to an existing Media Library item (title,
+caption, or alternative text) also queue a build; a new upload does not,
+because it changes nothing public until a content record or setting uses it.
+It never runs for WooCommerce orders. Rapid edits are collapsed into one build, temporary
 dispatch failures receive bounded retries, and configuration failures appear as
 an administrator notice. Verify without contacting GitHub:
 
