@@ -66,8 +66,11 @@ REST API and payment callback hosts remain reachable by approved integrations.
 ## Deployment behavior
 
 An Astro source change pushed to `main` deploys staging on Hetzner. A push to
-`production` builds the production configuration and uploads it under the
-non-public `~/.hse-astro-releases/production/` directory on Unlimited.
+`production` builds the production configuration. While activation is locked
+(see below), the build is uploaded only to the non-public
+`~/.hse-astro-releases/production/` directory on Unlimited. Once activation is
+enabled, the build is uploaded directly into `public_html` and that separate
+prepared copy is skipped, because nothing reads it.
 
 Staging builds against `staging-cms.hsetraining.rs`, and production builds
 against `cms.hsetraining.rs`. Updating the HSE WordPress plugin or publishing
@@ -147,6 +150,13 @@ Production installs the repository-owned security and canonical-host rules
 while preserving `.htpasswd`, `.well-known`, `cgi-bin`, and PHP configuration
 files. Homepage, contact, and resources smoke tests run after activation; the
 previous site is restored automatically if they fail.
+
+Production caching: pages, sitemaps, and `robots.txt` are served with
+`Cache-Control: no-cache`, so a content deploy is visible on the next visit.
+Public images, fonts, videos, and documents are cached for seven days.
+Fingerprinted files under `/_astro/` receive a one-year `immutable` policy from
+`infra/apache/hsetraining-production-assets.htaccess`, installed as
+`_astro/.htaccess`.
 
 Server backups are stored outside the public document roots under
 `~/.hse-astro-backups/`. Review and prune old successful backups periodically
