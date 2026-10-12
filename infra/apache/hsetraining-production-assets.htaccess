@@ -1,0 +1,11 @@
+# Installed as /_astro/.htaccess. Astro fingerprints every file in this
+# directory, so a changed asset always receives a new URL and can be cached
+# for a year without revalidation.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header set Cache-Control "public, max-age=31536000, immutable"
+</IfModule>

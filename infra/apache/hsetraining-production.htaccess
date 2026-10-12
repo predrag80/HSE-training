@@ -31,4 +31,17 @@ DirectoryIndex index.html
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set X-Permitted-Cross-Domain-Policies "none"
+
+  # Pages, sitemaps and robots revalidate on every visit, so a CMS content
+  # deploy is visible immediately instead of after heuristic browser caching.
+  <FilesMatch "\.(?:html|xml|txt)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+
+  # Public images, fonts, videos and documents keep their file names between
+  # releases, so they are cached for a week rather than marked immutable.
+  # Fingerprinted /_astro/ assets get their own rules in _astro/.htaccess.
+  <FilesMatch "\.(?:avif|gif|ico|jpe?g|png|svg|webp|woff2?|mp4|webm|pdf)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
 </IfModule>

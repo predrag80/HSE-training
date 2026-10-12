@@ -9,6 +9,7 @@ on:
       - .node-version
       - apps/web/**
       - infra/apache/hsetraining-production.htaccess
+      - infra/apache/hsetraining-production-assets.htaccess
       - scripts/deploy-astro-unlimited.sh
   workflow_dispatch:
 
@@ -76,7 +77,9 @@ jobs:
         working-directory: apps/web
 
       - name: Add production Apache rules
-        run: install -m 644 infra/apache/hsetraining-production.htaccess apps/web/dist/.htaccess
+        run: |
+          install -m 644 infra/apache/hsetraining-production.htaccess apps/web/dist/.htaccess
+          install -m 644 infra/apache/hsetraining-production-assets.htaccess apps/web/dist/_astro/.htaccess
 
       - name: Configure Unlimited SSH access
         env:
