@@ -58,6 +58,10 @@ final class CommerceCustomerEmail {
 		add_filter( 'woocommerce_email_subject_new_order', array( self::class, 'merchant_order_subject' ), 20, 3 );
 		add_filter( 'woocommerce_email_heading_new_order', array( self::class, 'merchant_order_heading' ), 20, 3 );
 		add_filter( 'woocommerce_email_additional_content_new_order', array( self::class, 'remove_merchant_order_additional_content' ), 20, 3 );
+		add_filter( 'woocommerce_email_recipient_failed_order', array( self::class, 'new_order_recipient' ), 20, 3 );
+		add_filter( 'woocommerce_email_subject_failed_order', array( self::class, 'merchant_failed_order_subject' ), 20, 3 );
+		add_filter( 'woocommerce_email_heading_failed_order', array( self::class, 'merchant_failed_order_heading' ), 20, 3 );
+		add_filter( 'woocommerce_email_additional_content_failed_order', array( self::class, 'remove_merchant_order_additional_content' ), 20, 3 );
 		add_filter( 'woocommerce_email_attachments', array( self::class, 'attach_international_bank_instructions' ), 20, 4 );
 		add_filter( 'woocommerce_locate_template', array( self::class, 'locate_completed_order_template' ), 20, 3 );
 		add_filter( 'woocommerce_email_enabled_customer_completed_order', array( self::class, 'prevent_duplicate_completed_order_email' ), 999, 3 );
@@ -409,6 +413,26 @@ final class CommerceCustomerEmail {
 		return 'Nova porudžbina';
 	}
 
+	/** Name the failed card payment in the merchant notification subject. */
+	public static function merchant_failed_order_subject( $subject, $order = null, $email = null ): string {
+		unset( $email );
+		if ( ! CommerceConfiguration::is_enabled() || ! self::is_order( $order ) ) {
+			return is_scalar( $subject ) ? (string) $subject : '';
+		}
+
+		return sprintf( 'Neuspelo plaćanje #%s - HSE Training', $order->get_order_number() );
+	}
+
+	/** Use a concise heading inside the failed-payment merchant notification. */
+	public static function merchant_failed_order_heading( $heading, $order = null, $email = null ): string {
+		unset( $email );
+		if ( ! CommerceConfiguration::is_enabled() || ! self::is_order( $order ) ) {
+			return is_scalar( $heading ) ? (string) $heading : '';
+		}
+
+		return 'Neuspelo plaćanje';
+	}
+
 	/** The plugin-owned merchant template contains all required closing copy. */
 	public static function remove_merchant_order_additional_content( $content, $order = null, $email = null ): string {
 		unset( $order, $email );
@@ -435,6 +459,8 @@ final class CommerceCustomerEmail {
 			'emails/plain/customer-refunded-order.php',
 			'emails/admin-new-order.php',
 			'emails/plain/admin-new-order.php',
+			'emails/admin-failed-order.php',
+			'emails/plain/admin-failed-order.php',
 			'emails/bokapos-receipt.php',
 			'emails/plain/bokapos-receipt.php',
 		);
@@ -694,9 +720,13 @@ final class CommerceCustomerEmail {
 		);
 	}
 
-	/** Return seller-facing labels for the branded new-order notification. */
-	public static function merchant_copy(): array {
-		return array(
+	/**
+	 * Return seller-facing labels for the branded merchant notifications.
+	 *
+	 * @param string $variant `new` for a received order, `failed` for a failed payment.
+	 */
+	public static function merchant_copy( string $variant = 'new' ): array {
+		$copy = array(
 			'company'             => 'HSE TRAINING D.O.O.',
 			'tagline'             => 'Health, Safety & Professional Training',
 			'preheader'           => 'Nova WooCommerce porudžbina je primljena.',
@@ -717,11 +747,37 @@ final class CommerceCustomerEmail {
 			'total'               => 'Ukupno',
 			'payment_confirmed'   => 'PLAĆANJE POTVRĐENO',
 			'order_received'      => 'PORUDŽBINA PRIMLJENA',
+			'payment_failed'      => 'PLAĆANJE NIJE USPELO',
 			'language_en'         => 'Engleski',
 			'language_sr'         => 'Srpski',
 			'website'             => 'hsetraining.rs',
 			'email'               => self::DEFAULT_ADMIN_EMAIL,
 		);
+
+		if ( 'failed' === $variant ) {
+			$copy['preheader'] = 'Plaćanje za WooCommerce porudžbinu nije uspelo.';
+			$copy['title']     = 'Plaćanje nije uspelo';
+			$copy['intro']     = 'Kupac nije završio kartično plaćanje ili ga je banka odbila, pa je porudžbina označena kao neuspešna. Razlog je zapisan u napomenama porudžbine u WooCommerce-u. Pristup kursu nije dodeljen i fiskalni račun nije izdat.';
+		}
+
+		return $copy;
+	}
+
+	/** Serbian order-status label for merchant notifications; unknown statuses keep the WooCommerce name. */
+	public static function merchant_status_label( $order ): string {
+		$status = self::is_order( $order ) && method_exists( $order, 'get_status' ) ? sanitize_key( (string) $order->get_status() ) : '';
+		$labels = array(
+			'pending'        => 'Čeka plaćanje',
+			'processing'     => 'U obradi',
+			'on-hold'        => 'Na čekanju',
+			'completed'      => 'Završena',
+			'cancelled'      => 'Otkazana',
+			'refunded'       => 'Refundirana',
+			'failed'         => 'Neuspešna',
+			'checkout-draft' => 'Nacrt',
+		);
+
+		return $labels[ $status ] ?? ( '' !== $status ? wc_get_order_status_name( $status ) : '' );
 	}
 
 	/** Prefer the localized Course title retained on the synchronized product. */
@@ -814,6 +870,6 @@ final class CommerceCustomerEmail {
 			return false;
 		}
 
-		return in_array( (string) $email->id, array( 'new_order', 'customer_on_hold_order', 'customer_completed_order', 'customer_failed_order', 'customer_cancelled_order', 'customer_refunded_order', 'customer_partially_refunded_order', 'bokapos_receipt' ), true );
+		return in_array( (string) $email->id, array( 'new_order', 'failed_order', 'customer_on_hold_order', 'customer_completed_order', 'customer_failed_order', 'customer_cancelled_order', 'customer_refunded_order', 'customer_partially_refunded_order', 'bokapos_receipt' ), true );
 	}
 }

@@ -1,6 +1,7 @@
 <?php
 /**
- * Plain-text merchant notification for a new WooCommerce order.
+ * Plain-text merchant notification for a new WooCommerce order. The
+ * failed-order notification reuses it with `$merchant_variant = 'failed'`.
  *
  * @package HSETraining\Headless
  */
@@ -10,7 +11,8 @@ use HSETraining\Headless\Commerce\CommercePresentation;
 
 defined( 'ABSPATH' ) || exit;
 
-$copy             = CommerceCustomerEmail::merchant_copy();
+$merchant_variant = isset( $merchant_variant ) && 'failed' === $merchant_variant ? 'failed' : 'new';
+$copy             = CommerceCustomerEmail::merchant_copy( $merchant_variant );
 $order_locale     = CommerceCustomerEmail::order_locale( $order );
 $created          = $order->get_date_created();
 $order_date       = $created ? $created->date_i18n( 'd.m.Y. H:i' ) : '';
@@ -19,7 +21,7 @@ $buyer_details    = CommercePresentation::order_buyer_details( $order, 'sr' );
 $payment_method   = $order->get_payment_method_title();
 $transaction_id   = $order->get_transaction_id();
 $price_args       = array( 'currency' => $order->get_currency() );
-$status           = wc_get_order_status_name( $order->get_status() );
+$status           = CommerceCustomerEmail::merchant_status_label( $order );
 $language_label   = 'sr' === $order_locale ? $copy['language_sr'] : $copy['language_en'];
 
 echo esc_html( $copy['company'] ) . "\n";
@@ -62,5 +64,9 @@ foreach ( $order->get_items( 'line_item' ) as $item ) {
 
 echo "\n" . esc_html( $copy['subtotal'] ) . ': ' . esc_html( wp_strip_all_tags( wc_price( $order->get_subtotal(), $price_args ) ) ) . "\n";
 echo esc_html( $copy['total'] ) . ': ' . esc_html( wp_strip_all_tags( $order->get_formatted_order_total() ) ) . "\n\n";
-echo esc_html( $order->is_paid() ? $copy['payment_confirmed'] : $copy['order_received'] ) . "\n";
+if ( 'failed' === $merchant_variant ) {
+	echo esc_html( $copy['payment_failed'] ) . "\n";
+} else {
+	echo esc_html( $order->is_paid() ? $copy['payment_confirmed'] : $copy['order_received'] ) . "\n";
+}
 echo "\n" . esc_html( $copy['company'] ) . ' · ' . esc_html( $copy['website'] ) . ' · ' . esc_html( $copy['email'] ) . "\n";

@@ -647,7 +647,9 @@ if ( is_wp_error( $email_order ) ) {
 	);
 	hse_commerce_presentation_test_assert(
 		'Nova porudžbina #' . $email_order->get_order_number() . ' - HSE Training' === CommerceCustomerEmail::merchant_order_subject( 'Fallback', $email_order )
-			&& 'Nova porudžbina' === CommerceCustomerEmail::merchant_order_heading( 'Fallback', $email_order ),
+			&& 'Nova porudžbina' === CommerceCustomerEmail::merchant_order_heading( 'Fallback', $email_order )
+			&& 'Neuspelo plaćanje #' . $email_order->get_order_number() . ' - HSE Training' === CommerceCustomerEmail::merchant_failed_order_subject( 'Fallback', $email_order )
+			&& 'Neuspelo plaćanje' === CommerceCustomerEmail::merchant_failed_order_heading( 'Fallback', $email_order ),
 		'Merchant subject and heading identify the new order.'
 	);
 	hse_commerce_presentation_test_assert(
@@ -835,12 +837,67 @@ if ( is_wp_error( $email_order ) ) {
 				&& false !== strpos( $merchant_html, 'Podaci kupca' )
 				&& false === strpos( $merchant_html, 'OTVORI PORUDŽBINU' )
 				&& false !== strpos( $merchant_html, '123456789' )
-				&& false !== strpos( $merchant_html, '<!doctype html>' ),
+				&& false !== strpos( $merchant_html, '<!doctype html>' )
+				&& false === strpos( $merchant_html, 'PLAĆANJE NIJE USPELO' ),
 			'The merchant email renders the branded order summary and customer details.'
 		);
 	} else {
 		hse_commerce_presentation_test_assert( false, 'WooCommerce new-order merchant email is available for rendering.' );
 	}
+
+	$failed_merchant_email = WC()->mailer()->get_emails()['WC_Email_Failed_Order'] ?? null;
+	if ( $failed_merchant_email ) {
+		$failed_merchant_args = array(
+			'order'              => $email_order,
+			'email_heading'      => CommerceCustomerEmail::merchant_failed_order_heading( '', $email_order ),
+			'additional_content' => '',
+			'sent_to_admin'      => true,
+			'plain_text'         => false,
+			'email'              => $failed_merchant_email,
+		);
+		$failed_merchant_html = wc_get_template_html( 'emails/admin-failed-order.php', $failed_merchant_args );
+		$failed_merchant_text = wc_get_template_html( 'emails/plain/admin-failed-order.php', array_merge( $failed_merchant_args, array( 'plain_text' => true ) ) );
+		hse_commerce_presentation_test_assert(
+			false !== strpos( $failed_merchant_html, 'Plaćanje nije uspelo' )
+				&& false !== strpos( $failed_merchant_html, '✕ PLAĆANJE NIJE USPELO' )
+				&& false !== strpos( $failed_merchant_html, 'Podaci kupca' )
+				&& false !== strpos( $failed_merchant_html, '123456789' )
+				&& false !== strpos( $failed_merchant_html, '<!doctype html>' )
+				&& false !== strpos( $failed_merchant_html, 'Čeka plaćanje' )
+				&& false === strpos( $failed_merchant_html, 'PORUDŽBINA PRIMLJENA' )
+				&& false === strpos( $failed_merchant_html, 'PLAĆANJE POTVRĐENO' ),
+			'The failed-payment merchant email renders the branded layout with a failed status.'
+		);
+		hse_commerce_presentation_test_assert(
+			false !== strpos( $failed_merchant_text, 'Plaćanje nije uspelo' )
+				&& false !== strpos( $failed_merchant_text, 'PLAĆANJE NIJE USPELO' )
+				&& false === strpos( $failed_merchant_text, '<table' ),
+			'The failed-payment merchant email has a matching plain-text version.'
+		);
+		hse_commerce_presentation_test_assert(
+			20 === has_filter( 'woocommerce_email_recipient_failed_order', array( CommerceCustomerEmail::class, 'new_order_recipient' ) )
+				&& 'html' === CommerceCustomerEmail::force_branded_email_type( 'plain', (object) array( 'id' => 'failed_order' ), 'plain', 'email_type' )
+				&& false !== strpos(
+					CommerceCustomerEmail::locate_completed_order_template( '', 'emails/admin-failed-order.php' ),
+					'hse-headless/templates/emails/admin-failed-order.php'
+				),
+			'Failed-payment merchant emails use the plugin template, HTML format and merchant recipient routing.'
+		);
+	} else {
+		hse_commerce_presentation_test_assert( false, 'WooCommerce failed-order merchant email is available for rendering.' );
+	}
+	$status_before_label_check = $email_order->get_status();
+	$email_order->set_status( 'failed' );
+	$failed_status_label = CommerceCustomerEmail::merchant_status_label( $email_order );
+	$email_order->set_status( 'completed' );
+	$completed_status_label = CommerceCustomerEmail::merchant_status_label( $email_order );
+	$email_order->set_status( $status_before_label_check );
+	hse_commerce_presentation_test_assert(
+		'Neuspešna' === $failed_status_label
+			&& 'Završena' === $completed_status_label
+			&& '' === CommerceCustomerEmail::merchant_status_label( null ),
+		'Merchant notifications show Serbian order-status labels.'
+	);
 
 	$fiscal_html = wc_get_template_html(
 		'emails/bokapos-receipt.php',

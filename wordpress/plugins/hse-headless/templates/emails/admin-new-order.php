@@ -1,6 +1,7 @@
 <?php
 /**
- * Branded merchant notification for a new WooCommerce order.
+ * Branded merchant notification for a new WooCommerce order. The failed-order
+ * notification reuses this layout with `$merchant_variant = 'failed'`.
  *
  * @package HSETraining\Headless
  */
@@ -10,7 +11,8 @@ use HSETraining\Headless\Commerce\CommercePresentation;
 
 defined( 'ABSPATH' ) || exit;
 
-$copy             = CommerceCustomerEmail::merchant_copy();
+$merchant_variant = isset( $merchant_variant ) && 'failed' === $merchant_variant ? 'failed' : 'new';
+$copy             = CommerceCustomerEmail::merchant_copy( $merchant_variant );
 $order_locale     = CommerceCustomerEmail::order_locale( $order );
 $created          = $order->get_date_created();
 $order_date       = $created ? $created->date_i18n( 'd.m.Y. H:i' ) : '';
@@ -21,12 +23,14 @@ $buyer_details    = CommercePresentation::order_buyer_details( $order, 'sr' );
 $payment_method   = $order->get_payment_method_title();
 $transaction_id   = $order->get_transaction_id();
 $price_args       = array( 'currency' => $order->get_currency() );
-$status           = wc_get_order_status_name( $order->get_status() );
+$status           = CommerceCustomerEmail::merchant_status_label( $order );
 $is_paid          = $order->is_paid();
-$status_label     = $is_paid ? $copy['payment_confirmed'] : $copy['order_received'];
-$status_bg        = $is_paid ? '#e9f7f0' : '#fff4e5';
-$status_border    = $is_paid ? '#9fd9bd' : '#efc27a';
-$status_color     = $is_paid ? '#147a58' : '#9a5b00';
+$is_failed        = 'failed' === $merchant_variant;
+$status_label     = $is_failed ? $copy['payment_failed'] : ( $is_paid ? $copy['payment_confirmed'] : $copy['order_received'] );
+$status_bg        = $is_failed ? '#fdecea' : ( $is_paid ? '#e9f7f0' : '#fff4e5' );
+$status_border    = $is_failed ? '#f0b4ad' : ( $is_paid ? '#9fd9bd' : '#efc27a' );
+$status_color     = $is_failed ? '#a3261a' : ( $is_paid ? '#147a58' : '#9a5b00' );
+$status_icon      = $is_failed ? '✕' : '✓';
 $language_label   = 'sr' === $order_locale ? $copy['language_sr'] : $copy['language_en'];
 ?>
 <!doctype html>
@@ -108,7 +112,7 @@ $language_label   = 'sr' === $order_locale ? $copy['language_sr'] : $copy['langu
 						</td>
 					</tr>
 					<tr><td class="mobile-pad" style="padding:0 42px 24px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;table-layout:fixed;border-collapse:collapse;"><tr><td align="right" style="padding:11px 15px;color:#34404d;font-size:13px;"><?php echo esc_html( $copy['subtotal'] ); ?></td><td class="mobile-price" align="right" width="120" style="padding:11px 15px;color:#172433;font-size:13px;"><?php echo wp_kses_post( wc_price( $order->get_subtotal(), $price_args ) ); ?></td></tr><tr><td align="right" style="border-top:1px solid #9eabb7;padding:12px 15px;color:#172433;font-size:14px;font-weight:700;"><?php echo esc_html( $copy['total'] ); ?></td><td class="mobile-price" align="right" width="120" style="border-top:1px solid #9eabb7;padding:12px 15px;color:#172433;font-size:14px;font-weight:700;"><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></td></tr></table></td></tr>
-					<tr><td class="mobile-pad" style="padding:0 42px 28px;"><div style="padding:14px 18px;background-color:<?php echo esc_attr( $status_bg ); ?>;border:1px solid <?php echo esc_attr( $status_border ); ?>;color:<?php echo esc_attr( $status_color ); ?>;font-size:13px;font-weight:700;letter-spacing:.7px;text-align:center;">&#10003; <?php echo esc_html( $status_label ); ?></div></td></tr>
+					<tr><td class="mobile-pad" style="padding:0 42px 28px;"><div style="padding:14px 18px;background-color:<?php echo esc_attr( $status_bg ); ?>;border:1px solid <?php echo esc_attr( $status_border ); ?>;color:<?php echo esc_attr( $status_color ); ?>;font-size:13px;font-weight:700;letter-spacing:.7px;text-align:center;"><?php echo esc_html( $status_icon . ' ' . $status_label ); ?></div></td></tr>
 					<tr><td class="mobile-pad" style="padding:18px 42px;border-top:1px solid #d9e2ea;color:#6f7885;font-size:11px;line-height:1.5;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;table-layout:fixed;border-collapse:collapse;"><tr><td class="mobile-footer"><?php echo esc_html( $copy['company'] ); ?></td><td class="mobile-footer" align="right"><?php echo esc_html( $copy['website'] ); ?> &middot; <?php echo esc_html( $copy['email'] ); ?></td></tr></table></td></tr>
 				</table>
 				<!--[if mso]></td></tr></table><![endif]-->

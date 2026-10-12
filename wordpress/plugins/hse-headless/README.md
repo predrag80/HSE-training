@@ -542,7 +542,10 @@ retry-reference histories remain on the WooCommerce order for operational
 review.
 Merchant new-order notifications use their own branded HTML
 and plain-text templates with customer identity, payment and transaction data,
-line items, total, checkout language and current order status. The plugin
+line items, total, checkout language and current order status (in Serbian).
+WooCommerce's failed-order merchant notification ("Neuspelo plaćanje #…") uses
+the same layout with a red failed-payment status and the same recipient
+routing. The plugin
 forces both branded message types to render
 with the HTML template and matching `text/html` MIME header, while retaining
 the plain-text template as a fallback. They use `HSE_COMMERCE_ADMIN_EMAIL` when it contains a
