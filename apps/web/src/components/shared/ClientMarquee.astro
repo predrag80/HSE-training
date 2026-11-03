@@ -13,10 +13,10 @@ const { clients, label, variant = 'light' } = Astro.props;
 <div class:list={['client-marquee', `client-marquee--${variant}`]} role="region" aria-label={label}>
 	<div class="client-marquee__track">
 		<ul class="client-marquee__group">
-			{clients.map((client) => <li>{client.logo ? <img src={client.logo} alt={client.name} loading="lazy" decoding="async" /> : client.name}</li>)}
+			{clients.map((client) => <li>{client.logo ? <img src={client.logo} alt={client.name} fetchpriority="low" decoding="async" /> : client.name}</li>)}
 		</ul>
 		<ul class="client-marquee__group" aria-hidden="true">
-			{clients.map((client) => <li>{client.logo ? <img src={client.logo} alt="" loading="lazy" decoding="async" /> : client.name}</li>)}
+			{clients.map((client) => <li>{client.logo ? <img src={client.logo} alt="" fetchpriority="low" decoding="async" /> : client.name}</li>)}
 		</ul>
 	</div>
 </div>
