@@ -126,6 +126,7 @@ function defaultTeam(locale: Locale): readonly CompanyTeamMember[] {
 		{ memberKey: 'biljana-stojanovic', name: 'Biljana Stojanovic', role: locale === 'sr' ? 'Strateški poreski i finansijski konsultant' : 'Strategic Tax & Financial Consultant', image: null },
 		{ memberKey: 'kristina-atanaskovic', name: 'Kristina Atanaskovic', role: locale === 'sr' ? 'Konsultantkinja' : 'Consultant', image: null },
 		{ memberKey: 'marija-blagojevic', name: 'Marija Blagojevic', role: locale === 'sr' ? 'Konsultantkinja' : 'Consultant', image: null },
+		{ memberKey: 'marija-djordjevic', name: 'Marija Đorđević', role: locale === 'sr' ? 'Menadžerka za razvoj poslovanja i marketing' : 'Business Development & Marketing Manager', image: null },
 	];
 }
 
@@ -137,8 +138,8 @@ export function mapWordPressCompanyProfile(value: unknown, locale: Locale = 'en'
 	) {
 		return invalidCompany('profile must contain exactly three value highlights');
 	}
-	if (value.team !== undefined && (!Array.isArray(value.team) || value.team.length !== 5)) {
-		return invalidCompany('profile team must contain exactly five members');
+	if (value.team !== undefined && (!Array.isArray(value.team) || value.team.length !== 6)) {
+		return invalidCompany('profile team must contain exactly six members');
 	}
 
 	const profile = value as unknown as WordPressCompanyProfileDto;

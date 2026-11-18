@@ -84,18 +84,18 @@ describe('Company CMS mappers', () => {
 		).toThrow('must use HTTP or HTTPS');
 	});
 
-	it('uses the complete five-member team and rejects incomplete CMS teams', () => {
-		expect(mapWordPressCompanyProfile(profile).team).toHaveLength(5);
+	it('uses the complete six-member team and rejects incomplete CMS teams', () => {
+		expect(mapWordPressCompanyProfile(profile).team).toHaveLength(6);
 		expect(() =>
 			mapWordPressCompanyProfile({
 				...profile,
-				team: mapWordPressCompanyProfile(profile).team.slice(0, 4).map((member) => ({
+				team: mapWordPressCompanyProfile(profile).team.slice(0, 5).map((member) => ({
 					member_key: member.memberKey,
 					name: member.name,
 					role: member.role,
 					image: null,
 				})),
 			}),
-		).toThrow('exactly five members');
+		).toThrow('exactly six members');
 	});
 });

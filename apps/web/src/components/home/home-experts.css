@@ -42,7 +42,7 @@
 
 .home-experts__grid {
 	display: grid;
-	grid-template-columns: repeat(5, minmax(0, 1fr));
+	grid-template-columns: repeat(6, minmax(0, 1fr));
 	padding: 0;
 	margin: 0;
 	list-style: none;
@@ -159,6 +159,7 @@
 	font-size: 1.125rem;
 	font-weight: 600;
 	line-height: 1.375rem;
+	text-align: center;
 }
 
 .expert-card figcaption span {
@@ -186,6 +187,7 @@
 [data-experts-reveal='grid'][data-revealed='true'] > li:nth-child(3) { transition-delay: 600ms; }
 [data-experts-reveal='grid'][data-revealed='true'] > li:nth-child(4) { transition-delay: 900ms; }
 [data-experts-reveal='grid'][data-revealed='true'] > li:nth-child(5) { transition-delay: 1200ms; }
+[data-experts-reveal='grid'][data-revealed='true'] > li:nth-child(6) { transition-delay: 1500ms; }
 
 @media (max-width: 74.999rem) {
 	.home-experts { padding-block: 5.625rem; }

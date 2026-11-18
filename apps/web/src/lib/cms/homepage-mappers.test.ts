@@ -142,6 +142,7 @@ describe('mapWordPressHomepage', () => {
 					{ memberKey: 'biljana-stojanovic', name: 'Biljana Stojanovic', role: 'Strategic Tax & Financial Consultant', image: null },
 					{ memberKey: 'kristina-atanaskovic', name: 'Kristina Atanaskovic', role: 'Consultant', image: null },
 					{ memberKey: 'marija-blagojevic', name: 'Marija Blagojevic', role: 'Consultant', image: null },
+					{ memberKey: 'marija-djordjevic', name: 'Marija Đorđević', role: 'Business Development & Marketing Manager', image: null },
 				],
 				values: [
 					{
