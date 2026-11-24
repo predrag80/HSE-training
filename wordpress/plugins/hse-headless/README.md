@@ -462,6 +462,12 @@ Privacy Policy are migrated once in English and Serbian; the previous option
 values are retained with the `_pre_ecommerce_20260916` suffix. The legal copy is
 an implementation draft and must be approved before production launch.
 
+Legal migration version 7 adds the site assistant notice to the Privacy Policy
+cookie section in both languages, directly after the necessary-storage
+paragraph, and updates the policy date. It describes the assistant's
+tab-scoped browser storage and runs once; the previous privacy options are kept
+with the `_pre_site_assistant_20261124` suffix.
+
 The checkout and confirmation shell packages the same transparent HSE Training
 wordmark used by the Astro header, so it does not depend on an Astro public
 asset URL or retain the earlier plugin-only logo treatment.

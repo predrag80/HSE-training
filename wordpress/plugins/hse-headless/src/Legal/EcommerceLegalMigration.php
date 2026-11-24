@@ -8,10 +8,13 @@ defined( 'ABSPATH' ) || exit;
 /** Applies reviewed legal drafts while preserving previous CMS options. */
 final class EcommerceLegalMigration {
 	private const SCHEMA_OPTION = 'hse_ecommerce_legal_schema_version';
-	private const VERSION       = 6;
+	private const VERSION       = 7;
 	private const BACKUP_SUFFIX = '_pre_digital_delivery_20260929';
 	private const PLATFORM_DETAILS_BACKUP_SUFFIX = '_pre_platform_name_20260929';
 	private const BANK_TRANSFER_BACKUP_SUFFIX = '_pre_bank_transfer_account_20260930';
+	private const SITE_ASSISTANT_BACKUP_SUFFIX = '_pre_site_assistant_20261124';
+	/** Present only in the site assistant paragraph, so the migration can detect it. */
+	private const SITE_ASSISTANT_MARKER = 'hse-site-assistant:auto-opened';
 
 	/** Register the idempotent migration. */
 	public static function register_hooks(): void {
@@ -35,6 +38,10 @@ final class EcommerceLegalMigration {
 			}
 
 			if ( 6 > $current_version && ! self::migrate_bank_transfer_details() ) {
+				return;
+			}
+
+			if ( 7 > $current_version && ! self::migrate_site_assistant_notice() ) {
 				return;
 			}
 		}
@@ -130,6 +137,53 @@ final class EcommerceLegalMigration {
 		return true;
 	}
 
+	/**
+	 * Describe the site assistant's browser storage in the privacy policy cookie
+	 * section, after the necessary-storage paragraph, without replacing other CMS edits.
+	 */
+	private static function migrate_site_assistant_notice(): bool {
+		foreach ( array( 'en', 'sr' ) as $locale ) {
+			$option_name = LegalPageSettings::option_name( 'privacy', $locale );
+			$previous    = get_option( $option_name, false );
+			if ( ! is_array( $previous ) ) {
+				return false;
+			}
+
+			$body = (string) ( $previous['section_6_body'] ?? '' );
+			if ( false !== strpos( $body, self::SITE_ASSISTANT_MARKER ) ) {
+				continue;
+			}
+
+			add_option( $option_name . self::SITE_ASSISTANT_BACKUP_SUFFIX, $previous, '', false );
+			$paragraph_end = strpos( $body, '</p>' );
+			$previous['section_6_body'] = false === $paragraph_end
+				? $body . self::site_assistant_paragraph( $locale )
+				: substr_replace( $body, self::site_assistant_paragraph( $locale ), $paragraph_end + 4, 0 );
+			$previous['last_updated'] = self::privacy_last_updated( $locale );
+
+			if ( false === update_option( $option_name, LegalPageSettings::sanitize_settings( $previous ), false )
+				&& false === get_option( $option_name, false ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/** Reviewed privacy wording for the rule-based site assistant. */
+	private static function site_assistant_paragraph( string $locale ): string {
+		if ( 'sr' === $locale ) {
+			return '<p>Asistent sajta je automatski vodič kroz ovaj sajt; nije osoba i ne koristi veštačku inteligenciju. Pitanja koja u njega ukucate obrađuju se samo u vašem pregledaču i ne šalju se kompaniji HSE Training niti trećim licima. Kada otvorite ili koristite asistenta, razgovor se čuva u skladištu sesije pregledača (<code>hse-site-assistant:sr</code> ili <code>hse-site-assistant:en</code>) samo za trenutni tab, kako bi se nastavio na drugim stranicama sajta, i briše se kada zatvorite tab. Ključ <code>hse-site-assistant:auto-opened</code> za isti tab beleži da se asistent već jednom sam otvorio. Molimo vas da u asistenta ne unosite podatke o ličnosti; za upite koristite kontakt formu.</p>';
+		}
+
+		return '<p>The site assistant is an automated guide to this website; it is not a person and does not use artificial intelligence. Questions you type into it are processed only in your browser and are not sent to HSE Training or to third parties. Once you open or use the assistant, the conversation is kept in the browser\'s session storage (<code>hse-site-assistant:en</code> or <code>hse-site-assistant:sr</code>) for the current tab only, so it can continue on other pages of this website, and it is deleted when you close the tab. The <code>hse-site-assistant:auto-opened</code> key records for the same tab that the assistant has already opened by itself once. Please do not enter personal data into the assistant; use the contact form for enquiries.</p>';
+	}
+
+	/** Effective date of the current privacy policy text. */
+	private static function privacy_last_updated( string $locale ): string {
+		return 'sr' === $locale ? 'Poslednje ažuriranje: 24. novembra 2026.' : 'Last updated: 24 November 2026';
+	}
+
 	/** @return array<string, array<string, array<string, string>>> */
 	private static function documents(): array {
 		return array(
@@ -186,7 +240,7 @@ final class EcommerceLegalMigration {
 					'eyebrow'          => 'Legal information',
 					'title'            => 'Privacy and Cookie Policy',
 					'intro'            => 'This policy explains how personal data and cookies are used when you browse, contact us, place an order, pay and receive digital course access.',
-					'last_updated'     => 'Last updated: 29 September 2026',
+					'last_updated'     => self::privacy_last_updated( 'en' ),
 					'section_1_title'  => 'Controller and contact details',
 					'section_1_body'   => '<p>HSE Training DOO, Braće Radovanović 17/5, Lamela C, 11000 Belgrade, Serbia (company registration number 20952288; tax identification number (PIB) 108205616) is the controller. Privacy questions and requests may be sent to <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a> or made by telephone on +381 61 5335 010.</p>',
 					'section_2_title'  => 'Data we process and whether it is required',
@@ -198,7 +252,7 @@ final class EcommerceLegalMigration {
 					'section_5_title'  => 'Retention and delivery evidence',
 					'section_5_body'   => '<p>Transaction and electronic-delivery evidence is retained for at least 120 days and longer while a payment dispute, complaint or legal claim may be pursued. Complaint records are kept for at least two years. Order, payment, fiscal, tax, accounting and contractual records are retained for the periods required by applicable law. Enquiries, security logs and consent records are kept only for as long as necessary for their stated purpose, security investigation or proof of compliance, after which they are deleted, anonymised or securely archived.</p>',
 					'section_6_title'  => 'Cookies and external content',
-					'section_6_body'   => '<p>Necessary storage includes <code>hse_cookie_consent</code> (your choice for 180 days), <code>hse_checkout_locale</code> (checkout language for up to one month) and WooCommerce session/cart cookies such as <code>woocommerce_cart_hash</code>, <code>woocommerce_items_in_cart</code> and <code>wp_woocommerce_session_*</code>. They support language, consent choice, cart, checkout, security and fraud prevention and cannot be disabled where required for the requested service.</p><p>Google Maps is optional and loads only after consent; loading it may disclose IP address and browser data to Google. Cookie Settings in the website footer lets you change or withdraw that choice at any time. RaiAccept or another external service may set its own necessary cookies on its domain under its own notice.</p>',
+					'section_6_body'   => '<p>Necessary storage includes <code>hse_cookie_consent</code> (your choice for 180 days), <code>hse_checkout_locale</code> (checkout language for up to one month) and WooCommerce session/cart cookies such as <code>woocommerce_cart_hash</code>, <code>woocommerce_items_in_cart</code> and <code>wp_woocommerce_session_*</code>. They support language, consent choice, cart, checkout, security and fraud prevention and cannot be disabled where required for the requested service.</p>' . self::site_assistant_paragraph( 'en' ) . '<p>Google Maps is optional and loads only after consent; loading it may disclose IP address and browser data to Google. Cookie Settings in the website footer lets you change or withdraw that choice at any time. RaiAccept or another external service may set its own necessary cookies on its domain under its own notice.</p>',
 					'section_7_title'  => 'Your rights and policy changes',
 					'section_7_body'   => '<p>Subject to applicable law, you may request access, correction, deletion, restriction or portability, object to processing, or withdraw consent without affecting earlier lawful processing. We may verify identity before acting and normally respond within 30 days. You may complain to the Serbian Commissioner for Information of Public Importance and Personal Data Protection at <a href="https://poverenik.rs/en/" target="_blank" rel="noreferrer">poverenik.rs</a>.</p><p>We update this policy when the website, providers or legal requirements change and publish the effective date here.</p>',
 				),
@@ -208,7 +262,7 @@ final class EcommerceLegalMigration {
 					'eyebrow'          => 'Pravne informacije',
 					'title'            => 'Politika privatnosti i kolačića',
 					'intro'            => 'Ova politika objašnjava kako koristimo podatke o ličnosti i kolačiće kada pregledate sajt, kontaktirate nas, poručite, platite i dobijete digitalni pristup kursu.',
-					'last_updated'     => 'Poslednje ažuriranje: 29. septembra 2026.',
+					'last_updated'     => self::privacy_last_updated( 'sr' ),
 					'section_1_title'  => 'Rukovalac i kontakt podaci',
 					'section_1_body'   => '<p>HSE Training DOO, Braće Radovanović 17/5, Lamela C, 11000 Beograd, Srbija (matični broj 20952288; PIB 108205616) je rukovalac podacima. Pitanja i zahteve u vezi sa privatnošću možete poslati na <a href="mailto:info@hsetraining.rs">info@hsetraining.rs</a> ili uputiti telefonom na +381 61 5335 010.</p>',
 					'section_2_title'  => 'Podaci koje obrađujemo i obaveznost davanja',
@@ -220,7 +274,7 @@ final class EcommerceLegalMigration {
 					'section_5_title'  => 'Rok čuvanja i dokaz isporuke',
 					'section_5_body'   => '<p>Evidencija transakcije i elektronske isporuke čuva se najmanje 120 dana, odnosno duže dok je moguć spor u vezi sa plaćanjem, reklamacija ili pravni zahtev. Evidencija reklamacija čuva se najmanje dve godine. Porudžbine, platna, fiskalna, poreska, računovodstvena i ugovorna dokumentacija čuva se u rokovima propisanim važećim pravom. Upiti, bezbednosni logovi i evidencije saglasnosti čuvaju se samo koliko je potrebno za navedenu svrhu, bezbednosnu istragu ili dokaz usklađenosti, nakon čega se brišu, anonimizuju ili bezbedno arhiviraju.</p>',
 					'section_6_title'  => 'Kolačići i spoljni sadržaj',
-					'section_6_body'   => '<p>Neophodno skladištenje obuhvata <code>hse_cookie_consent</code> (izbor korisnika tokom 180 dana), <code>hse_checkout_locale</code> (jezik checkouta do mesec dana) i WooCommerce kolačiće sesije i korpe, kao što su <code>woocommerce_cart_hash</code>, <code>woocommerce_items_in_cart</code> i <code>wp_woocommerce_session_*</code>. Oni podržavaju jezik, izbor kolačića, korpu, checkout, bezbednost i sprečavanje prevare i ne mogu se isključiti kada su potrebni za traženu uslugu.</p><p>Google Maps je opcioni sadržaj i učitava se samo nakon pristanka; njegovo učitavanje može proslediti IP adresu i podatke pregledača kompaniji Google. Dugme „Podešavanja kolačića“ u footeru omogućava izmenu ili povlačenje izbora u svakom trenutku. RaiAccept ili drugi spoljni servis može na svom domenu postaviti sopstvene neophodne kolačiće uz svoje obaveštenje.</p>',
+					'section_6_body'   => '<p>Neophodno skladištenje obuhvata <code>hse_cookie_consent</code> (izbor korisnika tokom 180 dana), <code>hse_checkout_locale</code> (jezik checkouta do mesec dana) i WooCommerce kolačiće sesije i korpe, kao što su <code>woocommerce_cart_hash</code>, <code>woocommerce_items_in_cart</code> i <code>wp_woocommerce_session_*</code>. Oni podržavaju jezik, izbor kolačića, korpu, checkout, bezbednost i sprečavanje prevare i ne mogu se isključiti kada su potrebni za traženu uslugu.</p>' . self::site_assistant_paragraph( 'sr' ) . '<p>Google Maps je opcioni sadržaj i učitava se samo nakon pristanka; njegovo učitavanje može proslediti IP adresu i podatke pregledača kompaniji Google. Dugme „Podešavanja kolačića“ u footeru omogućava izmenu ili povlačenje izbora u svakom trenutku. RaiAccept ili drugi spoljni servis može na svom domenu postaviti sopstvene neophodne kolačiće uz svoje obaveštenje.</p>',
 					'section_7_title'  => 'Vaša prava i izmene politike',
 					'section_7_body'   => '<p>Pod uslovima važećeg prava možete tražiti pristup, ispravku, brisanje, ograničenje ili prenosivost, podneti prigovor na obradu ili opozvati pristanak bez uticaja na raniju zakonitu obradu. Pre postupanja možemo proveriti identitet, a na zahtev po pravilu odgovaramo u roku od 30 dana. Možete podneti pritužbu Povereniku za informacije od javnog značaja i zaštitu podataka o ličnosti na <a href="https://poverenik.rs/" target="_blank" rel="noreferrer">poverenik.rs</a>.</p><p>Politiku ažuriramo kada se promene sajt, pružaoci ili pravni zahtevi i ovde objavljujemo datum početka primene.</p>',
 				),

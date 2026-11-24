@@ -6,6 +6,7 @@
  */
 
 use HSETraining\Headless\Content\ContentLocale;
+use HSETraining\Headless\Legal\EcommerceLegalMigration;
 use HSETraining\Headless\Legal\LegalPageRestController;
 use HSETraining\Headless\Legal\LegalPageSettings;
 
@@ -20,6 +21,15 @@ function hse_legal_pages_test_assert( $condition, $message ): void {
 
 $option_names = array();
 $originals    = array();
+
+$legal_schema_option     = 'hse_ecommerce_legal_schema_version';
+$original_legal_schema   = get_option( $legal_schema_option, null );
+$assistant_backup_suffix = '_pre_site_assistant_20261124';
+$assistant_backups       = array();
+foreach ( ContentLocale::supported() as $locale ) {
+	$backup_name                       = LegalPageSettings::option_name( 'privacy', $locale ) . $assistant_backup_suffix;
+	$assistant_backups[ $backup_name ] = get_option( $backup_name, null );
+}
 
 foreach ( LegalPageSettings::PAGE_KEYS as $page_key ) {
 	foreach ( ContentLocale::supported() as $locale ) {
@@ -90,8 +100,62 @@ try {
 	hse_legal_pages_test_assert( in_array( 'withdrawal', LegalPageSettings::PAGE_KEYS, true ), 'The withdrawal form is an editable Legal Page.' );
 	hse_legal_pages_test_assert( false !== strpos( LegalPageRestController::REST_ROUTE, 'withdrawal' ), 'The withdrawal form is exposed by the legal REST route.' );
 
+	// Legal migration version 7 adds the site assistant storage notice to the privacy policy.
+	foreach ( array_keys( $assistant_backups ) as $backup_name ) {
+		delete_option( $backup_name );
+	}
+	foreach ( array( 'en', 'sr' ) as $locale ) {
+		update_option(
+			LegalPageSettings::option_name( 'privacy', $locale ),
+			array(
+				'title'          => 'Privacy',
+				'last_updated'   => 'Earlier date',
+				'section_6_body' => '<p>Necessary storage.</p><p>Google Maps.</p>',
+			)
+		);
+	}
+	update_option( $legal_schema_option, 6, false );
+	EcommerceLegalMigration::maybe_migrate();
+
+	$english_privacy = get_option( LegalPageSettings::option_name( 'privacy', 'en' ) );
+	$serbian_privacy = get_option( LegalPageSettings::option_name( 'privacy', 'sr' ) );
+	$english_body    = (string) ( $english_privacy['section_6_body'] ?? '' );
+	$marker_position = strpos( $english_body, 'hse-site-assistant:auto-opened' );
+	hse_legal_pages_test_assert( 7 === (int) get_option( $legal_schema_option ), 'The legal migration records schema version 7.' );
+	hse_legal_pages_test_assert(
+		false !== $marker_position
+			&& strpos( $english_body, 'Necessary storage.' ) < $marker_position
+			&& $marker_position < strpos( $english_body, 'Google Maps.' ),
+		'The assistant notice follows the necessary-storage paragraph.'
+	);
+	hse_legal_pages_test_assert( false !== strpos( $english_body, 'does not use artificial intelligence' ), 'The English assistant notice is added.' );
+	hse_legal_pages_test_assert( false !== strpos( (string) ( $serbian_privacy['section_6_body'] ?? '' ), 'ne koristi veštačku inteligenciju' ), 'The Serbian assistant notice is added.' );
+	hse_legal_pages_test_assert( 'Last updated: 24 November 2026' === ( $english_privacy['last_updated'] ?? null ), 'The English privacy date is updated.' );
+	hse_legal_pages_test_assert( 'Poslednje ažuriranje: 24. novembra 2026.' === ( $serbian_privacy['last_updated'] ?? null ), 'The Serbian privacy date is updated.' );
+	hse_legal_pages_test_assert( 'Privacy' === ( $english_privacy['title'] ?? null ), 'Other privacy fields are preserved.' );
+	$english_backup = get_option( LegalPageSettings::option_name( 'privacy', 'en' ) . $assistant_backup_suffix );
+	hse_legal_pages_test_assert( 'Earlier date' === ( $english_backup['last_updated'] ?? null ), 'The previous privacy text is backed up.' );
+
+	update_option( $legal_schema_option, 6, false );
+	EcommerceLegalMigration::maybe_migrate();
+	$rerun_body = (string) ( get_option( LegalPageSettings::option_name( 'privacy', 'en' ) )['section_6_body'] ?? '' );
+	hse_legal_pages_test_assert( 1 === substr_count( $rerun_body, 'hse-site-assistant:auto-opened' ), 'The assistant notice is added only once.' );
+
 	echo "Legal Page integration checks passed.\n";
 } finally {
+	if ( null === $original_legal_schema ) {
+		delete_option( $legal_schema_option );
+	} else {
+		update_option( $legal_schema_option, $original_legal_schema, false );
+	}
+	foreach ( $assistant_backups as $backup_name => $original_backup ) {
+		if ( null === $original_backup ) {
+			delete_option( $backup_name );
+		} else {
+			update_option( $backup_name, $original_backup, false );
+		}
+	}
+
 	foreach ( $option_names as $option_name ) {
 		if ( null === $originals[ $option_name ] ) {
 			delete_option( $option_name );
