@@ -199,7 +199,7 @@ korak i dobija sopstveni ADR, jer proširuje ADR-014. Detalji su u
 
 Repozitorijumski plugin `hse-headless` je integracioni sloj između WordPressa,
 Astro-a i WooCommerce-a. Aktuelna verzija u repozitorijumu i na produkciji je
-**0.40.0**.
+**0.41.0**.
 
 ### 6.1. Model sadržaja
 
