@@ -4,6 +4,7 @@ import '../styles/global.css';
 import Header from '../components/layout/Header.astro';
 import CookieConsent from '../components/site/CookieConsent.astro';
 import ScrollProgress from '../components/site/ScrollProgress.astro';
+import SiteAssistant from '../components/site/SiteAssistant.astro';
 import SiteFooter from '../components/site/SiteFooter.astro';
 import { localeMetadata, type Locale } from '../i18n/config';
 import {
@@ -82,6 +83,7 @@ const alternateUrls = {
 		<Header locale={locale} languageAlternates={alternates} />
 		<slot />
 		<SiteFooter locale={locale} />
+		<SiteAssistant locale={locale} />
 		<ScrollProgress locale={locale} />
 		<CookieConsent locale={locale} />
 	</body>

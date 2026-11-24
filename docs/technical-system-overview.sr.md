@@ -164,6 +164,37 @@ Pretraga u headeru radi bez servera:
 Rezultati se prave preko DOM API-ja i `textContent`, nikad kao HTML. Detalji su
 u `docs/architecture/site-search.md`.
 
+### 5.6. Asistent sajta
+
+Plutajući asistent u donjem desnom uglu svake stranice je vodič po pravilima,
+bez veštačke inteligencije, spoljnog servisa i servera:
+
+1. Svaki build pravi statički sadržaj po jeziku: `/assistant.json` i
+   `/sr/assistant.json`. Teme ponovo koriste postojeće odobrene tekstove sajta
+   (pitanja o IGC kursu, obuke, konsalting, opis kompanije, kontakt).
+2. Posetilac bira teme dugmićima ili kuca kratko pitanje. Pitanje se obrađuje u
+   pregledaču: reči se porede sa korenima ključnih reči tema, a do tri stranice
+   sa sajta predlažu se iz indeksa pretrage, bez eksternih resursa. Ako nema
+   poklapanja, asistent nudi kontakt formu, telefon i e-mail.
+3. Linkovi vode samo na objavljene stranice ovog sajta i na telefon i e-mail
+   kompanije. Build pada ako tema sadrži bilo koji drugi link, a pregledač
+   ponovo odbacuje takve linkove.
+4. Ništa od onoga što posetilac ukuca ne napušta pregledač. Kada posetilac
+   otvori ili koristi asistenta, razgovor se čuva samo u `sessionStorage`
+   trenutnog taba, pa se nastavlja posle klika na link i briše se kada se tab
+   zatvori. Na tabletu i desktopu panel se ponovo otvara ako je bio otvoren; na
+   telefonu ostaje zatvoren dok ga posetilac ne otvori.
+5. Asistent se jednom po tabu sam otvori 5 sekundi nakon prikaza stranice (posle
+   izbora kolačića, ne dok posetilac kuca u formu ili dok je tab u pozadini). Ako
+   ga posetilac ne koristi 15 sekundi, sam se zatvori; razgovor koji je
+   posetilac započeo nikad se ne zatvara automatski.
+6. Na telefonu je panel kompaktna kartica iznad dugmeta (najviše 68% visine
+   ekrana), pa vrh stranice ostaje vidljiv.
+
+Sadržaj se za sada menja u repozitorijumu. Uređivanje iz WordPressa je sledeći
+korak i dobija sopstveni ADR, jer proširuje ADR-014. Detalji su u
+`docs/architecture/site-assistant.md`.
+
 ## 6. WordPress CMS i `hse-headless` plugin
 
 Repozitorijumski plugin `hse-headless` je integracioni sloj između WordPressa,

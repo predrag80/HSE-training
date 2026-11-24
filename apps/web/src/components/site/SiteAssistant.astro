@@ -1,0 +1,583 @@
+---
+import './site-assistant.css';
+import { getAssistantUiTranslations } from '../../i18n/assistant-ui';
+import type { Locale } from '../../i18n/config';
+import { getContactFormPath } from '../../i18n/routes';
+import { getAssistantHistoryKey } from '../../lib/assistant/assistant-history';
+import { ASSISTANT_QUERY_MAX_LENGTH, getAssistantContentPath } from '../../lib/assistant/assistant-match';
+import { getSearchIndexPath } from '../../lib/search/search-match';
+
+interface Props {
+	readonly locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = getAssistantUiTranslations(locale).panel;
+const clientCopy = {
+	open: copy.open,
+	close: copy.close,
+	assistantName: copy.assistantName,
+	visitorName: copy.visitorName,
+	loading: copy.loading,
+	unavailable: copy.unavailable,
+	contactForm: copy.contactForm,
+	contactFormHref: getContactFormPath(locale),
+	foundOnSite: copy.foundOnSite,
+	alsoOnSite: copy.alsoOnSite,
+};
+/**
+ * Assistant mark: a speech bubble with a safety shield, so the launcher reads
+ * as a conversation about safety. The bubble is outlined; the shield is filled.
+ */
+const assistantIcon = {
+	bubble: 'M12 4c4.7 0 8.5 3.2 8.5 7.2s-3.8 7.2-8.5 7.2c-1 0-2-.15-2.9-.43L5 19.8l1.1-3.6C4.5 14.9 3.5 13.1 3.5 11.2 3.5 7.2 7.3 4 12 4Z',
+	shield: 'M12 7.6l3.2 1.3v2.4c0 2-1.4 3.6-3.2 4.4-1.8-.8-3.2-2.4-3.2-4.4V8.9L12 7.6Z',
+};
+---
+
+<div
+	class="site-assistant"
+	data-site-assistant
+	data-assistant-content={getAssistantContentPath(locale)}
+	data-assistant-index={getSearchIndexPath(locale)}
+	data-assistant-history={getAssistantHistoryKey(locale)}
+	data-assistant-copy={JSON.stringify(clientCopy)}
+>
+	<section
+		class="site-assistant__panel"
+		id="site-assistant-panel"
+		role="dialog"
+		aria-labelledby="site-assistant-title"
+		aria-describedby="site-assistant-subtitle"
+		tabindex="-1"
+		hidden
+		data-assistant-panel
+	>
+		<header class="site-assistant__header">
+			<span class="site-assistant__avatar" aria-hidden="true">
+				<svg class="site-assistant__icon" viewBox="0 0 24 24">
+					<path class="site-assistant__icon-bubble" d={assistantIcon.bubble}></path>
+					<path class="site-assistant__icon-shield" d={assistantIcon.shield}></path>
+				</svg>
+			</span>
+			<div>
+				<h2 class="site-assistant__title" id="site-assistant-title">{copy.title}</h2>
+				<p class="site-assistant__subtitle" id="site-assistant-subtitle">{copy.subtitle}</p>
+			</div>
+			<button class="site-assistant__close" type="button" aria-label={copy.close} data-assistant-close>
+				<span aria-hidden="true">×</span>
+			</button>
+		</header>
+
+		<div class="site-assistant__log" role="log" aria-labelledby="site-assistant-title" data-assistant-log></div>
+		<div class="site-assistant__choices" role="group" aria-label={copy.choicesLabel} data-assistant-choices></div>
+
+		<form class="site-assistant__form" data-assistant-form>
+			<label class="site-assistant__sr-only" for="site-assistant-input">{copy.inputLabel}</label>
+			<input
+				id="site-assistant-input"
+				name="question"
+				type="text"
+				maxlength={ASSISTANT_QUERY_MAX_LENGTH}
+				autocomplete="off"
+				enterkeyhint="send"
+				placeholder={copy.placeholder}
+				disabled
+				data-assistant-input
+			/>
+			<button type="submit" aria-label={copy.send} disabled data-assistant-send>
+				<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 20.4 21.85 12.5a.55.55 0 0 0 0-1L3.4 3.6a.55.55 0 0 0-.77.62L4.5 11 13 12l-8.5 1-1.87 6.78a.55.55 0 0 0 .77.62Z"></path></svg>
+			</button>
+		</form>
+		<p class="site-assistant__note">{copy.note}</p>
+	</section>
+
+	<button
+		class="site-assistant__launcher"
+		type="button"
+		aria-controls="site-assistant-panel"
+		aria-expanded="false"
+		aria-label={copy.open}
+		data-assistant-launcher
+	>
+		<svg class="site-assistant__launcher-open site-assistant__icon" viewBox="0 0 24 24" aria-hidden="true">
+			<path class="site-assistant__icon-bubble" d={assistantIcon.bubble}></path>
+			<path class="site-assistant__icon-shield" d={assistantIcon.shield}></path>
+		</svg>
+		<svg class="site-assistant__launcher-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4Z"></path></svg>
+	</button>
+</div>
+
+<script>
+	import {
+		ASSISTANT_AUTO_OPENED_KEY,
+		ASSISTANT_HISTORY_MAX_MESSAGES,
+		parseAssistantHistory,
+		type AssistantHistory,
+		type AssistantMessage,
+	} from '../../lib/assistant/assistant-history';
+	import {
+		ASSISTANT_FALLBACK_TOPIC_ID,
+		ASSISTANT_START_TOPIC_ID,
+		ASSISTANT_VISIBLE_MATCH_SCORE,
+		findAssistantPages,
+		findAssistantTopic,
+		parseAssistantContent,
+		tokenizeAssistantQuery,
+		type AssistantContent,
+		type AssistantLink,
+		type AssistantTopic,
+	} from '../../lib/assistant/assistant-match';
+	import { parseSearchIndex, type SearchEntry } from '../../lib/search/search-match';
+
+	interface AssistantCopy {
+		readonly open: string;
+		readonly close: string;
+		readonly assistantName: string;
+		readonly visitorName: string;
+		readonly loading: string;
+		readonly unavailable: string;
+		readonly contactForm: string;
+		readonly contactFormHref: string;
+		readonly foundOnSite: string;
+		readonly alsoOnSite: string;
+	}
+
+	/** Below this width the open panel covers most of the page, so it is not reopened on arrival. */
+	const SIDE_PANEL_QUERY = '(min-width: 36rem)';
+	/** The assistant opens by itself once per tab, this long after a page is shown. */
+	const AUTO_OPEN_DELAY_MS = 5000;
+	/** A panel that opened by itself closes again if the visitor does not use it for this long. */
+	const AUTO_CLOSE_IDLE_MS = 15000;
+
+	async function requestJson(url: string): Promise<unknown> {
+		const response = await fetch(url, { headers: { Accept: 'application/json' } });
+		if (!response.ok) throw new Error(`Assistant request for ${url} failed with HTTP ${response.status}.`);
+		return response.json() as Promise<unknown>;
+	}
+
+	/** The conversation of this tab, or null when there is none or storage is unavailable. */
+	function readHistory(key: string): AssistantHistory | null {
+		try {
+			const stored = window.sessionStorage.getItem(key);
+			return stored ? parseAssistantHistory(JSON.parse(stored)) : null;
+		} catch {
+			// Storage is disabled or holds unreadable data: start a new conversation.
+			return null;
+		}
+	}
+
+	/** Keep the conversation for the next page in this tab; returns false when storage is unavailable. */
+	function writeHistory(key: string, history: AssistantHistory): boolean {
+		try {
+			window.sessionStorage.setItem(key, JSON.stringify(history));
+			return true;
+		} catch {
+			// Storage is disabled or full: the assistant still works on this page,
+			// but the conversation is not carried to the next one.
+			return false;
+		}
+	}
+
+	/** True when the assistant already opened by itself in this tab, or when that cannot be recorded. */
+	function hasAutoOpened(): boolean {
+		try {
+			return window.sessionStorage.getItem(ASSISTANT_AUTO_OPENED_KEY) !== null;
+		} catch {
+			// Without storage the flag cannot be kept, and opening on every page would be intrusive.
+			return true;
+		}
+	}
+
+	function recordAutoOpened(): boolean {
+		try {
+			window.sessionStorage.setItem(ASSISTANT_AUTO_OPENED_KEY, '1');
+			return true;
+		} catch {
+			// Storage is disabled: hasAutoOpened() already prevents automatic opening.
+			return false;
+		}
+	}
+
+	/** Another overlay or the visitor's typing takes priority over opening the assistant. */
+	function isVisitorBusy(root: HTMLElement): boolean {
+		const active = document.activeElement;
+		const isTyping = active instanceof HTMLElement
+			&& !root.contains(active)
+			&& (active.matches('input, textarea, select') || active.isContentEditable);
+
+		return isTyping || document.querySelector('dialog[open]') !== null;
+	}
+
+	function pageLinks(entries: readonly SearchEntry[]): AssistantLink[] {
+		return entries.map((entry) => ({ label: entry.title, href: entry.url, kind: 'page' }));
+	}
+
+	const root = document.querySelector<HTMLElement>('[data-site-assistant]');
+	const panel = root?.querySelector<HTMLElement>('[data-assistant-panel]');
+	const launcher = root?.querySelector<HTMLButtonElement>('[data-assistant-launcher]');
+	const closeButton = root?.querySelector<HTMLButtonElement>('[data-assistant-close]');
+	const log = root?.querySelector<HTMLElement>('[data-assistant-log]');
+	const choices = root?.querySelector<HTMLElement>('[data-assistant-choices]');
+	const form = root?.querySelector<HTMLFormElement>('[data-assistant-form]');
+	const input = root?.querySelector<HTMLInputElement>('[data-assistant-input]');
+	const sendButton = root?.querySelector<HTMLButtonElement>('[data-assistant-send]');
+	const contentUrl = root?.dataset.assistantContent;
+	const indexUrl = root?.dataset.assistantIndex;
+	const historyKey = root?.dataset.assistantHistory;
+
+	if (
+		root && panel && launcher && closeButton && log && choices && form && input && sendButton
+		&& contentUrl && indexUrl && historyKey
+	) {
+		const copy = JSON.parse(root.dataset.assistantCopy ?? '{}') as AssistantCopy;
+		const saved = readHistory(historyKey);
+		const messages: AssistantMessage[] = saved ? [...saved.messages] : [];
+		let topicId = saved?.topicId ?? ASSISTANT_START_TOPIC_ID;
+		let content: AssistantContent | undefined;
+		let contentRequest: Promise<AssistantContent> | undefined;
+		let indexRequest: Promise<SearchEntry[]> | undefined;
+		let isRendered = false;
+		let isAnswering = false;
+		/**
+		 * The conversation is stored only after the visitor opens the assistant or
+		 * uses it; a panel that opened by itself and was ignored leaves nothing behind.
+		 */
+		let isEngaged = saved !== null;
+		let isAutoOpened = false;
+		let autoOpenTimer: number | undefined;
+		let autoCloseTimer: number | undefined;
+
+		const persist = () => isEngaged && writeHistory(historyKey, { open: !panel.hidden, topicId, messages });
+
+		const loadContent = (): Promise<AssistantContent> => {
+			contentRequest ??= requestJson(contentUrl)
+				.then((value) => {
+					const parsed = parseAssistantContent(value);
+					if (!parsed) throw new Error('Assistant content failed validation.');
+					return parsed;
+				})
+				.catch((error: unknown) => {
+					contentRequest = undefined;
+					throw error;
+				});
+
+			return contentRequest;
+		};
+
+		const loadIndex = (): Promise<SearchEntry[]> => {
+			indexRequest ??= requestJson(indexUrl)
+				.then(parseSearchIndex)
+				.catch((error: unknown) => {
+					indexRequest = undefined;
+					throw error;
+				});
+
+			return indexRequest;
+		};
+
+		const getTopic = (id: string): AssistantTopic | undefined => content?.topics.find((topic) => topic.id === id);
+
+		/** Draw one message with DOM APIs and textContent only. */
+		const renderMessage = (message: AssistantMessage): HTMLElement => {
+			const element = document.createElement('div');
+			element.className = `site-assistant__message site-assistant__message--${message.sender}`;
+			const name = document.createElement('span');
+			name.className = 'site-assistant__sr-only';
+			name.textContent = `${message.sender === 'assistant' ? copy.assistantName : copy.visitorName}: `;
+			element.append(name);
+
+			for (const block of message.blocks) {
+				if ('text' in block) {
+					const paragraph = document.createElement('p');
+					paragraph.textContent = block.text;
+					element.append(paragraph);
+					continue;
+				}
+
+				const list = document.createElement('ul');
+				list.className = 'site-assistant__links';
+				for (const { label, href } of block.links) {
+					const item = document.createElement('li');
+					const link = document.createElement('a');
+					link.href = href;
+					link.textContent = label;
+					item.append(link);
+					list.append(item);
+				}
+				element.append(list);
+			}
+
+			log.append(element);
+			while (log.childElementCount > ASSISTANT_HISTORY_MAX_MESSAGES) log.firstElementChild?.remove();
+			return element;
+		};
+
+		/** Scroll a new message into view; an answer may be taller than the log, so show its start. */
+		const revealMessage = (element: HTMLElement) => {
+			const offset = element.getBoundingClientRect().top - log.getBoundingClientRect().top;
+			log.scrollTop += element.classList.contains('site-assistant__message--assistant') ? offset - 12 : log.scrollHeight;
+		};
+
+		/** Add a message to the conversation that is kept for the next page. */
+		const addMessage = (message: AssistantMessage) => {
+			messages.push(message);
+			messages.splice(0, Math.max(0, messages.length - ASSISTANT_HISTORY_MAX_MESSAGES));
+			revealMessage(renderMessage(message));
+			persist();
+		};
+
+		/** Show a status message that is not part of the kept conversation. */
+		const showStatus = (message: AssistantMessage): HTMLElement => {
+			const element = renderMessage(message);
+			revealMessage(element);
+			return element;
+		};
+
+		const setInputEnabled = (enabled: boolean) => {
+			input.disabled = !enabled;
+			sendButton.disabled = !enabled;
+		};
+
+		const showChoices = (topic: AssistantTopic) => {
+			topicId = topic.id;
+			persist();
+
+			const startTopic = getTopic(ASSISTANT_START_TOPIC_ID);
+			const nextTopics = topic.next
+				.map(getTopic)
+				.filter((item): item is AssistantTopic => item !== undefined);
+			if (topic.id !== ASSISTANT_START_TOPIC_ID && startTopic) nextTopics.push(startTopic);
+
+			choices.replaceChildren(...nextTopics.map((item) => {
+				const button = document.createElement('button');
+				button.type = 'button';
+				button.className = item.id === ASSISTANT_START_TOPIC_ID
+					? 'site-assistant__choice site-assistant__choice--restart'
+					: 'site-assistant__choice';
+				button.textContent = item.prompt;
+				button.dataset.topicId = item.id;
+				return button;
+			}));
+		};
+
+		const showTopic = (topic: AssistantTopic, pages: readonly SearchEntry[] = []) => {
+			const blocks: AssistantMessage['blocks'][number][] = topic.answer.map((text) => ({ text }));
+			if (topic.links.length > 0) blocks.push({ links: topic.links });
+
+			const linkedPaths = new Set(topic.links.map((link) => link.href));
+			const extraPages = pages.filter((entry) => !linkedPaths.has(entry.url));
+			if (extraPages.length > 0) blocks.push({ text: copy.alsoOnSite }, { links: pageLinks(extraPages) });
+
+			addMessage({ sender: 'assistant', blocks });
+			showChoices(topic);
+		};
+
+		const showPages = (pages: readonly SearchEntry[]) => {
+			addMessage({ sender: 'assistant', blocks: [{ text: copy.foundOnSite }, { links: pageLinks(pages) }] });
+			const startTopic = getTopic(ASSISTANT_START_TOPIC_ID);
+			if (startTopic) showChoices(startTopic);
+		};
+
+		const startConversation = () => {
+			if (content || log.dataset.loading !== undefined) return;
+
+			if (!isRendered) {
+				isRendered = true;
+				messages.forEach(renderMessage);
+				log.scrollTop = log.scrollHeight;
+			}
+
+			const isRestored = messages.length > 0;
+			log.dataset.loading = '';
+			const loading = isRestored ? undefined : showStatus({ sender: 'assistant', blocks: [{ text: copy.loading }] });
+			loadContent()
+				.then((loaded) => {
+					content = loaded;
+					loading?.remove();
+					const startTopic = getTopic(ASSISTANT_START_TOPIC_ID);
+					const lastTopic = getTopic(topicId) ?? startTopic;
+					if (isRestored && lastTopic) {
+						showChoices(lastTopic);
+						// The choices shortened the log; keep the latest message in view.
+						log.scrollTop = log.scrollHeight;
+					} else if (startTopic) {
+						showTopic(startTopic);
+					}
+					setInputEnabled(true);
+				})
+				.catch(() => {
+					loading?.remove();
+					showStatus({
+						sender: 'assistant',
+						blocks: [
+							{ text: copy.unavailable },
+							{ links: [{ label: copy.contactForm, href: copy.contactFormHref, kind: 'page' }] },
+						],
+					});
+				})
+				.finally(() => {
+					delete log.dataset.loading;
+				});
+		};
+
+		const engage = () => {
+			if (isEngaged) return;
+			isEngaged = true;
+			persist();
+		};
+
+		const stopAutoClose = () => {
+			window.clearTimeout(autoCloseTimer);
+			autoCloseTimer = undefined;
+		};
+
+		/** Any use of the panel keeps it open for good. */
+		const cancelAutoClose = () => {
+			isAutoOpened = false;
+			stopAutoClose();
+		};
+
+		/** `moveFocus` is false when the panel opens without a click, so page focus order is kept. */
+		const openAssistant = (moveFocus: boolean) => {
+			window.clearTimeout(autoOpenTimer);
+			panel.hidden = false;
+			launcher.setAttribute('aria-expanded', 'true');
+			launcher.setAttribute('aria-label', copy.close);
+			if (moveFocus) panel.focus();
+			startConversation();
+			persist();
+		};
+
+		/** `restoreFocus` is false when the panel closes by itself, so focus is not moved. */
+		const closeAssistant = (restoreFocus: boolean) => {
+			cancelAutoClose();
+			panel.hidden = true;
+			launcher.setAttribute('aria-expanded', 'false');
+			launcher.setAttribute('aria-label', copy.open);
+			if (restoreFocus) launcher.focus();
+			persist();
+		};
+
+		const scheduleAutoClose = () => {
+			stopAutoClose();
+			if (!isAutoOpened || panel.hidden || document.hidden) return;
+
+			autoCloseTimer = window.setTimeout(() => closeAssistant(false), AUTO_CLOSE_IDLE_MS);
+		};
+
+		const tryAutoOpen = () => {
+			if (!panel.hidden || isEngaged || hasAutoOpened()) return;
+
+			// Wait for the cookie choice; the assistant opens after it is made.
+			const consent = document.querySelector<HTMLElement>('[data-cookie-consent]');
+			if (consent && !consent.hidden) {
+				const observer = new MutationObserver(() => {
+					if (!consent.hidden) return;
+					observer.disconnect();
+					scheduleAutoOpen();
+				});
+				observer.observe(consent, { attributes: true, attributeFilter: ['hidden'] });
+				return;
+			}
+
+			// Busy visitors are not interrupted; the next page tries again.
+			if (isVisitorBusy(root) || !recordAutoOpened()) return;
+
+			isAutoOpened = true;
+			openAssistant(false);
+			scheduleAutoClose();
+		};
+
+		function scheduleAutoOpen() {
+			window.clearTimeout(autoOpenTimer);
+			if (document.hidden) return;
+
+			autoOpenTimer = window.setTimeout(tryAutoOpen, AUTO_OPEN_DELAY_MS);
+		}
+
+		// Timers count only while the page is visible.
+		document.addEventListener('visibilitychange', () => {
+			if (document.hidden) {
+				window.clearTimeout(autoOpenTimer);
+				stopAutoClose();
+				return;
+			}
+			if (panel.hidden && !isEngaged && !hasAutoOpened()) scheduleAutoOpen();
+			scheduleAutoClose();
+		});
+
+		// Reading with the pointer over the panel pauses the countdown; any other use cancels it.
+		panel.addEventListener('pointerenter', stopAutoClose);
+		panel.addEventListener('pointerleave', scheduleAutoClose);
+		for (const type of ['pointerdown', 'keydown', 'wheel', 'touchstart', 'focusin']) {
+			root.addEventListener(type, cancelAutoClose, { passive: true });
+		}
+
+		launcher.addEventListener('click', () => {
+			if (!panel.hidden) {
+				closeAssistant(true);
+				return;
+			}
+			recordAutoOpened();
+			engage();
+			openAssistant(true);
+		});
+		closeButton.addEventListener('click', () => closeAssistant(true));
+		root.addEventListener('keydown', (event) => {
+			if (event.key !== 'Escape' || panel.hidden) return;
+			event.preventDefault();
+			closeAssistant(true);
+		});
+
+		choices.addEventListener('click', (event) => {
+			const button = (event.target as Element).closest<HTMLButtonElement>('button[data-topic-id]');
+			const topic = button?.dataset.topicId ? getTopic(button.dataset.topicId) : undefined;
+			if (!topic) return;
+
+			engage();
+			addMessage({ sender: 'visitor', blocks: [{ text: topic.prompt }] });
+			showTopic(topic);
+			// The chosen button was replaced; keep keyboard focus inside the panel.
+			choices.querySelector<HTMLButtonElement>('button')?.focus();
+		});
+
+		form.addEventListener('submit', (event) => {
+			event.preventDefault();
+			const question = input.value.trim();
+			if (!content || isAnswering || !question) return;
+
+			isAnswering = true;
+			engage();
+			input.value = '';
+			addMessage({ sender: 'visitor', blocks: [{ text: question }] });
+
+			const tokens = tokenizeAssistantQuery(question);
+			const topic = findAssistantTopic(content.topics, tokens);
+			// Page suggestions are optional: without the search index the visitor
+			// still receives the matched topic or the contact fallback.
+			const pages = tokens.length > 0
+				? loadIndex().then(
+					(entries) => findAssistantPages(entries, tokens, topic ? ASSISTANT_VISIBLE_MATCH_SCORE : 1),
+					() => [] as SearchEntry[],
+				)
+				: Promise.resolve([] as SearchEntry[]);
+
+			pages
+				.then((found) => {
+					const fallback = getTopic(ASSISTANT_FALLBACK_TOPIC_ID);
+					if (topic) showTopic(topic, found);
+					else if (found.length > 0) showPages(found);
+					else if (fallback) showTopic(fallback);
+				})
+				.finally(() => {
+					isAnswering = false;
+				});
+		});
+
+		// Continue the conversation after the visitor followed a link with the panel open;
+		// otherwise offer the assistant once per tab.
+		if (saved?.open && window.matchMedia(SIDE_PANEL_QUERY).matches) openAssistant(false);
+		else if (!isEngaged && !hasAutoOpened()) scheduleAutoOpen();
+	}
+</script>
